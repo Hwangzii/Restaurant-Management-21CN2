@@ -1,0 +1,2 @@
+models/     # các dịch vụ tương tác API, xử lý logic
+    |---message.dart
