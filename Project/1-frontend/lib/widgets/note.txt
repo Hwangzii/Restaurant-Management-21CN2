@@ -1,2 +1,0 @@
-widgets/    # Các widgets tái sử dụng trong ứng dụng
-    |---chat_bubble.dart

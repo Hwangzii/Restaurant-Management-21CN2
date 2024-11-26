@@ -1,0 +1,13 @@
+services/       # các dịch vụ tương tác API, xử lý logic
+    |--- api_service.dart
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+frontend/lib/services:
+    - Tại sao cần: Các dịch vụ giúp phân tách logic 
+    xử lý API ra khỏi UI, giúp mã sạch hơn và 
+    dễ hiểu hơn.
+    - Nếu không có: Bạn sẽ phải thực hiện gọi API 
+    trực tiếp trong các màn hình, làm cho mã không 
+    tách bạch và phức tạp hơn. Điều này làm tăng độ 
+    khó khi debug và bảo trì.

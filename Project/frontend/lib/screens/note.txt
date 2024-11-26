@@ -1,0 +1,15 @@
+screens/    # chứa các màn hình của ứng dụng
+    |---home_page.dart
+    |---login_page.dart
+
+---------------------------------------------------------------------------------------------------
+frontend/lib/screens:
+    -   Tại sao cần: Tổ chức các màn hình riêng biệt 
+    (như trang chủ, trang chi tiết, v.v.) giúp quản lý
+    và phát triển ứng dụng dễ dàng hơn. Mỗi màn hình 
+    đại diện cho một phần của giao diện người dùng.
+
+    -   Nếu không có: Bạn có thể viết toàn bộ UI vào
+    main.dart, nhưng mã sẽ rối rắm và khó bảo trì. 
+    Khi dự án phát triển, việc chỉnh sửa hoặc thêm 
+    tính năng mới sẽ gặp nhiều khó khăn.
