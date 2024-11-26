@@ -1,3 +1,4 @@
+// screens/home_screen.dart
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -5,16 +6,14 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Trang chủ'),
-        ),
-        body: const Center(
-          child: Text(
-            'Trang chủ',
-            style: TextStyle(fontSize: 24),
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Home Screen'),
+      ),
+      body: const Center(
+        child: Text(
+          'Welcome to the Home Screen!',
+          style: TextStyle(fontSize: 24),
         ),
       ),
     );

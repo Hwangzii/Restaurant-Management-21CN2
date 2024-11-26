@@ -19,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
     bool success = await _apiService.login(username, password);
 
     if (success) {
-      // Điều hướng đến màn hình chính nếu đăng nhập thành công
+      // Nếu đăng nhập thành công, chuyển đến màn hình chính
       Navigator.pushReplacementNamed(context, '/home');
     } else {
       // Hiển thị thông báo lỗi nếu đăng nhập thất bại
