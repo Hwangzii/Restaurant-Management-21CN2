@@ -1,3 +1,0 @@
-screens/    # chứa các màn hình của ứng dụng
-    |---home_page.dart
-    |---login_page.dart
