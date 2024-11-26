@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Account
 from .serializers import AccountSerializer
+ 
 
 class AccountListView(APIView):
     def get(self, request):

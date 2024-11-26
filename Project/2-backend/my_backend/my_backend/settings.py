@@ -82,7 +82,7 @@ DATABASES = {
         'NAME': 'RestaurantDB',  # Tên cơ sở dữ liệu
         'USER': '',  # Để trống vì bạn dùng Windows Authentication
         'PASSWORD': '',  # Không cần mật khẩu vì dùng Windows Authentication
-        'HOST': 'DESKTOP-K831HUA',  # Server name của SQL Server
+        'HOST': 'DESKTOP-7515C5T\SQLEXPRESS',  # Server name của SQL Server
         'PORT': '',  # Cổng mặc định (1433) có thể để trống
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',  # Driver ODBC
