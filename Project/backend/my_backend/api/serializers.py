@@ -4,4 +4,4 @@ from .models import Account
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        fields = '__all__'
+        fields = ['id', 'username', 'password','position_id']  # Các trường bạn muốn trả về

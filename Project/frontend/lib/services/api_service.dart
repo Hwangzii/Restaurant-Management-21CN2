@@ -1,9 +1,9 @@
 // services/api_service.dart
-import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = 'https://15ac-2401-d800-70c0-2af5-1419-1ec4-c3a7-30a3.ngrok-free.app/api'; // Cập nhật URL API của bạn
+  final String baseUrl = 'https://a6d6-42-119-95-236.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   Future<bool> login(String username, String password) async {
     final loginUrl = '$baseUrl/login/';  // Đảm bảo rằng URL login chính xác
@@ -11,10 +11,10 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse(loginUrl),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded', // Định dạng content type
-          'Accept': 'application/json', // Chấp nhận dữ liệu trả về dưới dạng JSON
-        },
+        // headers: {
+        //   'Content-Type': 'application/x-www-form-urlencoded', // Định dạng content type
+        //   'Accept': 'application/json', // Chấp nhận dữ liệu trả về dưới dạng JSON
+        // },
         body: {
           'username': username,
           'password': password,

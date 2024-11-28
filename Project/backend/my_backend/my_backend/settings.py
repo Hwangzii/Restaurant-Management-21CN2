@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +26,7 @@ SECRET_KEY = 'django-insecure-&3vq4iioxe%+#%397)cqj=z8lx*s92r5za)7smfej8uwe&q!k!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '15ac-2401-d800-70c0-2af5-1419-1ec4-c3a7-30a3.ngrok-free.app']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'a6d6-42-119-95-236.ngrok-free.app']
 
 
 
@@ -38,7 +39,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework_simplejwt',
     'rest_framework',  # Django Rest Framework
+    'corsheaders',
     'api',  # Ứng dụng API
 ]
 
@@ -50,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'my_backend.urls'
@@ -82,7 +86,7 @@ DATABASES = {
         'NAME': 'RestaurantDB',  # Tên cơ sở dữ liệu
         'USER': '',  # Để trống vì bạn dùng Windows Authentication
         'PASSWORD': '',  # Không cần mật khẩu vì dùng Windows Authentication
-        'HOST': 'DESKTOP-7515C5T\SQLEXPRESS',  # Server name của SQL Server
+        'HOST': 'DESKTOP-K831HUA',  # Server name của SQL Server
         'PORT': '',  # Cổng mặc định (1433) có thể để trống
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',  # Driver ODBC
@@ -121,6 +125,7 @@ USE_I18N = True
 
 USE_TZ = True
 
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -132,3 +137,10 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+}

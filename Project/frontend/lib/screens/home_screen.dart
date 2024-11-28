@@ -1,20 +1,17 @@
-// screens/home_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home Screen'),
-      ),
-      body: const Center(
+      body: Center(
         child: Text(
-          'Welcome to the Home Screen!',
-          style: TextStyle(fontSize: 24),
-        ),
+          'Trang chủ', 
+          style: TextStyle(
+            fontSize: 24
+            )
+          ),
       ),
     );
   }

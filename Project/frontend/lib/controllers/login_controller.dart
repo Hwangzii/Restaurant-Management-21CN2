@@ -1,6 +1,6 @@
 // controllers/login_controller.dart
 import 'package:flutter/material.dart';
-import 'package:app/screens/home_screen.dart';
+import 'package:app/screens/manager_screen.dart';
 import 'package:app/services/api_service.dart'; // Đảm bảo rằng bạn import ApiService
 
 class LoginController {
@@ -19,7 +19,7 @@ class LoginController {
         // Nếu đăng nhập thành công, chuyển đến màn hình Home
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          MaterialPageRoute(builder: (context) => const ManagerScreen()),
         );
       } else {
         // Nếu đăng nhập không thành công, hiển thị thông báo lỗi
