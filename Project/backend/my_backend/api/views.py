@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Account  # Sử dụng model Account thay vì User
+from .models import Account
 from .serializers import AccountSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -36,7 +36,7 @@ class SignupView(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
 
-        # Kiểm tra nếu người dùng đã tồn tại (dùng Account thay vì User)
+        # Kiểm tra nếu người dùng đã tồn tại
         if Account.objects.filter(username=username).exists():
             return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
 
