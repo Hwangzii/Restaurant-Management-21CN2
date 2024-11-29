@@ -32,6 +32,7 @@ dependencies:
     sdk: flutter
   http: ^1.0.0
   font_awesome_flutter: ^10.0.0
+  fluttertoast: ^8.1.1  # Thêm thư viện fluttertoast
 
 
   # The following adds the Cupertino Icons font to your application.
