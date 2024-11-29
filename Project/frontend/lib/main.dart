@@ -1,3 +1,4 @@
+import 'package:app/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:app/screens/enter_otp_screen.dart';
 import 'package:app/screens/manager_screen.dart'; // Đảm bảo bạn import đúng màn hình Manager
@@ -13,7 +14,7 @@ class MyApp extends StatelessWidget {
       title: 'My Flutter App',
       initialRoute: '/',  // Màn hình đầu tiên khi app chạy là EnterOtpScreen
       routes: {
-        '/': (context) => EnterOtpScreen(),  // Đăng ký route cho màn hình EnterOtpScreen
+        '/': (context) => HomeScreen(),  // Đăng ký route cho màn hình EnterOtpScreen
         '/home': (context) => const ManagerScreen(),  // Đăng ký route cho màn hình ManagerScreen
       },
     );

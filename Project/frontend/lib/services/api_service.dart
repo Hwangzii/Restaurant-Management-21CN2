@@ -3,7 +3,7 @@
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = 'https://a6d6-42-119-95-236.ngrok-free.app/api'; // Cập nhật URL API của bạn
+  final String baseUrl = ''; // Cập nhật URL API của bạn
 
   Future<bool> login(String username, String password) async {
     final loginUrl = '$baseUrl/login/';  // Đảm bảo rằng URL login chính xác

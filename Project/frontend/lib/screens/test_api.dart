@@ -13,7 +13,7 @@ class _TestApiScreenState extends State<TestApiScreen> {
 
   // Hàm gọi API và lấy dữ liệu
   Future<void> fetchAccounts() async {
-    final String apiUrl = 'https://0bd8-2405-4802-1d69-82b0-b9c1-51f6-5a8-1275.ngrok-free.app/api/accounts/?format=json';
+    final String apiUrl = '';
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
