@@ -3,10 +3,11 @@
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = 'https://a6d6-42-119-95-236.ngrok-free.app/api'; // Cập nhật URL API của bạn
+  final String baseUrl =
+      'https://3225-2001-ee0-40c1-3b88-d4b3-4040-1ef8-4a26.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   Future<bool> login(String username, String password) async {
-    final loginUrl = '$baseUrl/login/';  // Đảm bảo rằng URL login chính xác
+    final loginUrl = '$baseUrl/login/'; // Đảm bảo rằng URL login chính xác
 
     try {
       final response = await http.post(
@@ -30,7 +31,7 @@ class ApiService {
       }
     } catch (e) {
       print('Lỗi khi gọi API: $e');
-      return false;  // Nếu có lỗi kết nối hoặc lỗi gì đó, trả về false
+      return false; // Nếu có lỗi kết nối hoặc lỗi gì đó, trả về false
     }
   }
 }

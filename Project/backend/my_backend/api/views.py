@@ -1,10 +1,12 @@
-from django.contrib.auth import authenticate
+import pyotp
+import secrets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Account
 from .serializers import AccountSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+
 
 # Tạo token cho người dùng (JWT)
 def get_tokens_for_user(account):
@@ -14,20 +16,83 @@ def get_tokens_for_user(account):
         'access': str(refresh.access_token),
     }
 
-# View để đăng nhập người dùng
+
+# Tạo OTP từ mã bí mật
+def generate_otp(secret_key):
+    totp = pyotp.TOTP(secret_key)
+    return totp.now()  # Tạo OTP hiện tại
+
+
+# Xác minh OTP
+def verify_otp(secret_key, otp):
+    totp = pyotp.TOTP(secret_key)
+    return totp.verify(otp)  # Kiểm tra OTP
+
+
+# View để đăng nhập và tạo mã QR
 class LoginView(APIView):
     def post(self, request):
-        # Nhận username và password từ body request
         username = request.data.get('username')
         password = request.data.get('password')
 
-        # Kiểm tra thông tin đăng nhập (dùng Account thay vì User)
         try:
-            account = Account.objects.get(username=username, password=password)
-            tokens = get_tokens_for_user(account)
-            return Response({'message': 'Login successful', 'tokens': tokens}, status=status.HTTP_200_OK)
+            # Kiểm tra thông tin đăng nhập (kiểm tra username và password)
+            account = Account.objects.get(username=username)
+
+            # Kiểm tra mật khẩu người dùng
+            if password != account.password:
+                return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Nếu người dùng chưa kích hoạt 2FA (chưa có mã bí mật)
+            if not account.is_2fa_enabled:
+                # Tạo mã bí mật và lưu vào cơ sở dữ liệu
+                if not account.key:
+                    account.key = secrets.token_hex(16)  # Tạo mã bí mật mới
+                    account.save()
+
+                # Tạo mã QR cho Google Authenticator
+                totp = pyotp.TOTP(account.key)
+                qr_code_url = totp.provisioning_uri(username, issuer_name="YourAppName")  # URL mã QR
+
+                return Response({
+                    'message': 'Login successful, scan the QR code to set up 2FA',
+                    'qr_code_url': qr_code_url  # Trả mã QR để người dùng quét
+                }, status=status.HTTP_200_OK)
+            
+            else:
+                # Nếu người dùng đã kích hoạt 2FA, yêu cầu nhập OTP
+                return Response({
+                    'message': '2FA already enabled, please enter OTP to login'
+                }, status=status.HTTP_200_OK)
+
         except Account.DoesNotExist:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# View để xác thực OTP và cấp JWT token
+class VerifyOTPView(APIView):
+    def post(self, request):
+        username = request.data.get('username')
+        otp = request.data.get('otp')
+
+        try:
+            account = Account.objects.get(username=username)
+
+            # Xác thực OTP với mã bí mật của người dùng
+            if verify_otp(account.key, otp):
+                # Sau khi xác thực OTP, cấp JWT token cho người dùng
+                tokens = get_tokens_for_user(account)
+                return Response({
+                    'message': 'OTP verified successfully',
+                    'tokens': tokens
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Account.DoesNotExist:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 # View để tạo tài khoản mới (Signup)
 class SignupView(APIView):
