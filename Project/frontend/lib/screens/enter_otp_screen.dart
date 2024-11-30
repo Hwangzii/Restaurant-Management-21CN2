@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';  // Để hiển thị thông báo
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:app/services/api_service.dart';
+import 'package:qr_flutter/qr_flutter.dart'; // Đảm bảo import ApiService
 
 class EnterOtpScreen extends StatefulWidget {
+  final String qrCodeUrl;
+  final String username; // Thêm trường username
+
+  const EnterOtpScreen(
+      {Key? key, required this.qrCodeUrl, required this.username})
+      : super(key: key);
+
   @override
   _EnterOtpScreenState createState() => _EnterOtpScreenState();
 }
 
 class _EnterOtpScreenState extends State<EnterOtpScreen> {
-  // Controller cho các ô nhập OTP
   final TextEditingController _otpController1 = TextEditingController();
   final TextEditingController _otpController2 = TextEditingController();
   final TextEditingController _otpController3 = TextEditingController();
@@ -15,8 +23,27 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
   final TextEditingController _otpController5 = TextEditingController();
   final TextEditingController _otpController6 = TextEditingController();
 
-  // Hàm để gửi mã OTP
-  void _sendOtp() {
+  final ApiService _apiService = ApiService();
+
+  late FocusNode _focusNode1,
+      _focusNode2,
+      _focusNode3,
+      _focusNode4,
+      _focusNode5,
+      _focusNode6;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode1 = FocusNode();
+    _focusNode2 = FocusNode();
+    _focusNode3 = FocusNode();
+    _focusNode4 = FocusNode();
+    _focusNode5 = FocusNode();
+    _focusNode6 = FocusNode();
+  }
+
+  void _sendOtp() async {
     String otp = _otpController1.text +
         _otpController2.text +
         _otpController3.text +
@@ -25,94 +52,46 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
         _otpController6.text;
 
     if (otp.length == 6) {
-      // Kiểm tra mã OTP
-      bool isValid = _verifyOtp(otp);
-      if (isValid) {
-        // Hiển thị thông báo đăng nhập thành công
+      // Gọi API xác thực OTP và truyền username
+      final result = await _apiService.verifyOtp(
+          widget.username, otp); // Gửi username và OTP tới API
+
+      if (result['success']) {
         Fluttertoast.showToast(
-          msg: "Bạn đã nhập đúng mã OTP!",
+          msg: "Xác thực OTP thành công",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.CENTER,
         );
-
-        // Chuyển sang màn hình Home
         Navigator.pushReplacementNamed(context, '/home');
       } else {
-        // Nếu OTP sai
         Fluttertoast.showToast(
-          msg: "Mã OTP sai. Vui lòng thử lại.",
+          msg: "Mã OTP không hợp lệ, vui lòng thử lại",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.CENTER,
         );
       }
     } else {
       Fluttertoast.showToast(
-        msg: "Vui lòng nhập đủ 6 chữ số OTP.",
+        msg: "Vui lòng nhập đủ 6 chữ số OTP",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.CENTER,
       );
     }
   }
 
-  // Hàm kiểm tra mã OTP
-  bool _verifyOtp(String otp) {
-    // Kiểm tra mã OTP đã tạo
-    String correctOtp = "NHP";  // Mã OTP đã tạo
-    return otp == correctOtp;
-  }
-
-  // Hàm để tự động chuyển đến ô nhập OTP tiếp theo
-  void _onOtpChanged(String value, TextEditingController currentController, TextEditingController? nextController) {
-    if (value.isNotEmpty) {
-      FocusScope.of(context).requestFocus(FocusNode());  // Ẩn bàn phím
-      if (nextController != null) {
-        FocusScope.of(context).requestFocus(FocusNode());  // Đưa focus vào ô tiếp theo
-        FocusScope.of(context).requestFocus(FocusNode());
-      }
-    }
-  }
-
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Nhập Mã OTP'),
-      ),
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 40.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Tạo 6 ô nhập mã OTP
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildOtpField(_otpController1, _otpController2),
-                _buildOtpField(_otpController2, _otpController3),
-                _buildOtpField(_otpController3, _otpController4),
-                _buildOtpField(_otpController4, _otpController5),
-                _buildOtpField(_otpController5, _otpController6),
-                _buildOtpField(_otpController6, null),  // Không có controller tiếp theo cho ô cuối
-              ],
-            ),
-            SizedBox(height: 20),
-            // Nút Gửi mã
-            ElevatedButton(
-              onPressed: _sendOtp,
-              child: Text('Gửi Mã'),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 50.0, vertical: 15.0),
-                textStyle: TextStyle(fontSize: 18),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  void dispose() {
+    _focusNode1.dispose();
+    _focusNode2.dispose();
+    _focusNode3.dispose();
+    _focusNode4.dispose();
+    _focusNode5.dispose();
+    _focusNode6.dispose();
+    super.dispose();
   }
 
-  // Widget để xây dựng các ô nhập OTP
-  Widget _buildOtpField(TextEditingController currentController, TextEditingController? nextController) {
+  Widget _buildOtpField(TextEditingController currentController,
+      FocusNode currentFocusNode, FocusNode? nextFocusNode) {
     return Container(
       width: 50,
       height: 50,
@@ -123,17 +102,74 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
       ),
       child: TextField(
         controller: currentController,
+        focusNode: currentFocusNode,
         maxLength: 1,
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
         onChanged: (value) {
-          _onOtpChanged(value, currentController, nextController);
+          if (value.isNotEmpty && nextFocusNode != null) {
+            FocusScope.of(context).requestFocus(nextFocusNode);
+          }
+        },
+        onEditingComplete: () {
+          if (nextFocusNode != null) {
+            FocusScope.of(context).requestFocus(nextFocusNode);
+          }
         },
         decoration: InputDecoration(
-          counterText: "", // Ẩn số đếm ký tự
+          counterText: "",
           border: InputBorder.none,
         ),
         style: TextStyle(fontSize: 24),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Nhập mã OTP')),
+      body: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 40.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            widget.qrCodeUrl.isNotEmpty
+                ? Column(
+                    children: [
+                      QrImageView(
+                        data: widget.qrCodeUrl,
+                        version: QrVersions.auto,
+                        size: 300.0,
+                      ),
+                      SizedBox(height: 20),
+                      Text('Quét mã QR trong ứng dụng Google Authenticator'),
+                    ],
+                  )
+                : Container(
+                    padding: EdgeInsets.all(10),
+                    color: Colors.grey[200],
+                    child: Text('Nhập OTP'),
+                  ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildOtpField(_otpController1, _focusNode1, _focusNode2),
+                _buildOtpField(_otpController2, _focusNode2, _focusNode3),
+                _buildOtpField(_otpController3, _focusNode3, _focusNode4),
+                _buildOtpField(_otpController4, _focusNode4, _focusNode5),
+                _buildOtpField(_otpController5, _focusNode5, _focusNode6),
+                _buildOtpField(_otpController6, _focusNode6, null),
+              ],
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _sendOtp,
+              child: Text('Xác thực OTP'),
+            ),
+          ],
+        ),
       ),
     );
   }

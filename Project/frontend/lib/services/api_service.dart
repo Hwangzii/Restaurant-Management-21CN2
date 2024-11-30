@@ -1,21 +1,17 @@
-// lib/services/api_service.dart
-
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ApiService {
   final String baseUrl =
-      'https://3225-2001-ee0-40c1-3b88-d4b3-4040-1ef8-4a26.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://c586-2401-d800-b32f-7fe2-1004-c0fd-1d62-1e4a.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
-  Future<bool> login(String username, String password) async {
-    final loginUrl = '$baseUrl/login/'; // Đảm bảo rằng URL login chính xác
+  // Gửi request đăng nhập
+  Future<Map<String, dynamic>> login(String username, String password) async {
+    final loginUrl = '$baseUrl/login/';
 
     try {
       final response = await http.post(
         Uri.parse(loginUrl),
-        // headers: {
-        //   'Content-Type': 'application/x-www-form-urlencoded', // Định dạng content type
-        //   'Accept': 'application/json', // Chấp nhận dữ liệu trả về dưới dạng JSON
-        // },
         body: {
           'username': username,
           'password': password,
@@ -23,15 +19,40 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        // Kiểm tra nếu đăng nhập thành công (API có thể trả về thông tin về người dùng hoặc token)
-        return true;
+        final data = json.decode(response.body);
+        return {
+          'success': true,
+          'is2faEnabled': data['is_2fa_enabled'], // Check if 2FA is enabled
+          'qrCodeUrl':
+              data['qr_code_url'], // If 2FA enabled, return QR Code URL
+        };
       } else {
-        // Nếu mã trạng thái không phải 200, trả về false
-        return false;
+        return {'success': false};
       }
     } catch (e) {
-      print('Lỗi khi gọi API: $e');
-      return false; // Nếu có lỗi kết nối hoặc lỗi gì đó, trả về false
+      print('Error calling API: $e');
+      return {'success': false};
+    }
+  }
+
+  // Gửi request xác thực OTP
+  Future<Map<String, dynamic>> verifyOtp(String username, String otp) async {
+    final verifyOtpUrl = '$baseUrl/verify_otp/';
+
+    try {
+      final response = await http.post(
+        Uri.parse(verifyOtpUrl),
+        body: {'username': username, 'otp': otp},
+      );
+
+      if (response.statusCode == 200) {
+        return {'success': true};
+      } else {
+        return {'success': false};
+      }
+    } catch (e) {
+      print('Error verifying OTP: $e');
+      return {'success': false};
     }
   }
 }

@@ -1,6 +1,7 @@
-// screens/login_screen.dart
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import 'package:app/screens/enter_otp_screen.dart'; // Màn hình nhập OTP
+import 'package:app/screens/manager_screen.dart'; // Màn hình chính sau khi đăng nhập
+import 'package:app/services/api_service.dart'; // Dịch vụ gọi API
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -10,21 +11,65 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final ApiService _apiService = ApiService();
 
-  void _login() async {
-    String username = _usernameController.text;
-    String password = _passwordController.text;
+  bool _isLoading = false;
 
-    bool success = await _apiService.login(username, password);
+  Future<void> _handleLogin() async {
+    String username = _usernameController.text.trim();
+    String password = _passwordController.text.trim();
 
-    if (success) {
-      // Nếu đăng nhập thành công, chuyển đến màn hình chính
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      // Hiển thị thông báo lỗi nếu đăng nhập thất bại
+    if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login failed! Please try again.')),
+        SnackBar(content: Text('Vui lòng nhập tài khoản và mật khẩu')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final loginResult = await ApiService().login(username, password);
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (loginResult['success']) {
+        if (loginResult['qrCodeUrl'] != null) {
+          // Nếu có QR code (người dùng chưa bật 2FA)
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EnterOtpScreen(
+                qrCodeUrl: loginResult['qrCodeUrl'], // Chuyển QR code
+                username: username, // Truyền username
+              ),
+            ),
+          );
+        } else {
+          // Nếu có QR code (người dùng chưa bật 2FA)
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EnterOtpScreen(
+                qrCodeUrl: '', // Chuyển QR code
+                username: username, // Truyền username
+              ),
+            ),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Tài khoản hoặc mật khẩu không đúng')),
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Đã xảy ra lỗi, vui lòng thử lại')),
       );
     }
   }
@@ -32,25 +77,26 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Login')),
+      appBar: AppBar(title: Text('Đăng nhập')),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
               controller: _usernameController,
-              decoration: InputDecoration(labelText: 'Username'),
+              decoration: InputDecoration(labelText: 'Tên đăng nhập'),
             ),
             TextField(
               controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Password'),
               obscureText: true,
+              decoration: InputDecoration(labelText: 'Mật khẩu'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _login,
-              child: Text('Login'),
+              onPressed: _isLoading ? null : _handleLogin,
+              child:
+                  _isLoading ? CircularProgressIndicator() : Text('Đăng nhập'),
             ),
           ],
         ),
