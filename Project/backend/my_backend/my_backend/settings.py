@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-&3vq4iioxe%+#%397)cqj=z8lx*s92r5za)7smfej8uwe&q!k!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'c586-2401-d800-b32f-7fe2-1004-c0fd-1d62-1e4a.ngrok-free.app']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '8ca6-14-232-147-119.ngrok-free.app']
 
 
 
@@ -138,6 +138,12 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',  # Chỉ trả về JSON
+    ],
+}
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),

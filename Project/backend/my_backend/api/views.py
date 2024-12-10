@@ -1,10 +1,12 @@
 import pyotp
 import secrets
+from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Account
-from .serializers import AccountSerializer
+from .models import Account, Floors, MenuItem, Tables
+from .serializers import AccountSerializer, FloorSerializer, MenuItemSerializer, TableSerializer
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 
 # Tạo token cho người dùng (JWT)
@@ -128,3 +130,61 @@ class AccountListView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# API lấy danh sách món ăn và thêm món ăn mới
+class MenuItemList(APIView):
+    def get(self, request):
+        menu_items = MenuItem.objects.all()
+        serializer = MenuItemSerializer(menu_items, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = MenuItemSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+# API lấy thông tin chi tiết, cập nhật và xóa món ăn
+class MenuItemDetail(APIView):
+    def get_object(self, pk):
+        try:
+            return MenuItem.objects.get(pk=pk)
+        except MenuItem.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        menu_item = self.get_object(pk)
+        if not menu_item:
+            return Response({'error': 'Menu item not found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = MenuItemSerializer(menu_item)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        menu_item = self.get_object(pk)
+        if not menu_item:
+            return Response({'error': 'Menu item not found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = MenuItemSerializer(menu_item, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        menu_item = self.get_object(pk)
+        if not menu_item:
+            return Response({'error': 'Menu item not found'}, status=status.HTTP_404_NOT_FOUND)
+        menu_item.delete()
+        return Response({'message': 'Menu item deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+    
+# ViewSet cho Floors
+class FloorViewSet(viewsets.ModelViewSet):
+    queryset = Floors.objects.all()
+    serializer_class = FloorSerializer
+    # permission_classes = [IsAuthenticated]
+
+# ViewSet cho Tables
+class TableViewSet(viewsets.ModelViewSet):
+    queryset = Tables.objects.all()
+    serializer_class = TableSerializer
+    # permission_classes = [IsAuthenticated]

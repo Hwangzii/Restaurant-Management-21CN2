@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:app/screens/enter_otp_screen.dart'; // Màn hình nhập OTP
-import 'package:app/screens/manager_screen.dart'; // Màn hình chính sau khi đăng nhập
 import 'package:app/services/api_service.dart'; // Dịch vụ gọi API
 
 class LoginScreen extends StatefulWidget {

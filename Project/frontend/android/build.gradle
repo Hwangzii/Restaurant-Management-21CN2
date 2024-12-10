@@ -1,17 +1,14 @@
+// android/build.gradle (Project-level)
 buildscript {
-    ext.kotlin_version = '1.8.0'
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath "org.jetbrains.kotlin:-gradle-plugin:$kotlin_version"
-        classpath 'com.google.gms:google-services:4.4.2'
-
+        // Cập nhật phiên bản AGP phù hợp với Gradle 7.x
+        classpath 'com.android.tools.build:gradle:8.0.1'  // Hoặc phiên bản tương thích khác
     }
-    }
-
-
+}
 allprojects {
     repositories {
         google()

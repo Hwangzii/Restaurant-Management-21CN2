@@ -3,7 +3,7 @@ import 'dart:convert';
 
 class ApiService {
   final String baseUrl =
-      'https://c586-2401-d800-b32f-7fe2-1004-c0fd-1d62-1e4a.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://8ca6-14-232-147-119.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   // Gửi request đăng nhập
   Future<Map<String, dynamic>> login(String username, String password) async {
