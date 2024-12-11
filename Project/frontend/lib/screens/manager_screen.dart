@@ -1,6 +1,8 @@
+// import 'package:app/file_test/test_home.dart';
 import 'package:app/screens/history_screen.dart';
 import 'package:app/screens/home_screen.dart';
 import 'package:app/screens/order_screen.dart';
+import 'package:app/screens/tables_screen.dart';
 import 'package:app/screens/warehouse_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -8,17 +10,17 @@ class ManagerScreen extends StatefulWidget {
   const ManagerScreen({Key? key}) : super(key: key);
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  _ManagerScreenState createState() => _ManagerScreenState();
 }
 
-class _HomeScreenState extends State<ManagerScreen> {
+class _ManagerScreenState extends State<ManagerScreen> {
   int _selectedIndex = 0;
 
   // Danh sách các widget màn hình tương ứng cho từng mục trong BottomNavigationBar
   static final List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
-    HistoryScreen(),
     OrderScreen(),
+    HistoryScreen(),
     WarehouseScreen(),
   ];
 
@@ -33,44 +35,55 @@ class _HomeScreenState extends State<ManagerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _widgetOptions.elementAt(_selectedIndex),
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(
-            icon: Image.asset(
-              _selectedIndex == 0 ? 'assets/home_1.png' : 'assets/home_2.png',
-              width: 25, height: 25,
-            ), // Đặt đường dẫn hình ảnh tại đây
-            label: 'Trang chủ',
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset(
-              _selectedIndex == 1 ? 'assets/history_1.png' : 'assets/history_2.png',
-              width: 25, height: 25,
+      bottomNavigationBar: BottomAppBar(
+        shape: CircularNotchedRectangle(), // Tạo khoảng trống cho nút nổi bật
+        notchMargin: 10.0, // Khoảng cách giữa nút và BottomAppBar
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround, // Chia đều các icon
+          children: [
+            IconButton(
+              icon: Image.asset(
+                _selectedIndex == 0 ? 'assets/home_1.png' : 'assets/home_2.png',
+                width: 22, height: 22,
+              ),
+              onPressed: () => _onItemTapped(0),
             ),
-          
-            label: 'Lịch sử',
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset(
-              _selectedIndex == 2 ? 'assets/add_1.png' : 'assets/add_2.png',
-              width: 25, height: 25,
+            IconButton(
+              icon: Image.asset(
+                _selectedIndex == 1 ? 'assets/add_1.png' : 'assets/add_2.png',
+                width: 22, height: 22,
+              ),
+              onPressed: () => _onItemTapped(1),
             ),
-            label: 'Gọi món',
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset(
-              _selectedIndex == 3 ? 'assets/box_1.png' : 'assets/box_2.png',
-              width: 25, height: 25,
+            SizedBox(width: 40), // Khoảng trống cho nút nổi bật
+            IconButton(
+              icon: Image.asset(
+                _selectedIndex == 2 ? 'assets/history_1.png' : 'assets/history_2.png',
+                width: 22, height: 22,
+              ),
+              onPressed: () => _onItemTapped(2),
             ),
-            label: 'Kho hàng',
-          ),
-        ],
-        currentIndex: _selectedIndex, // Chỉ mục hiện tại
-        selectedItemColor: Colors.orange, // Màu cho mục được chọn
-        unselectedItemColor: Colors.grey, // Màu cho mục không được chọn
-        onTap: _onItemTapped, // Xử lý sự kiện khi nhấn vào mục
-        type: BottomNavigationBarType.fixed, // Hiển thị cố định cho 4 mục
+            IconButton(
+              icon: Image.asset(
+                _selectedIndex == 3 ? 'assets/menu_1.png' : 'assets/menu_2.png',
+                width: 22, height: 22,
+              ),
+              onPressed: () => _onItemTapped(3),
+            ),
+          ],
+        ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context)=> TablesScreen()),
+            );
+        },
+        backgroundColor: Colors.orange, // Màu nền nút Add
+        child: Icon(Icons.add, size: 30, color: Colors.white), // Icon của nút Add
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked, // Vị trí nút Add
     );
   }
 }

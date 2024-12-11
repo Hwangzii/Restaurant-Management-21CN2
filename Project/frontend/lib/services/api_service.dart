@@ -3,7 +3,7 @@ import 'dart:convert';
 
 class ApiService {
   final String baseUrl =
-      'https://8ca6-14-232-147-119.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://90c0-2405-4802-1d82-7810-31bc-5166-3e60-936b.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   // Gửi request đăng nhập
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -53,6 +53,54 @@ class ApiService {
     } catch (e) {
       print('Error verifying OTP: $e');
       return {'success': false};
+    }
+  }
+
+  // Hàm lấy dữ liệu bàn từ API
+  Future<List<Map<String, dynamic>>> fetchTables() async {
+    final tablesUrl = '$baseUrl/tables/'; // Đường dẫn API lấy danh sách bàn
+
+    try {
+      final response = await http.get(Uri.parse(tablesUrl), headers: {
+        'Accept': 'application/json', // Đảm bảo yêu cầu JSON
+        "ngrok-skip-browser-warning": "69420",
+      });
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to load tables');
+      }
+    } catch (e) {
+      throw Exception('Error fetching tables: $e');
+    }
+  }
+
+  // Hàm cập nhật tên bàn
+  Future<bool> updateTableName(int tableId, String newName) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/tables/$tableId/'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'table_name': newName}),
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Future<bool> deleteTable(int tableId) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/tables/$tableId/'),
+    );
+
+    if (response.statusCode == 204) {
+      return true;
+    } else {
+      return false;
     }
   }
 }

@@ -1,14 +1,3 @@
-// android/build.gradle (Project-level)
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        // Cập nhật phiên bản AGP phù hợp với Gradle 7.x
-        classpath 'com.android.tools.build:gradle:8.0.1'  // Hoặc phiên bản tương thích khác
-    }
-}
 allprojects {
     repositories {
         google()

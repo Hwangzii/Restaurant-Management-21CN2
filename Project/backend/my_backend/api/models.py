@@ -31,7 +31,7 @@ class MenuItem(models.Model):
         return self.item_name
 
 class Floors(models.Model):
-    floor_id = models.CharField(max_length=50, primary_key=True)  # Khóa chính
+    floor_id = models.AutoField(primary_key=True)  # Khóa chính
     floor_name = models.CharField(max_length=100)  # Tên tầng
     restaurant_id = models.CharField(max_length=10)  # ID nhà hàng
 
@@ -42,7 +42,7 @@ class Floors(models.Model):
         return self.floor_name
 
 class Tables(models.Model):
-    table_id = models.CharField(max_length=50, primary_key=True)  # Khóa chính
+    table_id = models.AutoField(primary_key=True)  # Khóa chính
     table_name = models.CharField(max_length=100)  # Tên bàn
     floor = models.ForeignKey(Floors, on_delete=models.CASCADE, related_name='tables')  # Liên kết với Floors
 

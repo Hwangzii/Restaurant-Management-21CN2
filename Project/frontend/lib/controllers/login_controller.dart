@@ -1,11 +1,10 @@
-// lib/controllers/login_controller.dart
-import 'package:flutter/material.dart';
-import 'package:app/screens/enter_otp_screen.dart';
 import 'package:app/services/api_service.dart';
+import 'package:app/screens/enter_otp_screen.dart';
+import 'package:flutter/material.dart';
 
 class LoginController {
-  static Future<void> handleLogin(BuildContext context, String username,
-      String password, Function(bool) setLoading) async {
+  static void handleLogin(
+      BuildContext context, String username, String password) async {
     if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -15,26 +14,12 @@ class LoginController {
       return;
     }
 
-    setLoading(true);
-
     try {
       final loginResult = await ApiService().login(username, password);
-      setLoading(false);
 
-      if (loginResult != null && loginResult['success']) {
-        if (loginResult['is2faEnabled']) {
-          // Nếu người dùng đã bật 2FA, chỉ chuyển đến màn hình OTP (chưa vào Home)
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EnterOtpScreen(
-                qrCodeUrl: '', // Không cần QR code khi đã bật 2FA
-                username: username,
-              ),
-            ),
-          );
-        } else if (loginResult['qrCodeUrl'] != null) {
-          // Nếu chưa bật 2FA, chuyển đến màn hình quét QR code để thiết lập 2FA
+      if (loginResult['success']) {
+        if (loginResult['qrCodeUrl'] != null) {
+          // Nếu có QR code (người dùng chưa bật 2FA)
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -45,24 +30,25 @@ class LoginController {
             ),
           );
         } else {
-          // Nếu không cần 2FA, chuyển đến màn hình chính
-          Navigator.pushReplacementNamed(context, '/home');
+          // Nếu có QR code (người dùng chưa bật 2FA)
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EnterOtpScreen(
+                qrCodeUrl: '', // Chuyển QR code
+                username: username, // Truyền username
+              ),
+            ),
+          );
         }
       } else {
-        // Nếu đăng nhập không thành công, hiển thị thông báo lỗi
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text('Tài khoản hoặc mật khẩu không đúng. Vui lòng thử lại!'),
-          ),
+          SnackBar(content: Text('Tài khoản hoặc mật khẩu không đúng')),
         );
       }
     } catch (e) {
-      setLoading(false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đã có lỗi xảy ra. Vui lòng thử lại sau!'),
-        ),
+        SnackBar(content: Text('Đã xảy ra lỗi, vui lòng thử lại')),
       );
     }
   }

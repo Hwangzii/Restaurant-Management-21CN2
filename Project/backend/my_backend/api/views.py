@@ -23,9 +23,10 @@ def generate_otp(secret_key):
     return totp.now()  # Tạo OTP hiện tại
 
 # Xác minh OTP
-def verify_otp(secret_key, otp):
+def verify_otp(secret_key, otp, window=1):
+    """Xác minh OTP với một cửa sổ hợp lệ."""
     totp = pyotp.TOTP(secret_key)
-    return totp.verify(otp)  # Kiểm tra OTP
+    return totp.verify(otp, valid_window=window)
 
 # View để đăng nhập và tạo mã QR
 class LoginView(APIView):
@@ -79,7 +80,7 @@ class VerifyOTPView(APIView):
             account = Account.objects.get(username=username)
 
             # Xác thực OTP với mã bí mật của người dùng
-            if verify_otp(account.key, otp):
+            if verify_otp(account.key, otp, window=1):
                 # Sau khi xác thực OTP, cấp JWT token cho người dùng
                 tokens = get_tokens_for_user(account)
                 account.is_2fa_enabled = True
