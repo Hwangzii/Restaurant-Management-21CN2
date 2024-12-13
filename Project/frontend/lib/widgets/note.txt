@@ -1,0 +1,14 @@
+widgets/    # Các widgets tái sử dụng trong ứng dụng
+    |---chat_bubble.dart
+
+---------------------------------------------------------------------------------------------------
+
+frontend/lib/widgets:
+    - Tại sao cần: Các widget tái sử dụng giúp bạn tránh
+    phải lặp lại mã cho các thành phần giao diện giống 
+    nhau. Điều này làm giảm bớt mã dư thừa và đảm bảo 
+    tính nhất quán trong giao diện.
+
+    - Nếu không có: Bạn vẫn có thể viết widget trực tiếp 
+    trong các màn hình, nhưng điều này dẫn đến mã khó đọc,
+    khó bảo trì và dễ gây lỗi khi cần thay đổi.
