@@ -10,7 +10,7 @@ class MenuItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = MenuItem
         fields = ['item_code', 'item_name', 'item_price', 'item_status', 'item_sales_count']
-
+ 
 class FloorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Floors

@@ -73,6 +73,7 @@ flutter:
     - assets/eye_show.png
     - assets/eye_closed.png
     - assets/angle-left.png
+    - assets/diet.png
   
   uses-material-design: true
 

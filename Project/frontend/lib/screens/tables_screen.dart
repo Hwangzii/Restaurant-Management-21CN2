@@ -1,5 +1,5 @@
-import 'package:app/controllers/tables_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:app/controllers/tables_controller.dart';
 
 class TablesScreen extends StatefulWidget {
   const TablesScreen({Key? key}) : super(key: key);
@@ -9,89 +9,82 @@ class TablesScreen extends StatefulWidget {
 }
 
 class _TablesScreenState extends State<TablesScreen> {
-  String selectedFloor = 'Tầng 1'; // Mặc định là Tầng 1
-  List<Map<String, dynamic>> tables = []; // Danh sách bàn rỗng ban đầu
-  int? highlightedTableIndex; // Lưu trữ bàn được làm nổi bật
-  bool isLoading = false;
+  String selectedFloor = 'Tầng 1'; // Default floor
+  List<Map<String, dynamic>> tables = []; // List of tables
+  bool isLoading = false; // Loading state
 
-  // Hàm để cập nhật danh sách bàn theo tầng
-  void updateTables(String floor) async {
-    setState(() {
-      isLoading = true;
-    });
-    int floorNumber = 1; // Mặc định là tầng 1
-    if (floor == 'Tầng 2') {
-      floorNumber = 2;
-    } else if (floor == 'Tầng 3') {
-      floorNumber = 3;
-    }
-
-    // Gọi API để lấy danh sách bàn theo tầng
-    List<Map<String, dynamic>> fetchedTables =
-        await TablesController.fetchTables(floorNumber);
-
-    setState(() {
-      selectedFloor = floor;
-      tables = fetchedTables; // Cập nhật danh sách bàn
-      isLoading = false;
-    });
-  }
+  Map<String, int> floorMap = {
+    'Tầng 1': 1,
+    'Tầng 2': 2,
+    'Tầng 3': 3,
+  };
 
   @override
   void initState() {
     super.initState();
-    updateTables(
-        selectedFloor); // Gọi hàm để tải bàn mặc định khi màn hình khởi tạo
+    _updateTables(selectedFloor);
   }
 
-  void _showOptionsMenu(BuildContext context, String tableName, int index) {
+  // Fetch tables based on selected floor
+  void _updateTables(String floor) async {
     setState(() {
-      highlightedTableIndex = index; // Làm nổi bật bàn được chọn
+      isLoading = true;
     });
 
-    int tableId = tables[index]['table_id'];
+    int floorNumber = floorMap[floor] ?? 1;
 
-    // Hiển thị menu dưới dạng modal bottom sheet
+    try {
+      List<Map<String, dynamic>> fetchedTables = await TablesController.fetchTables(floorNumber);
+      setState(() {
+        selectedFloor = floor;
+        tables = fetchedTables;
+      });
+    } catch (e) {
+      _showErrorSnackBar('Không thể tải danh sách bàn. Vui lòng thử lại.');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  // Reload tables (wrapper function for _updateTables)
+  void reloadTables() {
+    _updateTables(selectedFloor);
+  }
+
+  // Show options for table
+  void _showOptionsMenu(BuildContext context, String tableName, int tableId) {
     showModalBottomSheet(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.5), // Làm mờ nền
       builder: (BuildContext context) {
-        return Container(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.edit),
-                title: Text('Sửa'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showEditDialog(context, tableId, tableName);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.delete),
-                title: Text('Xóa'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _deleteTable(tableId);
-                },
-              ),
-            ],
-          ),
+        return ListView(
+          children: [
+            ListTile(
+              leading: Icon(Icons.edit),
+              title: Text('Sửa'),
+              onTap: () {
+                Navigator.pop(context);
+                _showEditDialog(context, tableName, tableId);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.delete),
+              title: Text('Xóa'),
+              onTap: () {
+                Navigator.pop(context);
+                _deleteTable(tableId);
+              },
+            ),
+          ],
         );
       },
-    ).whenComplete(() {
-      // Khi modal đóng, bỏ nổi bật bàn
-      setState(() {
-        highlightedTableIndex = null;
-      });
-    });
+    );
   }
 
-  void _showEditDialog(BuildContext context, int tableId, String currentName) {
-    TextEditingController nameController =
-        TextEditingController(text: currentName);
+  // Show edit dialog
+  void _showEditDialog(BuildContext context, String currentName, int tableId) {
+    TextEditingController nameController = TextEditingController(text: currentName);
 
     showDialog(
       context: context,
@@ -100,15 +93,11 @@ class _TablesScreenState extends State<TablesScreen> {
           title: Text('Sửa tên bàn'),
           content: TextField(
             controller: nameController,
-            decoration: InputDecoration(
-              hintText: 'Nhập tên mới cho bàn',
-            ),
+            decoration: InputDecoration(hintText: 'Nhập tên mới cho bàn'),
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-              },
+              onPressed: () => Navigator.pop(dialogContext),
               child: Text('Hủy'),
             ),
             TextButton(
@@ -116,7 +105,19 @@ class _TablesScreenState extends State<TablesScreen> {
                 String newName = nameController.text.trim();
                 if (newName.isNotEmpty) {
                   Navigator.pop(dialogContext);
-                  _updateTableName(tableId, newName);
+
+                  // Gọi phương thức trung gian để cập nhật tên bàn
+                  try {
+                    bool success = await _updateTableName(tableId, newName);
+                    if (success) {
+                      reloadTables(); // Call reloadTables
+                      _showSuccessSnackBar('Cập nhật tên bàn thành công');
+                    } else {
+                      _showErrorSnackBar('Không thể cập nhật tên bàn');
+                    }
+                  } catch (e) {
+                    _showErrorSnackBar('Lỗi khi cập nhật tên bàn');
+                  }
                 }
               },
               child: Text('Xác nhận'),
@@ -127,78 +128,123 @@ class _TablesScreenState extends State<TablesScreen> {
     );
   }
 
-  void _updateTableName(int tableId, String newName) async {
-    setState(() {
-      isLoading = true;
-    });
-    bool success = await TablesController.updateTableName(tableId, newName);
-    if (success) {
-      // Cập nhật tên bàn trong danh sách hiện tại
-      setState(() {
-        int index = tables.indexWhere((table) => table['table_id'] == tableId);
-        if (index != -1) {
-          tables[index]['table_name'] = newName;
-        }
-        isLoading = false;
-      });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Không thể cập nhật tên bàn. Vui lòng thử lại.')),
-      );
-    }
+// Phương thức trung gian để gọi vào controller
+Future<bool> _updateTableName(int tableId, String newName) async {
+  try {
+    bool success = await TablesController.updateTableName(tableId, newName, floorMap[selectedFloor]!);
+    return success;
+  } catch (e) {
+    return false;
   }
+}
 
+
+  // Show add table dialog
+void _showAddTableDialog() {
+  TextEditingController nameController = TextEditingController();
+
+  showDialog(
+    context: context,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        title: Text('Thêm tên bàn'),
+        content: TextField(
+          controller: nameController,
+          decoration: InputDecoration(hintText: 'Nhập tên bàn mới'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () async {
+              String newName = nameController.text.trim();
+              if (newName.isNotEmpty) {
+                Navigator.pop(dialogContext);
+
+                // Gọi phương thức trung gian để thêm bàn
+                try {
+                  bool success = await _addTable(newName);
+                  if (success) {
+                    reloadTables(); // Call reloadTables
+                    _showSuccessSnackBar('Thêm bàn thành công');
+                  } else {
+                    _showErrorSnackBar('Không thể thêm bàn');
+                  }
+                } catch (e) {
+                  _showErrorSnackBar('Lỗi khi thêm bàn');
+                }
+              }
+            },
+            child: Text('Xác nhận'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+// Phương thức trung gian để gọi vào controller
+Future<bool> _addTable(String newName) async {
+  try {
+    bool success = await TablesController.addTable(newName, floorMap[selectedFloor]!);
+    return success;
+  } catch (e) {
+    return false;
+  }
+}
+
+
+  // Delete table
   void _deleteTable(int tableId) async {
     setState(() {
       isLoading = true;
     });
-    bool success = await TablesController.deleteTable(tableId);
-    if (success) {
-      // Xóa bàn khỏi danh sách
+
+    try {
+      bool success = await TablesController.deleteTable(tableId);
+      if (success) {
+        reloadTables(); // Call reloadTables
+        _showSuccessSnackBar('Xóa bàn thành công');
+      } else {
+        _showErrorSnackBar('Không thể xóa bàn');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Không thể xóa bàn');
+    } finally {
       setState(() {
-        tables.removeWhere((table) => table['table_id'] == tableId);
         isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Xóa bàn thành công')),
-      );
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Không thể xóa bàn. Vui lòng thử lại.')),
-      );
     }
+  }
+
+  // Show error snack bar
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  // Show success snack bar
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0,
-        backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: Image.asset('assets/angle-left.png', width: 24, height: 24),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
         title: DropdownButton<String>(
-          dropdownColor: Colors.white,
           value: selectedFloor,
           onChanged: (String? newValue) {
             setState(() {
               selectedFloor = newValue!;
             });
-            updateTables(
-                selectedFloor); // Cập nhật lại danh sách bàn khi chọn tầng mới
+            _updateTables(selectedFloor);
           },
-          items: <String>['Tầng 1', 'Tầng 2', 'Tầng 3']
+          items: ['Tầng 1', 'Tầng 2', 'Tầng 3']
               .map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
@@ -208,7 +254,7 @@ class _TablesScreenState extends State<TablesScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.settings), // Thêm icon bạn muốn hiển thị
+            icon: Icon(Icons.settings),
             onPressed: () {
               showMenu(
                 context: context,
@@ -225,72 +271,49 @@ class _TablesScreenState extends State<TablesScreen> {
                 ],
                 elevation: 8.0,
               ).then((value) {
-                if (value != null) {
-                  print('Chọn $value');
-                  // Thực hiện logic thêm bàn mới hoặc chọn nhiều bàn
+                if (value == 'them_ban') {
+                  _showAddTableDialog();
+                } else if (value == 'chon_nhieu_ban') {
+                  print('Chọn nhiều bàn');
+                  // Thêm logic xử lý chọn nhiều bàn
                 }
               });
             },
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          Container(
-            color: Color(0xFFF2F3F4),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : tables.isEmpty
-                      ? Center(child: Text('Không có bàn nào.'))
-                      : GridView.builder(
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                            childAspectRatio: 1,
-                          ),
-                          itemCount: tables.length,
-                          itemBuilder: (context, index) {
-                            String tableName = tables[index]['table_name'];
-                            bool isHighlighted = highlightedTableIndex == index;
-                            return GestureDetector(
-                              onTap: () {
-                                print("Bàn $tableName được chọn");
-                              },
-                              onLongPress: () {
-                                _showOptionsMenu(context, tableName, index);
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: isHighlighted
-                                      ? Colors.blue.withOpacity(0.3)
-                                      : Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: isHighlighted
-                                      ? Border.all(color: Colors.blue, width: 2)
-                                      : Border.all(
-                                          color: Colors.transparent, width: 0),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    tableName,
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : GridView.builder(
+              padding: EdgeInsets.all(10.0),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 15.0,
+                mainAxisSpacing: 15.0,
+              ),
+              itemCount: tables.length,
+              itemBuilder: (context, index) {
+                String tableName = tables[index]['table_name'] ?? 'Chưa có tên';
+                return GestureDetector(
+                  onLongPress: () => _showOptionsMenu(context, tableName, tables[index]['table_id']),
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                    elevation: 2.0,
+                    child: Center(
+                      child: Text(
+                        tableName,
+                        style: TextStyle(
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
                         ),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
-          ),
-        ],
-      ),
     );
   }
 }

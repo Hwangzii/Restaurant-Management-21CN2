@@ -3,7 +3,8 @@ import 'dart:convert';
 
 class ApiService {
   final String baseUrl =
-      'https://90c0-2405-4802-1d82-7810-31bc-5166-3e60-936b.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://bcff-2001-ee0-40c1-b9f4-5419-cd0a-819d-51ba.ngrok-free.app/api'; // Cập nhật URL API của bạn
+       
 
   // Gửi request đăng nhập
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -77,21 +78,40 @@ class ApiService {
     }
   }
 
-  // Hàm cập nhật tên bàn
-  Future<bool> updateTableName(int tableId, String newName) async {
+
+  // Hàm thêm bàn
+  Future<bool> addTable(String tableName, int floor) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/tables/'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'table_name': tableName, 'floor': floor}),
+    );
+
+    if (response.statusCode == 201) {
+      return true;
+    } else {
+      return false;
+    }
+
+  }
+
+  // Hàm sửa bàn
+  Future<bool> updateTableName(int tableId, String newName, int floor) async {
     final response = await http.put(
       Uri.parse('$baseUrl/tables/$tableId/'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({'table_name': newName}),
+      body: json.encode({'table_name': newName, 'floor': floor}),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 204) {
       return true;
     } else {
       return false;
     }
   }
 
+
+  //Hàm xóa bàn
   Future<bool> deleteTable(int tableId) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/tables/$tableId/'),
@@ -103,4 +123,6 @@ class ApiService {
       return false;
     }
   }
+
+   
 }
