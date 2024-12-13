@@ -20,11 +20,20 @@ class TablesController {
       throw Exception('Error fetching tables: $e');
     }
   }
-
-  // Hàm cập nhật tên bàn
-  static Future<bool> updateTableName(int tableId, String newName) async {
+  // Hàm thêm bàn
+  static Future<bool> addTable(String tableName, int floor) async {
     try {
-      bool success = await ApiService().updateTableName(tableId, newName);
+      bool success = await ApiService().addTable(tableName, floor);
+      return success;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Hàm sửa bàn
+  static Future<bool> updateTableName(int tableId, String newName, int floor) async {
+    try {
+      bool success = await ApiService().updateTableName(tableId, newName, floor);
       return success;
     } catch (e) {
       throw Exception('Error updating table name: $e');
