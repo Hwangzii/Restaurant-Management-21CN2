@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/', // Màn hình đầu tiên khi app chạy là EnterOtpScreen
       routes: {
         '/': (context) =>
-            TablesScreen(),
+            ManagerScreen(),
             // ManagerScreen(),
         // '/home': (context) => const ManagerScreen(),  // Đăng ký route cho màn hình ManagerScreen
       },
