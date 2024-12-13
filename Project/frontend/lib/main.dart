@@ -1,4 +1,5 @@
 import 'package:app/screens/login_screen.dart';
+import 'package:app/screens/manager_screen.dart';
 import 'package:app/screens/order_food_screen.dart';
 import 'package:app/screens/tables_screen.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) =>
             // TablesScreen(),
-            LoginScreen(),
+            ManagerScreen(),
         // '/home': (context) => const ManagerScreen(),  // Đăng ký route cho màn hình ManagerScreen
       },
     );

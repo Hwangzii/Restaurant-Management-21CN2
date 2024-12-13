@@ -144,6 +144,51 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
           ),
         ],
       ),
+      // Thanh điều hướng dưới cùng
+      bottomNavigationBar: Row(
+        children: [
+          Expanded(
+            flex: 2, // Cột đầu tiên chiếm 2 phần
+            child: Container(
+              height: 60,
+              color: Colors.white, // Màu sắc cho cột đầu tiên
+              child: Center(
+                child: Image.asset(
+                  'assets/shopping-cart.png',
+                  height: 24,
+                  width: 24,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 4, // Cột thứ hai chiếm 4 phần
+            child: Container(
+              height: 60,
+              color: Colors.white, // Màu sắc cho cột thứ hai
+              child: Center(
+                child: Text(
+                  'đ10.000.000',
+                  style: TextStyle(color: Color(0xFFFF8A00), fontSize: 16),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 4, // Cột thứ ba chiếm 4 phần
+            child: Container(
+              height: 60,
+              color: Color(0xFFFF8A00), // Màu sắc cho cột thứ ba
+              child: Center(
+                child: Text(
+                  'Lưu gọi món',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

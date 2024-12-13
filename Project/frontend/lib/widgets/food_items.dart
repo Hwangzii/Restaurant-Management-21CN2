@@ -103,44 +103,6 @@ class _FoodItemState extends State<FoodItem> {
               ),
             ],
           ),
-          // Điều chỉnh số lượng nằm ở góc phải dưới cùng
-          Positioned(
-            right: 0.0, // Khoảng cách từ cạnh phải
-            bottom: 0.0, // Khoảng cách từ cạnh dưới
-            child: Row(
-              children: [
-                // Dấu trừ và số chỉ hiện khi quantity > 0
-                if (quantity > 0) ...[
-                  GestureDetector(
-                    onTap: _decreaseQuantity,
-                    child: Image.asset(
-                      'assets/square-minus.png', // Biểu tượng trừ
-                      width: 25.0,
-                      height: 25.0,
-                    ),
-                  ),
-                  const SizedBox(width: 10.0),
-                  // Số lượng
-                  Text(
-                    '$quantity',
-                    style: const TextStyle(
-                      fontSize: 18.0,
-                    ),
-                  ),
-                  const SizedBox(width: 10.0),
-                ],
-                // Dấu cộng
-                GestureDetector(
-                  onTap: _increaseQuantity,
-                  child: Image.asset(
-                    'assets/square-plus.png', // Biểu tượng cộng
-                    width: 25.0,
-                    height: 25.0,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );

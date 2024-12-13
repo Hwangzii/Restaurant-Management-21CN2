@@ -76,6 +76,7 @@ flutter:
     - assets/diet.png
     - assets/square-minus.png
     - assets/square-plus.png
+    - assets/shopping-cart.png
   
   uses-material-design: true
 
