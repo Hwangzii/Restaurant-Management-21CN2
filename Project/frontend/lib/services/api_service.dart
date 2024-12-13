@@ -3,7 +3,7 @@ import 'dart:convert';
 
 class ApiService {
   final String baseUrl =
-      'https://bcff-2001-ee0-40c1-b9f4-5419-cd0a-819d-51ba.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://2709-123-16-72-60.ngrok-free.app/api'; // Cập nhật URL API của bạn
        
 
   // Gửi request đăng nhập
@@ -167,6 +167,9 @@ class ApiService {
       throw Exception('Lỗi khi thêm món ăn: ${response.statusCode}');
     }
   }
+
+
+  
 
    
 }

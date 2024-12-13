@@ -4,7 +4,10 @@ import 'package:app/widgets/food_items.dart';
 
 
 class OrderFoodScreen extends StatefulWidget {
-  const OrderFoodScreen({super.key});
+  final String tableName; // Thêm tableName làm tham số
+
+  const OrderFoodScreen({super.key, required this.tableName}); // Cập nhật constructor
+
 
   @override
   State<OrderFoodScreen> createState() => _OrderFoodScreenState();
@@ -56,7 +59,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Order Food', style: TextStyle(color: Colors.black, fontSize: 20)),
+        title: Text('${widget.tableName}', style: TextStyle(color: Colors.black, fontSize: 20)), // Sử dụng tableName
         centerTitle: true,
       ),
       backgroundColor: const Color(0xFFF2F3F4),
