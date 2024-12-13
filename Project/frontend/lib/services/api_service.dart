@@ -124,5 +124,49 @@ class ApiService {
     }
   }
 
+
+  // Hàm lấy dữ liệu thức ăn từ API
+  Future<List<Map<String, dynamic>>> fetchOder() async {
+    final oderUrl = '$baseUrl/menu_items/'; // đường dẫn lấy API menu
+
+    try {
+      final response = await http.get(Uri.parse(oderUrl), headers: {
+        'Accept': 'application/json; charset=UTF-8',
+        "ngrok-skip-browser-warning": "69420",
+      });
+
+      if ( response.statusCode == 200) {
+        final decodedResponse = utf8.decode(response.bodyBytes);
+        List<dynamic> data = json.decode(decodedResponse); 
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Lỗi khi tải danh sách món ăn');
+      }
+    } catch (e) {
+      throw Exception('Lỗi khi lấy dữ liệu món ăn: $e');
+    }
+  }
+
+  
+  // Hàm thêm thức ăn
+  Future<bool> addFood(String itemName, double itemPrice) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/menu_items/'),
+      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      body: json.encode({
+        'item_name': itemName,
+        'item_price': itemPrice,  // Chuyển giá thành chuỗi
+        'item_status': true,  // Mặc định là có sẵn
+        'item_sales_count': 0  // Mặc định số lượng bán là 0
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      return true;
+    } else {
+      throw Exception('Lỗi khi thêm món ăn: ${response.statusCode}');
+    }
+  }
+
    
 }

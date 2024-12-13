@@ -1,5 +1,7 @@
-import 'package:app/widgets/food_items.dart';
+import 'package:app/controllers/oder_food_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:app/widgets/food_items.dart';
+
 
 class OrderFoodScreen extends StatefulWidget {
   const OrderFoodScreen({super.key});
@@ -11,27 +13,39 @@ class OrderFoodScreen extends StatefulWidget {
 class _OrderFoodScreenState extends State<OrderFoodScreen> {
   TextEditingController searchController = TextEditingController();
 
-  // Danh sách món ăn
-  final List<String> foodNames = List.generate(100, (index) => 'Món ăn ${index + 1}');
-  List<String> filteredItems = [];
-  int selectedOption = 0; // Tùy chọn mặc định là "Tất cả"
+  // Danh sách món ăn và các món ăn đã lọc
+  List<Map<String, dynamic>> menuItems = [];
+  List<Map<String, dynamic>> filteredItems = [];
+  int selectedOption = 0;
 
   @override
   void initState() {
     super.initState();
-    _filterItemsByOption(selectedOption);
+    _loadMenuItems();
   }
 
-  // Hàm lọc danh sách món ăn dựa trên tùy chọn
+  // Hàm tải danh sách món ăn từ API
+  Future<void> _loadMenuItems() async {
+    try {
+      List<Map<String, dynamic>> fetchedItems = await OrderFoodController.fetchMenuItems();
+      setState(() {
+        menuItems = fetchedItems;
+        filteredItems = menuItems;
+      });
+    } catch (e) {
+      print('Error loading menu items: $e');
+    }
+  }
+
+  // Hàm lọc món ăn theo lựa chọn
   void _filterItemsByOption(int option) {
     setState(() {
       if (option == 0) {
-        // Hiển thị tất cả món ăn
-        filteredItems = foodNames;
+        filteredItems = menuItems;
       } else {
         int startIndex = (option - 1) * 10;
         int endIndex = startIndex + 10;
-        filteredItems = foodNames.sublist(startIndex, endIndex.clamp(0, foodNames.length));
+        filteredItems = menuItems.sublist(startIndex, endIndex.clamp(0, menuItems.length));
       }
     });
   }
@@ -39,24 +53,16 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: false,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Icon(Icons.arrow_back, color: Colors.black),
-        ),
-        title: const Text(
-          'Bàn 100',
-          style: TextStyle(color: Colors.black, fontSize: 20),
-        ),
+        title: const Text('Order Food', style: TextStyle(color: Colors.black, fontSize: 20)),
         centerTitle: true,
       ),
       backgroundColor: const Color(0xFFF2F3F4),
       body: Column(
         children: [
-          // Thanh tùy chọn ngang
+          // Thanh tùy chọn
           Container(
             color: Colors.white,
             height: 50,
@@ -105,8 +111,10 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                     ),
                     onChanged: (value) {
                       setState(() {
-                        filteredItems = foodNames
-                            .where((name) => name.toLowerCase().contains(value.toLowerCase()))
+                        filteredItems = menuItems
+                            .where((item) => item['item_name']
+                                .toLowerCase()
+                                .contains(value.toLowerCase()))
                             .toList();
                       });
                     },
@@ -121,11 +129,11 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
               itemCount: filteredItems.length,
               itemBuilder: (context, index) {
                 return FoodItem(
-                  name: filteredItems[index],
-                  status: 'hết hàng',
-                  price: '\$10.99',
+                  name: filteredItems[index]['item_name'],
+                  status: filteredItems[index]['item_status'] ? 'Còn hàng' : 'Hết hàng',
+                  price: '\$${filteredItems[index]['item_price']}',
                   onAdd: () {
-                    print('Đã gọi món: ${filteredItems[index]}');
+                    print('Đã gọi món: ${filteredItems[index]['item_name']}');
                   },
                 );
               },
