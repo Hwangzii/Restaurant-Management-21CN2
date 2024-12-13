@@ -74,6 +74,8 @@ flutter:
     - assets/eye_closed.png
     - assets/angle-left.png
     - assets/diet.png
+    - assets/square-minus.png
+    - assets/square-plus.png
   
   uses-material-design: true
 

@@ -120,7 +120,14 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
             child: ListView.builder(
               itemCount: filteredItems.length,
               itemBuilder: (context, index) {
-                return FoodItem(name: filteredItems[index]);
+                return FoodItem(
+                  name: filteredItems[index],
+                  status: 'hết hàng',
+                  price: '\$10.99',
+                  onAdd: () {
+                    print('Đã gọi món: ${filteredItems[index]}');
+                  },
+                );
               },
             ),
           ),
