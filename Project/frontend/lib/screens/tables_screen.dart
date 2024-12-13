@@ -15,8 +15,8 @@ class _TablesScreenState extends State<TablesScreen> {
   bool isLoading = false; // Loading state
 
   Map<String, int> floorMap = {
-    'Tầng 1': 1,
-    'Tầng 2': 2,
+    'Tầng 1': 12,
+    'Tầng 2': 13,
     'Tầng 3': 3,
   };
 
@@ -293,16 +293,15 @@ Future<bool> _addTable(String newName) async {
   void _handleOptionSelection(String option, int tableId) {
     if (option == 'Buffet đỏ' || option == 'Buffet đen') {
       _showGuestCountDialog(option, tableId); // Hiển thị hộp thoại nhập số lượng khách
-    } 
-    else if (option == 'Gọi món') 
-    {
+    } else if (option == 'Gọi món') {
       String tableName = tables.firstWhere((table) => table['table_id'] == tableId)['table_name'];
       Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => OrderFoodScreen(tableName: tableName),
-        ),
-      );
+      context,
+      MaterialPageRoute(
+        builder: (context) => OrderFoodScreen(tableName: tableName),
+      ),
+    );
+      _showSuccessSnackBar('Bạn đã chọn Gọi món cho bàn $tableId');
     }
   }
 

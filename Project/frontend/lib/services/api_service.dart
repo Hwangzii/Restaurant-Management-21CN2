@@ -3,7 +3,7 @@ import 'dart:convert';
 
 class ApiService {
   final String baseUrl =
-      'https://2709-123-16-72-60.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://bcff-2001-ee0-40c1-b9f4-5419-cd0a-819d-51ba.ngrok-free.app/api'; // Cập nhật URL API của bạn
        
 
   // Gửi request đăng nhập
@@ -125,46 +125,60 @@ class ApiService {
   }
 
 
-  // Hàm lấy dữ liệu thức ăn từ API
-  Future<List<Map<String, dynamic>>> fetchOder() async {
-    final oderUrl = '$baseUrl/menu_items/'; // đường dẫn lấy API menu
+  // Hàm lấy danh sách món ăn
+  Future<List<Map<String, dynamic>>> fetchOrder() async {
+    final orderUrl = '$baseUrl/menu_items/'; // Đường dẫn lấy API menu
 
     try {
-      final response = await http.get(Uri.parse(oderUrl), headers: {
+      final response = await http.get(Uri.parse(orderUrl), headers: {
         'Accept': 'application/json; charset=UTF-8',
-        "ngrok-skip-browser-warning": "69420",
+        "ngrok-skip-browser-warning": "69420", // Nếu bạn sử dụng ngrok cho môi trường phát triển
       });
 
-      if ( response.statusCode == 200) {
+      if (response.statusCode == 200) {
         final decodedResponse = utf8.decode(response.bodyBytes);
         List<dynamic> data = json.decode(decodedResponse); 
         return List<Map<String, dynamic>>.from(data);
       } else {
-        throw Exception('Lỗi khi tải danh sách món ăn');
+        // Nếu mã trạng thái không phải 200, ném lỗi và in thông tin chi tiết
+        throw Exception('Lỗi khi tải danh sách món ăn. Mã trạng thái: ${response.statusCode}');
       }
     } catch (e) {
+      // Xử lý ngoại lệ nếu có lỗi khi lấy dữ liệu
       throw Exception('Lỗi khi lấy dữ liệu món ăn: $e');
     }
   }
 
-  
-  // Hàm thêm thức ăn
-  Future<bool> addFood(String itemName, double itemPrice) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/menu_items/'),
-      headers: {'Content-Type': 'application/json; charset=UTF-8'},
-      body: json.encode({
-        'item_name': itemName,
-        'item_price': itemPrice,  // Chuyển giá thành chuỗi
-        'item_status': true,  // Mặc định là có sẵn
-        'item_sales_count': 0  // Mặc định số lượng bán là 0
-      }),
-    );
+  // Hàm thêm món ăn
+  Future<bool> addFood(String itemName, double itemPrice, String itemDescribe, int itemType, int itemStatus, int restaurant) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/menu_items/'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode({
+          'item_name': itemName,
+          'item_price': itemPrice.toString(), // Chuyển giá thành chuỗi
+          'item_price_formatted': itemPrice.toStringAsFixed(3).replaceAll('.', ','), // Định dạng giá
+          'item_describe': itemDescribe,
+          'item_type': itemType,
+          'item_status': itemStatus, // Trạng thái món ăn (mặc định có sẵn)
+          'restaurant': restaurant, // ID nhà hàng (mặc định)
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        }),
+      );
 
-    if (response.statusCode == 201) {
-      return true;
-    } else {
-      throw Exception('Lỗi khi thêm món ăn: ${response.statusCode}');
+      if (response.statusCode == 201) {
+        // Trả về true nếu thành công
+        return true;
+      } else {
+        // Nếu không thành công, in thông tin chi tiết của phản hồi
+        print('Server Response: ${response.body}');
+        throw Exception('Lỗi khi thêm món ăn. Mã trạng thái: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Xử lý lỗi trong quá trình gửi yêu cầu POST
+      throw Exception('Lỗi khi thêm món ăn: $e');
     }
   }
 

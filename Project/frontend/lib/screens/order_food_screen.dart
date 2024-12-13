@@ -2,12 +2,10 @@ import 'package:app/controllers/oder_food_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:app/widgets/food_items.dart';
 
-
 class OrderFoodScreen extends StatefulWidget {
-  final String tableName; // Thêm tableName làm tham số
+  final String tableName;
 
-  const OrderFoodScreen({super.key, required this.tableName}); // Cập nhật constructor
-
+  const OrderFoodScreen({super.key, required this.tableName});
 
   @override
   State<OrderFoodScreen> createState() => _OrderFoodScreenState();
@@ -16,10 +14,18 @@ class OrderFoodScreen extends StatefulWidget {
 class _OrderFoodScreenState extends State<OrderFoodScreen> {
   TextEditingController searchController = TextEditingController();
 
-  // Danh sách món ăn và các món ăn đã lọc
   List<Map<String, dynamic>> menuItems = [];
   List<Map<String, dynamic>> filteredItems = [];
   int selectedOption = 0;
+
+  // Danh sách tùy chọn
+  final List<String> options = [
+    'Tất cả',
+    'Món chính',
+    'Đồ uống',
+    'Buffee đỏ',
+    'Buffee đen',
+  ];
 
   @override
   void initState() {
@@ -27,7 +33,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     _loadMenuItems();
   }
 
-  // Hàm tải danh sách món ăn từ API
+  // Tải danh sách món ăn từ controller
   Future<void> _loadMenuItems() async {
     try {
       List<Map<String, dynamic>> fetchedItems = await OrderFoodController.fetchMenuItems();
@@ -40,15 +46,20 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     }
   }
 
-  // Hàm lọc món ăn theo lựa chọn
+  // Lọc món ăn theo tùy chọn đã chọn
   void _filterItemsByOption(int option) {
     setState(() {
       if (option == 0) {
-        filteredItems = menuItems;
+        // Tất cả (hiển thị món ăn có item_type từ 1 đến 4)
+        filteredItems = menuItems.where((item) {
+          return item['item_type'] >= 1 && item['item_type'] <= 4;
+        }).toList();
       } else {
-        int startIndex = (option - 1) * 10;
-        int endIndex = startIndex + 10;
-        filteredItems = menuItems.sublist(startIndex, endIndex.clamp(0, menuItems.length));
+        // Lọc theo item_type
+        int selectedType = option; // Tùy chọn từ 1 đến 4
+        filteredItems = menuItems.where((item) {
+          return item['item_type'] == selectedType;
+        }).toList();
       }
     });
   }
@@ -59,7 +70,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Text('${widget.tableName}', style: TextStyle(color: Colors.black, fontSize: 20)), // Sử dụng tableName
+        title: Text('${widget.tableName}', style: TextStyle(color: Colors.black, fontSize: 20)),
         centerTitle: true,
       ),
       backgroundColor: const Color(0xFFF2F3F4),
@@ -71,7 +82,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
             height: 50,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: 11,
+              itemCount: options.length,
               itemBuilder: (context, index) {
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -83,7 +94,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                       });
                     },
                     child: Text(
-                      index == 0 ? 'Tất cả' : 'Tùy chọn $index',
+                      options[index],
                       style: TextStyle(
                         color: selectedOption == index ? Colors.orange : Colors.black,
                       ),
@@ -133,60 +144,19 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
               itemBuilder: (context, index) {
                 return FoodItem(
                   name: filteredItems[index]['item_name'],
-                  status: filteredItems[index]['item_status'] ? 'Còn hàng' : 'Hết hàng',
-                  price: '\$${filteredItems[index]['item_price']}',
+                  // Kiểm tra item_describe, nếu không có thì hiển thị "Mô tả không có sẵn"
+                  status: filteredItems[index]['item_describe'] != null 
+                      ? filteredItems[index]['item_describe'] 
+                      : '...',
+                  price: filteredItems[index]['item_price_formatted'],
                   onAdd: () {
                     print('Đã gọi món: ${filteredItems[index]['item_name']}');
                   },
                 );
               },
             ),
-          ),
-        ],
-      ),
-      // Thanh điều hướng dưới cùng
-      bottomNavigationBar: Row(
-        children: [
-          Expanded(
-            flex: 2, // Cột đầu tiên chiếm 2 phần
-            child: Container(
-              height: 60,
-              color: Colors.white, // Màu sắc cho cột đầu tiên
-              child: Center(
-                child: Image.asset(
-                  'assets/shopping-cart.png',
-                  height: 24,
-                  width: 24,
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 4, // Cột thứ hai chiếm 4 phần
-            child: Container(
-              height: 60,
-              color: Colors.white, // Màu sắc cho cột thứ hai
-              child: Center(
-                child: Text(
-                  'đ10.000.000',
-                  style: TextStyle(color: Color(0xFFFF8A00), fontSize: 16),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 4, // Cột thứ ba chiếm 4 phần
-            child: Container(
-              height: 60,
-              color: Color(0xFFFF8A00), // Màu sắc cho cột thứ ba
-              child: Center(
-                child: Text(
-                  'Lưu gọi món',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
-              ),
-            ),
-          ),
+          )
+
         ],
       ),
     );
