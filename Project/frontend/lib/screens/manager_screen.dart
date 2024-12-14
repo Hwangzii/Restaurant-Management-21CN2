@@ -4,7 +4,7 @@ import 'package:app/screens/home_screen.dart';
 import 'package:app/screens/menu_options_screen.dart';
 import 'package:app/screens/order_screen.dart';
 import 'package:app/screens/tables_screen.dart';
-import 'package:app/screens/warehouse_screen.dart';
+import 'package:app/screens/menu_options.dart';
 import 'package:flutter/material.dart';
 
 class ManagerScreen extends StatefulWidget {
