@@ -68,5 +68,38 @@ class Tables(models.Model):
     def __str__(self):
         return self.table_name
 
+class Employee(models.Model):
+    employees_id = models.AutoField(primary_key=True)
+    full_name = models.CharField(max_length=100)
+    phone_number = models.CharField(max_length=15)
+    date_of_birth = models.DateField()
+    employees_address = models.CharField(max_length=255)
+    position = models.CharField(max_length=50)
+    time_start = models.DateField()
+    status_work = models.BooleanField(default=True)
+    cccd = models.CharField(max_length=100)
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='employees')
 
+    class Meta:
+        db_table = 'employees'
+
+    def __str__(self):
+        return self.full_name
+
+from django.db import models
+
+class Inventory(models.Model):
+    item_id = models.AutoField(primary_key=True)  # Khóa chính tự tăng
+    item_name = models.CharField(max_length=100)
+    item_type = models.IntegerField()
+    quantity = models.IntegerField()
+    exp_item = models.DateField()
+    inventory_status = models.BooleanField()
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='items')
+
+    class Meta:
+        db_table = 'inventory'  # Đảm bảo trùng với tên bảng trong SQL Server
+
+    def __str__(self):
+        return self.item_name
 

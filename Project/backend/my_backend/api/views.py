@@ -4,8 +4,8 @@ from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Account, Floors, MenuItem, Tables
-from .serializers import AccountSerializer, FloorSerializer, MenuItemSerializer, TableSerializer
+from .models import Account, Employee, Floors, Inventory, MenuItem, Tables
+from .serializers import AccountSerializer, EmployeeSerializer, FloorSerializer, InventorySerializer, MenuItemSerializer, TableSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
@@ -116,3 +116,11 @@ class TableViewSet(viewsets.ModelViewSet):
     queryset = Tables.objects.all()
     serializer_class = TableSerializer
     # permission_classes = [IsAuthenticated]
+
+class EmployeeViewSet(viewsets.ModelViewSet):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+
+class InventoryViewSet(viewsets.ModelViewSet):
+    queryset = Inventory.objects.all()
+    serializer_class = InventorySerializer

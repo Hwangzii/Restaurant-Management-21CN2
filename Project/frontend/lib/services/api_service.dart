@@ -1,10 +1,10 @@
+import 'package:app/models/item.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
   final String baseUrl =
-      'https://bcff-2001-ee0-40c1-b9f4-5419-cd0a-819d-51ba.ngrok-free.app/api'; // Cập nhật URL API của bạn
-       
+      'https://32da-123-16-72-60.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   // Gửi request đăng nhập
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -57,6 +57,19 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> getRestaurantByAccountId(int accountId) async {
+    // Giả sử bạn sử dụng HTTP để gọi API
+    final response =
+        await http.get(Uri.parse('$baseUrl/restaurant/$accountId'));
+
+    if (response.statusCode == 200) {
+      return json
+          .decode(response.body); // Giả sử API trả về thông tin restaurant
+    } else {
+      throw Exception('Failed to load restaurant');
+    }
+  }
+
   // Hàm lấy dữ liệu bàn từ API
   Future<List<Map<String, dynamic>>> fetchTables() async {
     final tablesUrl = '$baseUrl/tables/'; // Đường dẫn API lấy danh sách bàn
@@ -78,7 +91,6 @@ class ApiService {
     }
   }
 
-
   // Hàm thêm bàn
   Future<bool> addTable(String tableName, int floor) async {
     final response = await http.post(
@@ -92,7 +104,6 @@ class ApiService {
     } else {
       return false;
     }
-
   }
 
   // Hàm sửa bàn
@@ -110,7 +121,6 @@ class ApiService {
     }
   }
 
-
   //Hàm xóa bàn
   Future<bool> deleteTable(int tableId) async {
     final response = await http.delete(
@@ -124,7 +134,6 @@ class ApiService {
     }
   }
 
-
   // Hàm lấy danh sách món ăn
   Future<List<Map<String, dynamic>>> fetchOrder() async {
     final orderUrl = '$baseUrl/menu_items/'; // Đường dẫn lấy API menu
@@ -132,16 +141,18 @@ class ApiService {
     try {
       final response = await http.get(Uri.parse(orderUrl), headers: {
         'Accept': 'application/json; charset=UTF-8',
-        "ngrok-skip-browser-warning": "69420", // Nếu bạn sử dụng ngrok cho môi trường phát triển
+        "ngrok-skip-browser-warning":
+            "69420", // Nếu bạn sử dụng ngrok cho môi trường phát triển
       });
 
       if (response.statusCode == 200) {
         final decodedResponse = utf8.decode(response.bodyBytes);
-        List<dynamic> data = json.decode(decodedResponse); 
+        List<dynamic> data = json.decode(decodedResponse);
         return List<Map<String, dynamic>>.from(data);
       } else {
         // Nếu mã trạng thái không phải 200, ném lỗi và in thông tin chi tiết
-        throw Exception('Lỗi khi tải danh sách món ăn. Mã trạng thái: ${response.statusCode}');
+        throw Exception(
+            'Lỗi khi tải danh sách món ăn. Mã trạng thái: ${response.statusCode}');
       }
     } catch (e) {
       // Xử lý ngoại lệ nếu có lỗi khi lấy dữ liệu
@@ -150,7 +161,8 @@ class ApiService {
   }
 
   // Hàm thêm món ăn
-  Future<bool> addFood(String itemName, double itemPrice, String itemDescribe, int itemType, int itemStatus, int restaurant) async {
+  Future<bool> addFood(String itemName, double itemPrice, String itemDescribe,
+      int itemType, int itemStatus, int restaurant) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/menu_items/'),
@@ -158,7 +170,9 @@ class ApiService {
         body: json.encode({
           'item_name': itemName,
           'item_price': itemPrice.toString(), // Chuyển giá thành chuỗi
-          'item_price_formatted': itemPrice.toStringAsFixed(3).replaceAll('.', ','), // Định dạng giá
+          'item_price_formatted': itemPrice
+              .toStringAsFixed(3)
+              .replaceAll('.', ','), // Định dạng giá
           'item_describe': itemDescribe,
           'item_type': itemType,
           'item_status': itemStatus, // Trạng thái món ăn (mặc định có sẵn)
@@ -174,7 +188,8 @@ class ApiService {
       } else {
         // Nếu không thành công, in thông tin chi tiết của phản hồi
         print('Server Response: ${response.body}');
-        throw Exception('Lỗi khi thêm món ăn. Mã trạng thái: ${response.statusCode}');
+        throw Exception(
+            'Lỗi khi thêm món ăn. Mã trạng thái: ${response.statusCode}');
       }
     } catch (e) {
       // Xử lý lỗi trong quá trình gửi yêu cầu POST
@@ -182,8 +197,63 @@ class ApiService {
     }
   }
 
+  Future<List<Item>> getItems() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/items/'),
+      headers: {
+        'Accept': 'application/json; charset=UTF-8',
+        "ngrok-skip-browser-warning": "69420",
+      },
+    );
 
-  
+    if (response.statusCode == 200) {
+      final decodedResponse = utf8.decode(response.bodyBytes);
+      List jsonResponse = json.decode(decodedResponse);
+      return jsonResponse.map((item) => Item.fromJson(item)).toList();
+    } else {
+      throw Exception(
+          'Lỗi khi tải danh sách. Mã trạng thái: ${response.statusCode}');
+    }
+  }
 
-   
+  Future<void> createItem(Item item) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/items/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(item.toJson()),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to create item');
+    }
+  }
+
+  Future<void> updateItem(Item item) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/items/${item.itemId}/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(item.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update item');
+    }
+  }
+
+  Future<void> deleteItem(int id) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/items/$id/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception('Failed to delete item');
+    }
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:app/services/api_service.dart';
 import 'package:app/screens/enter_otp_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginController {
   static void handleLogin(
@@ -16,8 +17,9 @@ class LoginController {
 
     try {
       final loginResult = await ApiService().login(username, password);
-
       if (loginResult['success']) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('account_id', loginResult['id']);
         if (loginResult['qrCodeUrl'] != null) {
           // Nếu có QR code (người dùng chưa bật 2FA)
           Navigator.push(

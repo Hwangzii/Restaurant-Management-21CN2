@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Account, MenuItem, Floors, Restaurant, Tables
+from .models import Account, Employee, Inventory, MenuItem, Floors, Restaurant, Tables
 
 class RestaurantSerializer(serializers.ModelSerializer):
     class Meta:
@@ -56,3 +56,13 @@ class TableSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tables
         fields = ['table_id', 'table_name', 'floor']
+
+class EmployeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Employee
+        fields = '__all__'
+
+class InventorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Inventory
+        fields = '__all__'
