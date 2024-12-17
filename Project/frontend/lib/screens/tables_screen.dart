@@ -1,3 +1,4 @@
+import 'package:app/screens/order_food_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:app/controllers/tables_controller.dart';
 
@@ -14,8 +15,8 @@ class _TablesScreenState extends State<TablesScreen> {
   bool isLoading = false; // Loading state
 
   Map<String, int> floorMap = {
-    'Tầng 1': 1,
-    'Tầng 2': 2,
+    'Tầng 1': 12,
+    'Tầng 2': 13,
     'Tầng 3': 3,
   };
 
@@ -232,6 +233,139 @@ Future<bool> _addTable(String newName) async {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
+
+  // Phương thức cập nhật để hiển thị menu lựa chọn khi nhấn chuột phải vào bàn
+  void _showTableOptions(BuildContext context, String tableName, int tableId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          title: Text('Chọn hành động cho $tableName'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.fastfood),
+                title: Text('Buffet đỏ'),
+                onTap: () {
+                  Navigator.pop(dialogContext);
+                  _handleOptionSelection('Buffet đỏ', tableId);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.fastfood),
+                title: Text('Buffet đen'),
+                onTap: () {
+                  Navigator.pop(dialogContext);
+                  _handleOptionSelection('Buffet đen', tableId);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.dining),
+                title: Text('Gọi món'),
+                onTap: () {
+                  Navigator.pop(dialogContext);
+                  _handleOptionSelection('Gọi món', tableId);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext); // Đóng dialog
+              },
+              child: Text('Hủy'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+
+  // **THAY ĐỔI**: Phương thức xử lý khi chọn Buffet đỏ hoặc Buffet đen
+  // Xử lý khi chọn 1 trong các lựa chọn (Buffet đỏ, Buffet đen, Gọn món)
+  void _handleOptionSelection(String option, int tableId) {
+    if (option == 'Buffet đỏ' || option == 'Buffet đen') {
+      _showGuestCountDialog(option, tableId); // Hiển thị hộp thoại nhập số lượng khách
+    } else if (option == 'Gọi món') {
+      String tableName = tables.firstWhere((table) => table['table_id'] == tableId)['table_name'];
+      Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OrderFoodScreen(tableName: tableName),
+      ),
+    );
+      _showSuccessSnackBar('Bạn đã chọn Gọi món cho bàn $tableId');
+    }
+  }
+
+
+  // **THAY ĐỔI**: Hiển thị hộp thoại nhập số lượng khách
+  void _showGuestCountDialog(String option, int tableId) {
+    TextEditingController guestCountController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0), // Bo góc nhỏ hơn (8px)
+        ),
+          title: Text('Nhập số lượng khách cho $option'),
+          content: TextField(
+            controller: guestCountController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(hintText: 'Nhập số lượng khách'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text('Hủy'),
+            ),
+            TextButton(
+              onPressed: () {
+                String guestCountText = guestCountController.text.trim();
+                int guestCount = int.tryParse(guestCountText) ?? 0;
+
+                if (guestCount > 0) {
+                  Navigator.pop(dialogContext); // Đóng dialog trước khi chuyển màn hình
+
+
+                  // Lấy tableName từ danh sách tables dựa trên tableId
+                  String tableName = tables.firstWhere((table) => table['table_id'] == tableId)['table_name'];
+
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => OrderFoodScreen(tableName: tableName
+                        
+                        
+                      ),
+                    ),
+                  );
+                } else {
+                  _showErrorSnackBar('Số lượng khách phải lớn hơn 0');
+                }
+              },
+              child: Text('Xác nhận'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -295,6 +429,7 @@ Future<bool> _addTable(String newName) async {
               itemBuilder: (context, index) {
                 String tableName = tables[index]['table_name'] ?? 'Chưa có tên';
                 return GestureDetector(
+                  onTap: () => _showTableOptions(context, tableName, tables[index]['table_id']),
                   onLongPress: () => _showOptionsMenu(context, tableName, tables[index]['table_id']),
                   child: Card(
                     shape: RoundedRectangleBorder(

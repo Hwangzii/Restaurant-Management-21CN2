@@ -1,4 +1,8 @@
 import 'package:app/screens/login_screen.dart';
+import 'package:app/screens/manager_screen.dart';
+import 'package:app/screens/order_food_screen.dart';
+import 'package:app/screens/add_staff_screen.dart';
+import 'package:app/screens/tables_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -13,8 +17,8 @@ class MyApp extends StatelessWidget {
       title: 'My Flutter App',
       initialRoute: '/', // Màn hình đầu tiên khi app chạy là EnterOtpScreen
       routes: {
-        '/': (context) =>
-            LoginScreen(), // Đăng ký route cho màn hình EnterOtpScreen
+        '/': (context) => LoginScreen(),
+        // ManagerScreen(),
         // '/home': (context) => const ManagerScreen(),  // Đăng ký route cho màn hình ManagerScreen
       },
     );

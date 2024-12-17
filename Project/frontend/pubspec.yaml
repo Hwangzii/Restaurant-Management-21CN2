@@ -74,6 +74,18 @@ flutter:
     - assets/eye_closed.png
     - assets/angle-left.png
     - assets/diet.png
+    - assets/square-minus.png
+    - assets/square-plus.png
+    - assets/shopping-cart.png
+    - assets/staff_1.png
+    - assets/staff_2.png
+    - assets/box_1.png
+    - assets/box_2.png
+    - assets/chart_1.png
+    - assets/chart_2.png
+    - assets/bill_1.png
+    - assets/bill_2.png
+    - assets/bell.png
   
   uses-material-design: true
 

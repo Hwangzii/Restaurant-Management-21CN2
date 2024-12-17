@@ -1,18 +1,45 @@
 import 'package:flutter/material.dart';
 
-class FoodItem extends StatelessWidget {
+class FoodItem extends StatefulWidget {
   final String name;
+  final String status;
+  final String price;
+  final VoidCallback onAdd;
 
   const FoodItem({
     Key? key,
+    required this.onAdd,
     required this.name,
+    required this.status,
+    required this.price,
   }) : super(key: key);
+
+  @override
+  _FoodItemState createState() => _FoodItemState();
+}
+
+class _FoodItemState extends State<FoodItem> {
+  int quantity = 0;
+
+  void _increaseQuantity() {
+    setState(() {
+      quantity++;
+    });
+  }
+
+  void _decreaseQuantity() {
+    setState(() {
+      if (quantity > 0) {
+        quantity--;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      padding: const EdgeInsets.all(12.0), // Tăng padding để nội dung trông thoáng hơn
+      padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.0),
@@ -24,30 +51,57 @@ class FoodItem extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
+      child: Stack(
         children: [
-          // Hình ảnh món ăn
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12.0),
-              image: const DecorationImage(
-                image: AssetImage('assets/diet.png'), // Hình ảnh từ assets
-                fit: BoxFit.cover,
+          Row(
+            children: [
+              // Hình ảnh món ăn
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12.0),
+                  image: const DecorationImage(
+                    image: AssetImage('assets/diet.png'), // Hình ảnh món ăn
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 16.0),
-          // Tên món ăn
-          Expanded(
-            child: Text(
-              name,
-              style: const TextStyle(
-                fontSize: 18.0,
-                fontWeight: FontWeight.bold,
+              const SizedBox(width: 16.0),
+              // Nội dung thông tin món ăn
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Tên món ăn
+                    Text(
+                      widget.name,
+                      style: const TextStyle(
+                        fontSize: 18.0,
+                      ),
+                    ),
+                    const SizedBox(height: 4.0),
+                    // Trạng thái món ăn
+                    Text(
+                      widget.status,
+                      style: const TextStyle(
+                        fontSize: 14.0,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 4.0),
+                    // Giá món ăn
+                    Text(
+                      widget.price,
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
