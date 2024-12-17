@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
-class WarehouseScreen extends StatelessWidget {
+class ListStaffScreen extends StatelessWidget {
+  const ListStaffScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
-        child: Text('Giao diện kho hàng', style: TextStyle(fontSize: 24)),
+        child: Text('danh sách nhân sự', style: TextStyle(fontSize: 24)),
       ),
     );
   }
