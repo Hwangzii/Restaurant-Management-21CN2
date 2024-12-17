@@ -15,8 +15,8 @@ class _TablesScreenState extends State<TablesScreen> {
   bool isLoading = false; // Loading state
 
   Map<String, int> floorMap = {
-    'Tầng 1': 12,
-    'Tầng 2': 13,
+    'Tầng 1': 1,
+    'Tầng 2': 2,
     'Tầng 3': 3,
   };
 
