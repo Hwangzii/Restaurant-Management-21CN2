@@ -3,7 +3,7 @@ import 'dart:convert';
 
 class ApiService {
   final String baseUrl =
-      'https://bcff-2001-ee0-40c1-b9f4-5419-cd0a-819d-51ba.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://32da-123-16-72-60.ngrok-free.app/api'; // Cập nhật URL API của bạn
        
 
   // Gửi request đăng nhập
@@ -182,8 +182,134 @@ class ApiService {
     }
   }
 
+  // Hàm lấy dữ liệu nhân viên từ API 
+  Future<List<Map<String, dynamic>>> fetchEmployees() async {
+    final tablesUrl = '$baseUrl/employees/'; // Đường dẫn API lấy danh sách bàn
+
+    try {
+      final response = await http.get(Uri.parse(tablesUrl), headers: {
+        'Accept': 'application/json; charset=UTF-8', // Đảm bảo yêu cầu JSON
+        "ngrok-skip-browser-warning": "69420",
+      });
+
+      if (response.statusCode == 200) {
+        final decodedResponse = utf8.decode(response.bodyBytes);
+        List<dynamic> data = json.decode(decodedResponse); 
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to load tables');
+      }
+    } catch (e) {
+      throw Exception('Error fetching tables: $e');
+    }
+  }
+
+
+
+  // Hàm thêm nhân viên
+  Future<bool> addEmployee({
+    required String fullName,
+    required String phoneNumber,
+    required String dateOfBirth,
+    required String address,
+    required String position,
+    required String timeStart,
+    required bool statusWork,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/employees/'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode({
+          'full_name': fullName,
+          'phone_number': phoneNumber,
+          'date_of_birth': dateOfBirth,
+          'employees_address': address,
+          'position': position,
+          'time_start': timeStart,
+          'status_work': statusWork,
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        return true; // Thành công
+      } else {
+        print('Server Response: ${response.body}');
+        throw Exception('Lỗi khi thêm nhân viên. Mã trạng thái: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Lỗi khi thêm nhân viên: $e');
+    }
+  }
+
+  // Hàm sửa thông tin nhân viên
+  Future<bool> updateEmployee({required int employeeId,
+    String? fullName,
+    String? phoneNumber,
+    String? dateOfBirth,
+    String? address,
+    String? position,
+    String? timeStart,
+    bool? statusWork,}) async {
+    try {
+      final Map<String, dynamic> updatedData = {
+        'updated_at': DateTime.now().toIso8601String(), // Thêm timestamp cập nhật
+      };
+
+      if (fullName != null) updatedData['full_name'] = fullName;
+      if (phoneNumber != null) updatedData['phone_number'] = phoneNumber;
+      if (dateOfBirth != null) updatedData['date_of_birth'] = dateOfBirth;
+      if (address != null) updatedData['employees_address'] = address;
+      if (position != null) updatedData['position'] = position;
+      if (timeStart != null) updatedData['time_start'] = timeStart;
+      if (statusWork != null) updatedData['status_work'] = statusWork;
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/employees/$employeeId/'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode(updatedData),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return true; // Thành công
+      } else {
+        print('Server Response: ${response.body}');
+        throw Exception('Lỗi khi sửa nhân viên. Mã trạng thái: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Lỗi khi sửa nhân viên: $e');
+    }
+  }
+
+  // Hàm xóa nhân viên
+  Future<bool> deleteEmployee(int employeeId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/employees/$employeeId/'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
+
+      if (response.statusCode == 204) {
+        return true; // Thành công
+      } else {
+        print('Server Response: ${response.body}');
+        throw Exception('Lỗi khi xóa nhân viên. Mã trạng thái: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Lỗi khi xóa nhân viên: $e');
+    }
+  }
+}
+
+
+  
+
+
+
 
   
 
    
-}
+
