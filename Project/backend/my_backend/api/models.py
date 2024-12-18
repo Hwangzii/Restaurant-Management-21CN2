@@ -32,7 +32,7 @@ class MenuItem(models.Model):
     item_id = models.AutoField(primary_key=True)  # Khóa chính tự tăng
     restaurant = models.ForeignKey('Restaurant', on_delete=models.CASCADE)
     item_name = models.CharField(max_length=100)
-    item_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    item_price = models.DecimalField(max_digits=10, decimal_places=0, null=True, blank=True)
     item_describe = models.CharField(max_length=50, null=True, blank=True)
     item_type = models.IntegerField()  # Bạn có thể dùng choices tùy theo nghiệp vụ
     item_status = models.BooleanField(default=False)  # 1 = hoạt động, 0 = không hoạt động
@@ -95,6 +95,8 @@ class Inventory(models.Model):
     quantity = models.IntegerField()
     exp_item = models.DateField()
     inventory_status = models.BooleanField()
+    price = models.IntegerField()
+    unit = models.CharField(max_length=50)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='items')
 
     class Meta:
@@ -102,4 +104,34 @@ class Inventory(models.Model):
 
     def __str__(self):
         return self.item_name
+    
+class InvoiceFood(models.Model):
+    invoice_food_id = models.IntegerField(primary_key=True)
+    list_item = models.CharField(max_length=1)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=0)
+    payment_method = models.IntegerField()
+    invoice_type = models.IntegerField()
+    created_at = models.DateTimeField()
+    sale_price = models.DecimalField(max_digits=10, decimal_places=0)
+    table_name = models.CharField(max_length=20)
+
+    class Meta:
+        db_table = 'invoice_food'  # Đảm bảo trùng với tên bảng trong SQL Server
+
+    def __str__(self):
+        return self.invoice_food_id
+    
+class WorkSchedule(models.Model):
+    schedule_id = models.AutoField(primary_key=True)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='work_schedule')
+    work_date = models.DateField()
+    shift_type = models.CharField(max_length=50)
+    shift_start = models.TimeField()
+    shift_end = models.TimeField()
+
+    class Meta:
+        db_table = 'work_schedule'
+
+    def __str__(self):
+        return self.schedule_id
 

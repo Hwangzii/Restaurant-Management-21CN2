@@ -16,6 +16,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
   final _quantityController = TextEditingController();
   final _expItemController = TextEditingController();
   final _inventoryStatusController = TextEditingController();
+  final _priceController = TextEditingController();
+  final _unitController = TextEditingController();
   final _searchController = TextEditingController();
   Item? _selectedItem;
 
@@ -42,6 +44,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
       _itemNameController.text = item.itemName;
       _itemTypeController.text = item.itemType.toString();
       _quantityController.text = item.quantity.toString();
+      _priceController.text = item.price.toString();
+      _unitController.text = item.unit.toString();
       _expItemController.text =
           "${item.expItem.year}-${item.expItem.month.toString().padLeft(2, '0')}-${item.expItem.day.toString().padLeft(2, '0')}";
       _inventoryStatusController.text =
@@ -52,6 +56,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       _itemTypeController.text = '1';
       _quantityController.clear();
       _expItemController.clear();
+      _priceController.clear();
       _inventoryStatusController.text = 'Còn hàng';
       _selectedItem = null;
     }
@@ -88,6 +93,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 SizedBox(height: 12), // Khoảng cách
                 _buildTextField(_quantityController, 'Số lượng',
                     isNumber: true),
+                SizedBox(height: 12), // Khoảng cách
+                _buildTextField(_priceController, 'Giá tiền', isNumber: true),
+                SizedBox(height: 12), // Khoảng cách
+                _buildTextField(_unitController, 'Đơn vị', isNumber: true),
                 SizedBox(height: 12), // Khoảng cách
                 _buildDateField(),
                 SizedBox(height: 12), // Khoảng cách
@@ -256,6 +265,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
         quantity: int.parse(_quantityController.text),
         expItem: parsedDate,
         inventoryStatus: status,
+        price: int.parse(_priceController.text),
+        unit: _unitController.text,
         restaurant: 2,
       );
 
@@ -319,10 +330,14 @@ class _InventoryScreenState extends State<InventoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'KHO HÀNG',
-          style: TextStyle(color: Colors.black),
+          'Kho hàng',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: Colors.white,
+        elevation: 0,
         centerTitle: true,
         actions: [
           Container(
@@ -338,10 +353,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
             ),
           )
         ],
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(60),
-          child: Padding(
-            padding: EdgeInsets.all(8.0),
+      ),
+      body: Column(
+        children: [
+          // Thanh tìm kiếm căn giữa
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
@@ -351,56 +368,62 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Colors.grey[300],
               ),
               onChanged: _onSearchChanged,
             ),
           ),
-        ),
-      ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : displayedItems.isEmpty
-              ? Center(child: Text('Không có hàng hóa nào'))
-              : ListView.builder(
-                  padding: EdgeInsets.all(16.0),
-                  itemCount: displayedItems.length,
-                  itemBuilder: (context, index) {
-                    final item = displayedItems[index];
-                    return GestureDetector(
-                      onLongPress: () {
-                        _showItemOptions(item);
-                      },
-                      child: Card(
-                        margin: EdgeInsets.only(
-                            bottom: 8.0), // Khoảng cách giữa các item
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10.0),
-                          side: BorderSide(color: Colors.white, width: 1.0),
-                        ),
-                        elevation: 4.0,
-                        child: ListTile(
-                          contentPadding: EdgeInsets.symmetric(
-                              vertical: 10.0, horizontal: 16.0),
-                          title: Text(
-                            item.itemName,
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Loại hàng: ${item.itemType}'),
-                              Text('Số lượng: ${item.quantity}'),
-                              Text(
-                                  'Hạn sử dụng: ${item.expItem.year}-${item.expItem.month.toString().padLeft(2, '0')}-${item.expItem.day.toString().padLeft(2, '0')}'),
-                              Text(
-                                  'Trạng thái: ${item.inventoryStatus ? 'Còn hàng' : 'Hết hàng'}'),
-                            ],
-                          ),
-                        ),
+          // Kiểm tra trạng thái loading hoặc danh sách item
+          _isLoading
+              ? Expanded(child: Center(child: CircularProgressIndicator()))
+              : displayedItems.isEmpty
+                  ? Expanded(
+                      child: Center(child: Text('Không có hàng hóa nào')))
+                  : Expanded(
+                      child: ListView.builder(
+                        padding: EdgeInsets.all(16.0),
+                        itemCount: displayedItems.length,
+                        itemBuilder: (context, index) {
+                          final item = displayedItems[index];
+                          return GestureDetector(
+                            onLongPress: () {
+                              _showItemOptions(item);
+                            },
+                            child: Card(
+                              margin: EdgeInsets.only(bottom: 8.0),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10.0),
+                                side:
+                                    BorderSide(color: Colors.white, width: 1.0),
+                              ),
+                              elevation: 4.0,
+                              child: ListTile(
+                                contentPadding: EdgeInsets.symmetric(
+                                    vertical: 10.0, horizontal: 16.0),
+                                title: Text(
+                                  item.itemName,
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Số lượng: ${item.quantity}'),
+                                    Text('Giá tiền: ${item.price}'),
+                                    Text('Đơn vị: ${item.unit}'),
+                                    Text(
+                                        'Hạn sử dụng: ${item.expItem.year}-${item.expItem.month.toString().padLeft(2, '0')}-${item.expItem.day.toString().padLeft(2, '0')}'),
+                                    Text(
+                                        'Trạng thái: ${item.inventoryStatus ? 'Còn hàng' : 'Hết hàng'}'),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  }),
+                    ),
+        ],
+      ),
     );
   }
 }

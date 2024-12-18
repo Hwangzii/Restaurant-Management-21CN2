@@ -4,8 +4,8 @@ from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Account, Employee, Floors, Inventory, MenuItem, Tables
-from .serializers import AccountSerializer, EmployeeSerializer, FloorSerializer, InventorySerializer, MenuItemSerializer, TableSerializer
+from .models import Account, Employee, Floors, Inventory, InvoiceFood, MenuItem, Tables, WorkSchedule
+from .serializers import AccountSerializer, EmployeeSerializer, FloorSerializer, InventorySerializer, InvoiceFooodSerializer, MenuItemSerializer, TableSerializer, WorkScheduleSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
@@ -124,3 +124,11 @@ class EmployeeViewSet(viewsets.ModelViewSet):
 class InventoryViewSet(viewsets.ModelViewSet):
     queryset = Inventory.objects.all()
     serializer_class = InventorySerializer
+
+class InvoiceFoodViewSet(viewsets.ModelViewSet):
+    queryset = InvoiceFood.objects.all()
+    serializer_class = InvoiceFooodSerializer
+
+class WorkScheduleViewSet(viewsets.ModelViewSet):
+    queryset = WorkSchedule.objects.all()
+    serializer_class = WorkScheduleSerializer
