@@ -23,8 +23,8 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     'Tất cả',
     'Món chính',
     'Đồ uống',
-    'Tráng miệng',
-    'Buffee',
+    'Buffee đỏ',
+    'Buffee đen',
   ];
 
   @override
@@ -36,8 +36,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
   // Tải danh sách món ăn từ controller
   Future<void> _loadMenuItems() async {
     try {
-      List<Map<String, dynamic>> fetchedItems =
-          await OrderFoodController.fetchMenuItems();
+      List<Map<String, dynamic>> fetchedItems = await OrderFoodController.fetchMenuItems();
       setState(() {
         menuItems = fetchedItems;
         filteredItems = menuItems;
@@ -71,8 +70,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Text('${widget.tableName}',
-            style: TextStyle(color: Colors.black, fontSize: 20)),
+        title: Text('${widget.tableName}', style: TextStyle(color: Colors.black, fontSize: 20)),
         centerTitle: true,
       ),
       backgroundColor: const Color(0xFFF2F3F4),
@@ -98,9 +96,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                     child: Text(
                       options[index],
                       style: TextStyle(
-                        color: selectedOption == index
-                            ? Colors.orange
-                            : Colors.black,
+                        color: selectedOption == index ? Colors.orange : Colors.black,
                       ),
                     ),
                   ),
@@ -149,8 +145,8 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                 return FoodItem(
                   name: filteredItems[index]['item_name'],
                   // Kiểm tra item_describe, nếu không có thì hiển thị "Mô tả không có sẵn"
-                  status: filteredItems[index]['item_describe'] != null
-                      ? filteredItems[index]['item_describe']
+                  status: filteredItems[index]['item_describe'] != null 
+                      ? filteredItems[index]['item_describe'] 
                       : '...',
                   price: filteredItems[index]['item_price_formatted'],
                   onAdd: () {
@@ -160,6 +156,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
               },
             ),
           )
+
         ],
       ),
     );

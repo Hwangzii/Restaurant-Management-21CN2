@@ -35,8 +35,7 @@ class _TablesScreenState extends State<TablesScreen> {
     int floorNumber = floorMap[floor] ?? 1;
 
     try {
-      List<Map<String, dynamic>> fetchedTables =
-          await TablesController.fetchTables(floorNumber);
+      List<Map<String, dynamic>> fetchedTables = await TablesController.fetchTables(floorNumber);
       setState(() {
         selectedFloor = floor;
         tables = fetchedTables;
@@ -86,8 +85,7 @@ class _TablesScreenState extends State<TablesScreen> {
 
   // Show edit dialog
   void _showEditDialog(BuildContext context, String currentName, int tableId) {
-    TextEditingController nameController =
-        TextEditingController(text: currentName);
+    TextEditingController nameController = TextEditingController(text: currentName);
 
     showDialog(
       context: context,
@@ -132,75 +130,75 @@ class _TablesScreenState extends State<TablesScreen> {
   }
 
 // Phương thức trung gian để gọi vào controller
-  Future<bool> _updateTableName(int tableId, String newName) async {
-    try {
-      bool success = await TablesController.updateTableName(
-          tableId, newName, floorMap[selectedFloor]!);
-      return success;
-    } catch (e) {
-      return false;
-    }
+Future<bool> _updateTableName(int tableId, String newName) async {
+  try {
+    bool success = await TablesController.updateTableName(tableId, newName, floorMap[selectedFloor]!);
+    return success;
+  } catch (e) {
+    return false;
   }
+}
+
 
   // Show add table dialog
-  void _showAddTableDialog() {
-    TextEditingController nameController = TextEditingController();
+void _showAddTableDialog() {
+  TextEditingController nameController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.0),
+  showDialog(
+    context: context,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        title: Text('Thêm tên bàn'),
+        content: TextField(
+          controller: nameController,
+          decoration: InputDecoration(hintText: 'Nhập tên bàn mới'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('Hủy'),
           ),
-          title: Text('Thêm tên bàn'),
-          content: TextField(
-            controller: nameController,
-            decoration: InputDecoration(hintText: 'Nhập tên bàn mới'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text('Hủy'),
-            ),
-            TextButton(
-              onPressed: () async {
-                String newName = nameController.text.trim();
-                if (newName.isNotEmpty) {
-                  Navigator.pop(dialogContext);
+          TextButton(
+            onPressed: () async {
+              String newName = nameController.text.trim();
+              if (newName.isNotEmpty) {
+                Navigator.pop(dialogContext);
 
-                  // Gọi phương thức trung gian để thêm bàn
-                  try {
-                    bool success = await _addTable(newName);
-                    if (success) {
-                      reloadTables(); // Call reloadTables
-                      _showSuccessSnackBar('Thêm bàn thành công');
-                    } else {
-                      _showErrorSnackBar('Không thể thêm bàn');
-                    }
-                  } catch (e) {
-                    _showErrorSnackBar('Lỗi khi thêm bàn');
+                // Gọi phương thức trung gian để thêm bàn
+                try {
+                  bool success = await _addTable(newName);
+                  if (success) {
+                    reloadTables(); // Call reloadTables
+                    _showSuccessSnackBar('Thêm bàn thành công');
+                  } else {
+                    _showErrorSnackBar('Không thể thêm bàn');
                   }
+                } catch (e) {
+                  _showErrorSnackBar('Lỗi khi thêm bàn');
                 }
-              },
-              child: Text('Xác nhận'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+              }
+            },
+            child: Text('Xác nhận'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
 // Phương thức trung gian để gọi vào controller
-  Future<bool> _addTable(String newName) async {
-    try {
-      bool success =
-          await TablesController.addTable(newName, floorMap[selectedFloor]!);
-      return success;
-    } catch (e) {
-      return false;
-    }
+Future<bool> _addTable(String newName) async {
+  try {
+    bool success = await TablesController.addTable(newName, floorMap[selectedFloor]!);
+    return success;
+  } catch (e) {
+    return false;
   }
+}
+
 
   // Delete table
   void _deleteTable(int tableId) async {
@@ -227,15 +225,14 @@ class _TablesScreenState extends State<TablesScreen> {
 
   // Show error snack bar
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   // Show success snack bar
   void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
+
 
   // Phương thức cập nhật để hiển thị menu lựa chọn khi nhấn chuột phải vào bàn
   void _showTableOptions(BuildContext context, String tableName, int tableId) {
@@ -289,24 +286,25 @@ class _TablesScreenState extends State<TablesScreen> {
     );
   }
 
+
+
   // **THAY ĐỔI**: Phương thức xử lý khi chọn Buffet đỏ hoặc Buffet đen
   // Xử lý khi chọn 1 trong các lựa chọn (Buffet đỏ, Buffet đen, Gọn món)
   void _handleOptionSelection(String option, int tableId) {
     if (option == 'Buffet đỏ' || option == 'Buffet đen') {
-      _showGuestCountDialog(
-          option, tableId); // Hiển thị hộp thoại nhập số lượng khách
+      _showGuestCountDialog(option, tableId); // Hiển thị hộp thoại nhập số lượng khách
     } else if (option == 'Gọi món') {
-      String tableName = tables
-          .firstWhere((table) => table['table_id'] == tableId)['table_name'];
+      String tableName = tables.firstWhere((table) => table['table_id'] == tableId)['table_name'];
       Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => OrderFoodScreen(tableName: tableName),
-        ),
-      );
+      context,
+      MaterialPageRoute(
+        builder: (context) => OrderFoodScreen(tableName: tableName),
+      ),
+    );
       _showSuccessSnackBar('Bạn đã chọn Gọi món cho bàn $tableId');
     }
   }
+
 
   // **THAY ĐỔI**: Hiển thị hộp thoại nhập số lượng khách
   void _showGuestCountDialog(String option, int tableId) {
@@ -317,8 +315,8 @@ class _TablesScreenState extends State<TablesScreen> {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0), // Bo góc nhỏ hơn (8px)
-          ),
+          borderRadius: BorderRadius.circular(10.0), // Bo góc nhỏ hơn (8px)
+        ),
           title: Text('Nhập số lượng khách cho $option'),
           content: TextField(
             controller: guestCountController,
@@ -336,18 +334,20 @@ class _TablesScreenState extends State<TablesScreen> {
                 int guestCount = int.tryParse(guestCountText) ?? 0;
 
                 if (guestCount > 0) {
-                  Navigator.pop(
-                      dialogContext); // Đóng dialog trước khi chuyển màn hình
+                  Navigator.pop(dialogContext); // Đóng dialog trước khi chuyển màn hình
+
 
                   // Lấy tableName từ danh sách tables dựa trên tableId
-                  String tableName = tables.firstWhere(
-                      (table) => table['table_id'] == tableId)['table_name'];
+                  String tableName = tables.firstWhere((table) => table['table_id'] == tableId)['table_name'];
+
 
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          OrderFoodScreen(tableName: tableName),
+                      builder: (context) => OrderFoodScreen(tableName: tableName
+                        
+                        
+                      ),
                     ),
                   );
                 } else {
@@ -361,6 +361,10 @@ class _TablesScreenState extends State<TablesScreen> {
       },
     );
   }
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -425,10 +429,8 @@ class _TablesScreenState extends State<TablesScreen> {
               itemBuilder: (context, index) {
                 String tableName = tables[index]['table_name'] ?? 'Chưa có tên';
                 return GestureDetector(
-                  onTap: () => _showTableOptions(
-                      context, tableName, tables[index]['table_id']),
-                  onLongPress: () => _showOptionsMenu(
-                      context, tableName, tables[index]['table_id']),
+                  onTap: () => _showTableOptions(context, tableName, tables[index]['table_id']),
+                  onLongPress: () => _showOptionsMenu(context, tableName, tables[index]['table_id']),
                   child: Card(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.0),

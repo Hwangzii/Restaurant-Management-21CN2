@@ -1,8 +1,13 @@
 // import 'package:app/file_test/test_home.dart';
 import 'package:app/screens/bill_screen.dart';
+import 'package:app/screens/history_screen.dart';
 import 'package:app/screens/home_screen.dart';
+import 'package:app/screens/invenory_screen.dart';
 import 'package:app/screens/list_staff_screen.dart';
+import 'package:app/screens/menu_options.dart';
+import 'package:app/screens/order_screen.dart';
 import 'package:app/screens/report_screen.dart';
+import 'package:app/screens/tables_screen.dart';
 import 'package:app/screens/warehouse_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -21,7 +26,7 @@ class _ManagerScreenState extends State<ManagerScreen> {
     HomeScreen(),
     ListStaffScreen(),
     BillScreen(),
-    WarehouseScreen(),
+    InventoryScreen(),
     ReportScreen(),
   ];
 

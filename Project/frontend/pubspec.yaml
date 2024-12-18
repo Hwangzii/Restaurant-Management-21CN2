@@ -35,7 +35,8 @@ dependencies:
   fluttertoast: ^8.1.1  # Thêm thư viện fluttertoast
   pinput: ^2.2.31
   qr_flutter: ^4.1.0
-  shared_preferences: ^2.0.18
+  fl_chart: ^0.63.0
+  intl: ^0.18.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -87,6 +88,11 @@ flutter:
     - assets/bill_1.png
     - assets/bill_2.png
     - assets/bell.png
+    - assets/triangle.png
+    - assets/staff_check.png
+    - assets/clients.png
+    - assets/food.png
+    - assets/order.png
   
   uses-material-design: true
 
