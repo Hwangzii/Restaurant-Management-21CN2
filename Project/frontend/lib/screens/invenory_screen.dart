@@ -17,6 +17,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   final _expItemController = TextEditingController();
   final _inventoryStatusController = TextEditingController();
   final _searchController = TextEditingController();
+  Item? _selectedItem;
 
   bool _isLoading = false;
 
@@ -37,16 +38,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   void _showForm(Item? item) {
-    // Reset các controller trước khi mở form
-    _itemNameController.clear();
-    _itemTypeController.text = '1'; // Giá trị mặc định cho loại hàng
-    _quantityController.clear();
-    _expItemController.clear();
-    _inventoryStatusController.text =
-        'Còn hàng'; // Giá trị mặc định cho trạng thái
-
     if (item != null) {
-      // Nếu item không phải là null (tức là đang sửa item), điền dữ liệu của item vào các trường
       _itemNameController.text = item.itemName;
       _itemTypeController.text = item.itemType.toString();
       _quantityController.text = item.quantity.toString();
@@ -54,6 +46,14 @@ class _InventoryScreenState extends State<InventoryScreen> {
           "${item.expItem.year}-${item.expItem.month.toString().padLeft(2, '0')}-${item.expItem.day.toString().padLeft(2, '0')}";
       _inventoryStatusController.text =
           item.inventoryStatus ? 'Còn hàng' : 'Hết hàng';
+      _selectedItem = item;
+    } else {
+      _itemNameController.clear();
+      _itemTypeController.text = '1';
+      _quantityController.clear();
+      _expItemController.clear();
+      _inventoryStatusController.text = 'Còn hàng';
+      _selectedItem = null;
     }
 
     showDialog(
@@ -132,7 +132,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       decoration: InputDecoration(
         labelText: label,
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.black, width: 2.0),
+          borderSide: BorderSide(color: Colors.white, width: 2.0),
         ),
         border: OutlineInputBorder(),
       ),
@@ -168,7 +168,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
           decoration: InputDecoration(
             labelText: 'Hạn sử dụng',
             focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: Colors.black, width: 2.0),
+              borderSide: BorderSide(color: Colors.white, width: 2.0),
             ),
             border: OutlineInputBorder(),
           ),
@@ -242,7 +242,39 @@ class _InventoryScreenState extends State<InventoryScreen> {
   }
 
   Future<void> _saveItem() async {
-    await _loadData();
+    if (_formKey.currentState!.validate()) {
+      final dateStr = _expItemController.text;
+      final parsedDate = DateTime.tryParse(dateStr);
+      if (parsedDate == null) return;
+
+      final bool status = _inventoryStatusController.text == 'Còn hàng';
+
+      final item = Item(
+        itemId: _selectedItem?.itemId ?? 0,
+        itemName: _itemNameController.text,
+        itemType: int.parse(_itemTypeController.text),
+        quantity: int.parse(_quantityController.text),
+        expItem: parsedDate,
+        inventoryStatus: status,
+        restaurant: 2,
+      );
+
+      setState(() {
+        _isLoading = true;
+      });
+
+      if (_selectedItem == null) {
+        await _controller.createItem(item);
+      } else {
+        await _controller.updateItem(item);
+      }
+
+      Navigator.of(context).pop();
+      await _loadData();
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _confirmDelete(int id) async {
@@ -357,45 +389,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Text('Loại hàng: ${item.itemType}'),
                               Text('Số lượng: ${item.quantity}'),
                               Text(
                                   'Hạn sử dụng: ${item.expItem.year}-${item.expItem.month.toString().padLeft(2, '0')}-${item.expItem.day.toString().padLeft(2, '0')}'),
                               Text(
                                   'Trạng thái: ${item.inventoryStatus ? 'Còn hàng' : 'Hết hàng'}'),
                             ],
-                          ),
-                          trailing: PopupMenuButton<String>(
-                            onSelected: (value) {
-                              if (value == 'edit') {
-                                _showForm(item);
-                              } else if (value == 'delete') {
-                                _confirmDelete(item.itemId);
-                              }
-                            },
-                            itemBuilder: (BuildContext context) {
-                              return [
-                                PopupMenuItem<String>(
-                                  value: 'edit',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.edit),
-                                      SizedBox(width: 8),
-                                      Text('Sửa sản phẩm'),
-                                    ],
-                                  ),
-                                ),
-                                PopupMenuItem<String>(
-                                  value: 'delete',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.delete),
-                                      SizedBox(width: 8),
-                                      Text('Xóa sản phẩm'),
-                                    ],
-                                  ),
-                                ),
-                              ];
-                            },
                           ),
                         ),
                       ),

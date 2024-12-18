@@ -388,7 +388,7 @@ Future<bool> _addTable(String newName) async {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.settings),
+            icon: Icon(Icons.menu),
             onPressed: () {
               showMenu(
                 context: context,
@@ -422,8 +422,8 @@ Future<bool> _addTable(String newName) async {
               padding: EdgeInsets.all(10.0),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 3,
-                crossAxisSpacing: 15.0,
-                mainAxisSpacing: 15.0,
+                crossAxisSpacing: 1.0,
+                mainAxisSpacing: 1.0,
               ),
               itemCount: tables.length,
               itemBuilder: (context, index) {
@@ -435,13 +435,12 @@ Future<bool> _addTable(String newName) async {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.0),
                     ),
-                    elevation: 2.0,
+                    elevation: 0.0,
                     child: Center(
                       child: Text(
                         tableName,
                         style: TextStyle(
                           fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),

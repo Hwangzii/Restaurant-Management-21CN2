@@ -2,9 +2,11 @@ import 'package:app/models/item.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:intl/intl.dart';
+
 class ApiService {
   final String baseUrl =
-      'https://32da-123-16-72-60.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://fe33-2001-ee0-40c1-7988-c938-1b01-efc2-8141.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   // Gửi request đăng nhập
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -257,9 +259,10 @@ class ApiService {
     }
   }
 
-  // Hàm lấy dữ liệu nhân viên từ API 
+  // Hàm lấy dữ liệu nhân viên từ API
   Future<List<Map<String, dynamic>>> fetchEmployees() async {
-    final tablesUrl = '$baseUrl/employees/'; // Đường dẫn API lấy danh sách bàn
+    final tablesUrl =
+        '$baseUrl/employees/'; // Đường dẫn API lấy danh sách nhân viên
 
     try {
       final response = await http.get(Uri.parse(tablesUrl), headers: {
@@ -269,13 +272,141 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final decodedResponse = utf8.decode(response.bodyBytes);
-        List<dynamic> data = json.decode(decodedResponse); 
+        List<dynamic> data = json.decode(decodedResponse);
         return List<Map<String, dynamic>>.from(data);
       } else {
         throw Exception('Failed to load tables');
       }
     } catch (e) {
       throw Exception('Error fetching tables: $e');
+    }
+  }
+
+  //Hàm thêm nhân viên
+
+  Future<bool> addEmployee({
+    required String fullName,
+    required String phoneNumber,
+    required DateTime dateOfBirth,
+    required String address,
+    required String position,
+    required DateTime timeStart,
+    required String cccd,
+    required int restaurant,
+  }) async {
+    final url = '$baseUrl/employees/';
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode({
+          'full_name': fullName,
+          'phone_number': phoneNumber,
+          'date_of_birth': DateFormat('yyyy-MM-dd')
+              .format(dateOfBirth), // Chuyển đổi DateTime thành chuỗi
+          'employees_address': address,
+          'position': position,
+          'time_start': DateFormat('yyyy-MM-dd')
+              .format(timeStart), // Chuyển đổi DateTime thành chuỗi
+          'cccd': cccd,
+          'restaurant': restaurant,
+          // 'created_at': DateTime.now().toIso8601String(),
+          // 'updated_at': DateTime.now().toIso8601String(),
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        print('Employee added successfully!');
+        return true;
+      } else {
+        print('Server Response: ${response.body}');
+        throw Exception(
+            'Failed to add employee. Status Code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error adding employee: $e');
+      return false;
+    }
+  }
+
+  // Hàm sửa thông tin nhân viên
+  Future<bool> updateEmployee({
+    required int employeeId,
+    required Map<String, dynamic> updatedData,
+  }) async {
+    try {
+      // Thêm timestamp cập nhật vào dữ liệu
+      updatedData['updated_at'] = DateTime.now().toIso8601String();
+
+      // Kiểm tra và định dạng các trường ngày nếu có
+      if (updatedData.containsKey('date_of_birth')) {
+        DateTime dob = DateTime.parse(updatedData['date_of_birth']);
+        updatedData['date_of_birth'] = DateFormat('yyyy-MM-dd').format(dob);
+      }
+
+      if (updatedData.containsKey('time_start')) {
+        DateTime ts = DateTime.parse(updatedData['time_start']);
+        updatedData['time_start'] = DateFormat('yyyy-MM-dd').format(ts);
+      }
+
+      // Kiểm tra định dạng số điện thoại nếu được cập nhật
+      if (updatedData.containsKey('phone_number')) {
+        final phoneRegex = RegExp(r'^\d{10,15}$');
+        if (!phoneRegex.hasMatch(updatedData['phone_number'])) {
+          throw Exception('Số điện thoại không hợp lệ.');
+        }
+      }
+
+      // Kiểm tra định dạng CCCD nếu được cập nhật
+      if (updatedData.containsKey('cccd')) {
+        final cccdRegex = RegExp(r'^\d{9,12}$');
+        if (!cccdRegex.hasMatch(updatedData['cccd'])) {
+          throw Exception('CCCD không hợp lệ.');
+        }
+      }
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/employees/$employeeId/'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode(updatedData),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print('Đã cập nhật nhân viên thành công!');
+        return true;
+      } else {
+        print('Phản hồi từ server: ${response.body}');
+        throw Exception(
+            'Lỗi khi cập nhật nhân viên. Mã trạng thái: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Lỗi khi cập nhật nhân viên: $e');
+      return false;
+    }
+  }
+
+  // Hàm xóa nhân viên
+  Future<bool> deleteEmployee(int employeeId) async {
+    final url = '$baseUrl/employees/$employeeId/';
+    try {
+      // Có thể thêm xác nhận từ người dùng ở đây nếu cần
+
+      final response = await http.delete(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
+
+      if (response.statusCode == 204) {
+        print('Đã xóa nhân viên thành công!');
+        return true;
+      } else {
+        print('Phản hồi từ server: ${response.body}');
+        throw Exception(
+            'Không thể xóa nhân viên. Mã trạng thái: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Lỗi khi xóa nhân viên: $e');
+      return false;
     }
   }
 }

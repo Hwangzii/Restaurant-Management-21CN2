@@ -2,6 +2,7 @@
 import 'package:app/screens/bill_screen.dart';
 import 'package:app/screens/history_screen.dart';
 import 'package:app/screens/home_screen.dart';
+import 'package:app/screens/invenory_screen.dart';
 import 'package:app/screens/list_staff_screen.dart';
 import 'package:app/screens/menu_options.dart';
 import 'package:app/screens/order_screen.dart';
@@ -25,7 +26,7 @@ class _ManagerScreenState extends State<ManagerScreen> {
     HomeScreen(),
     ListStaffScreen(),
     BillScreen(),
-    WarehouseScreen(),
+    InventoryScreen(),
     ReportScreen(),
   ];
 
@@ -47,30 +48,35 @@ class _ManagerScreenState extends State<ManagerScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround, // Chia đều các icon
           children: [
-            _buildIconButton('assets/home_1.png', 'assets/home_2.png', 'Trang chủ', 0),
-            _buildIconButton('assets/staff_1.png', 'assets/staff_2.png', 'Nhân sự', 1),
-            _buildIconButton('assets/bill_1.png', 'assets/bill_2.png', 'Hóa đơn', 2),
-            _buildIconButton('assets/box_1.png', 'assets/box_2.png', 'Kho hàng', 3),
-            _buildIconButton('assets/chart_1.png', 'assets/chart_2.png', 'Báo cáo', 4),
+            _buildIconButton(
+                'assets/home_1.png', 'assets/home_2.png', 'Trang chủ', 0),
+            _buildIconButton(
+                'assets/staff_1.png', 'assets/staff_2.png', 'Nhân sự', 1),
+            _buildIconButton(
+                'assets/bill_1.png', 'assets/bill_2.png', 'Hóa đơn', 2),
+            _buildIconButton(
+                'assets/box_1.png', 'assets/box_2.png', 'Kho hàng', 3),
+            _buildIconButton(
+                'assets/chart_1.png', 'assets/chart_2.png', 'Báo cáo', 4),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildIconButton(String activeIcon, String inactiveIcon, String label, int index) {
+  Widget _buildIconButton(
+      String activeIcon, String inactiveIcon, String label, int index) {
     return GestureDetector(
       onTap: () => _onItemTapped(index),
       child: Container(
-      
         decoration: BoxDecoration(
-          // color: _selectedIndex == index ? Colors.white.withOpacity(0.1) : Colors.,
-          // borderRadius: BorderRadius.circular(8),
-          // border: Border.all(
-          //   color: _selectedIndex == index ? Colors.transparent : Colors.transparent,
-          //   width: 1,
-          // ),
-        ),
+            // color: _selectedIndex == index ? Colors.white.withOpacity(0.1) : Colors.,
+            // borderRadius: BorderRadius.circular(8),
+            // border: Border.all(
+            //   color: _selectedIndex == index ? Colors.transparent : Colors.transparent,
+            //   width: 1,
+            // ),
+            ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -84,7 +90,8 @@ class _ManagerScreenState extends State<ManagerScreen> {
               label,
               style: TextStyle(
                 fontSize: 10,
-                color: _selectedIndex == index ? Color(0xFFFF8A00) : Colors.black,
+                color:
+                    _selectedIndex == index ? Color(0xFFFF8A00) : Colors.black,
               ),
             ),
           ],
