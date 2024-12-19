@@ -1,4 +1,5 @@
 import 'package:app/controllers/oder_food_controller.dart';
+import 'package:app/screens/pay_print_screen.dart';
 import 'package:app/widgets/list_order_food.dart';
 import 'package:flutter/material.dart';
 import 'package:app/widgets/food_items.dart';
@@ -288,25 +289,36 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
               ),
             ),
             Expanded(
-              child: Container(
-                color: Colors.orange, // Màu nền cột 3
-                alignment: Alignment.center,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${_calculateTotal()} đ', // Hiển thị tổng tiền
-                      style: TextStyle(
-                        fontSize: 16,
+              child: GestureDetector(
+                onTap: () {
+                  // Điều hướng đến màn hình mới
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            PayPrintScreen()), // Thay `NewScreen` bằng tên màn hình bạn muốn chuyển đến
+                  );
+                },
+                child: Container(
+                  color: Colors.orange, // Màu nền cột 3
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '${_calculateTotal()} đ', // Hiển thị tổng tiền
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(width: 5), // Khoảng cách giữa text và icon
+                      Icon(
+                        Icons.arrow_forward,
                         color: Colors.white,
                       ),
-                    ),
-                    SizedBox(width: 5), // Khoảng cách giữa text và icon
-                    Icon(
-                      Icons.arrow_forward,
-                      color: Colors.white,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

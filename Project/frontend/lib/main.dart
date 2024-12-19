@@ -18,7 +18,8 @@ class MyApp extends StatelessWidget {
       title: 'My Flutter App',
       initialRoute: '/', // Màn hình đầu tiên khi app chạy là EnterOtpScreen
       routes: {
-        '/': (context) => ManagerScreen(),
+        '/': (context) => LoginScreen(),
+        '/ManagerScreen': (context) => ManagerScreen(),
         '/TablesScreen': (context) => TablesScreen(),
         '/StaffCheckScreen': (context) => StaffCheckScreen(),
       },
