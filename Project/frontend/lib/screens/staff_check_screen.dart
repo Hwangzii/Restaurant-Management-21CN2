@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app/controllers/staff_check_controller.dart';
 
 class StaffCheckApp extends StatelessWidget {
   const StaffCheckApp({super.key});
@@ -7,9 +8,7 @@ class StaffCheckApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Điểm danh nhân viên',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue),
       home: const StaffCheckScreen(),
     );
   }
@@ -23,82 +22,114 @@ class StaffCheckScreen extends StatefulWidget {
 }
 
 class _StaffCheckScreenState extends State<StaffCheckScreen> {
-  // Danh sách tên nhân viên
-  List<String> employeeNames = [
-    "Nguyễn Hồng Phi",
-    "Lương Ngọc Sơn",
-    "Dương Nhật Đức Việt",
-    "Nguyễn Đỗ Công",
-    "Nguyễn Hà Thanh",
-    "Nguyễn Hồng Phi",
-    "Ngọc Sơn",
-    "Dương Nhật Đức ",
-    "Nguyễn Đỗ Công",
-    "Hà Thanh",
-    "Nguyễn ồng Phi",
-    "Lương Ngọc Sơn",
-    "Nguyễn Hồng Phi",
-    "Ngọc Sơn",
-    "Dương Nhật Đức ",
-    "Nguyễn Đỗ Công",
-    "Hà Thanh",
-    "Nguyễn ồng Phi",
-    "Lương Ngọc Sơn",
-    "Nguyễn Hồng Phi",
-    "Ngọc Sơn",
-    "Dương Nhật Đức ",
-    "Nguyễn Đỗ Công",
-    "Hà Thanh",
-    "Nguyễn ồng Phi",
-    "Lương Ngọc Sơn",
-  ];
-
-  // Danh sách trạng thái điểm danh: null = chưa chọn, true = Có, false = Muộn
-  late List<bool?> attendanceStatus;
-
-  // Biến lưu giá trị tìm kiếm
+  late StaffCheckAppController _controller;
+  List<Map<String, dynamic>> employees = [];
+  List<bool?> attendanceStatus = [];
   String _searchQuery = '';
-
-  // Biến kiểm tra cuộn hết danh sách
-  bool _isEndOfList = false;
+  String _selectedShift = 'ca sáng'; // Dropdown giá trị mặc định
 
   @override
   void initState() {
     super.initState();
-    // Khởi tạo danh sách trạng thái điểm danh với số lượng nhân viên hiện tại
-    attendanceStatus = List.filled(employeeNames.length, null);
+    _controller = StaffCheckAppController();
+
+    // Gọi API để lấy danh sách nhân viên
+    StaffCheckAppController.fetchEmployees().then((data) {
+      setState(() {
+        employees = data;
+        attendanceStatus = List.filled(employees.length, null);
+      });
+    }).catchError((error) {
+      print('Error loading employees: $error');
+    });
   }
 
-  // Hàm xử lý khi bấm nút lưu
   void _saveAttendance() {
-    for (int i = 0; i < employeeNames.length; i++) {
-      debugPrint(
-          "${employeeNames[i]}: ${attendanceStatus[i] == true ? "Có" : attendanceStatus[i] == false ? "Muộn" : "Chưa điểm danh"}");
+    List<String> attendanceDetails = [];
+    for (int i = 0; i < employees.length; i++) {
+      String attendance = attendanceStatus[i] == true
+          ? "Có"
+          : attendanceStatus[i] == false
+              ? "Muộn"
+              : "Chưa điểm danh";
+      attendanceDetails.add("${employees[i]['full_name']}: $attendance");
     }
+
+    String resultMessage = attendanceDetails.isNotEmpty
+        ? "Điểm danh đã được lưu thành công!\n\n${attendanceDetails.join('\n')}"
+        : "Không có thay đổi trong điểm danh.";
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Điểm danh đã được lưu thành công!")),
+      SnackBar(content: Text(resultMessage)),
     );
   }
 
+  
   @override
   Widget build(BuildContext context) {
-    // Lọc danh sách theo từ khóa tìm kiếm
-    List<String> filteredNames = employeeNames
-        .where((name) => name.toLowerCase().contains(_searchQuery.toLowerCase()))
-        .toList();
+    DateTime now = DateTime.now(); // Thời gian hiện tại
+    String formattedDate = "${now.day}/${now.month}/${now.year}"; // Định dạng ngày tháng năm
 
-    // Đảm bảo số lượng trạng thái điểm danh phù hợp với danh sách nhân viên lọc
-    List<bool?> filteredAttendanceStatus = attendanceStatus
-        .take(filteredNames.length)
+    if (employees.isEmpty || attendanceStatus.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Điểm danh nhân viên')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    List<Map<String, dynamic>> filteredEmployees = employees
+        .where((employee) => employee['full_name']
+            .toLowerCase()
+            .contains(_searchQuery.toLowerCase()))
         .toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Điểm danh nhân viên'),
-        centerTitle: true,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56.0),
-          child: Padding(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                const Text(
+                  'Điểm danh nhân viên',
+                  style: TextStyle(color: Colors.black, fontSize: 20),
+                ),
+                const SizedBox(width: 16), // Khoảng cách giữa title và ngày tháng
+                Text(
+                  formattedDate, // Hiển thị ngày tháng năm
+                  style: const TextStyle(color: Colors.grey, fontSize: 16),
+                ),
+                const SizedBox(width: 16), // Khoảng cách giữa ngày tháng và Dropdown
+                DropdownButton<String>(
+                  value: _selectedShift, // Giá trị mặc định
+                  underline: Container(), // Xóa đường gạch chân
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedShift = newValue!;
+                    });
+                  },
+                  items: <String>['ca sáng', 'ca tối']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+            Text(
+              "Tổng số nhân viên: ${filteredEmployees.length}",
+              style: const TextStyle(color: Colors.black, fontSize: 16),
+            ),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
               onChanged: (query) {
@@ -111,112 +142,106 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
-                  borderSide: const BorderSide(color: Colors.blue),
                 ),
               ),
             ),
           ),
-        ),
-      ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (ScrollNotification notification) {
-          if (notification is ScrollUpdateNotification) {
-            // Kiểm tra khi đã cuộn đến cuối
-            if (notification.metrics.extentAfter == 0) {
-              setState(() {
-                _isEndOfList = true;
-              });
-            } else {
-              setState(() {
-                _isEndOfList = false;
-              });
-            }
-          }
-          return false;
-        },
-        child: Column(
-          children: [
-            // Hiển thị tổng số nhân viên sau khi lọc
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                "Tổng số nhân viên: ${filteredNames.length}",
-                style: const TextStyle(fontSize: 18),
-              ),
-            ),
-            // Danh sách nhân viên và trạng thái điểm danh
-            Expanded(
-              child: ListView.separated(
-                itemCount: filteredNames.length,
-                separatorBuilder: (context, index) => const Divider(
-                  color: Color.fromARGB(255, 232, 229, 229),
-                  thickness: 1,
-                  height: 1,
-                ),
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(
-                      filteredNames[index],
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
+          Expanded(
+            child: ListView.separated(
+              itemCount: filteredEmployees.length,
+              separatorBuilder: (context, index) => const Divider(),
+              itemBuilder: (context, index) {
+                final employee = filteredEmployees[index];
+                return ListTile(
+                  title: Text(employee['full_name']),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            int originalIndex = employees.indexOf(employee);
+                            attendanceStatus[originalIndex] =
+                                attendanceStatus[originalIndex] == true
+                                    ? null
+                                    : true;
+                          });
+                        },
+                        child: Row(
                           children: [
-                            Radio<bool>(
-                              value: true,
-                              groupValue: filteredAttendanceStatus[index],
-                              activeColor: Colors.orange,
-                              onChanged: (value) {
-                                setState(() {
-                                  // Cập nhật trạng thái điểm danh trong danh sách gốc
-                                  attendanceStatus[employeeNames.indexOf(filteredNames[index])] = value;
-                                });
-                              },
+                            Icon(
+                              attendanceStatus[employees.indexOf(employee)] ==
+                                      true
+                                  ? Icons.radio_button_checked
+                                  : Icons.radio_button_unchecked,
+                              color: attendanceStatus[
+                                          employees.indexOf(employee)] ==
+                                      true
+                                  ? Colors.orange
+                                  : Colors.grey,
                             ),
+                            const SizedBox(width: 4),
                             const Text('Có'),
                           ],
                         ),
-                        Row(
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            int originalIndex = employees.indexOf(employee);
+                            attendanceStatus[originalIndex] =
+                                attendanceStatus[originalIndex] == false
+                                    ? null
+                                    : false;
+                          });
+                        },
+                        child: Row(
                           children: [
-                            Radio<bool>(
-                              value: false,
-                              groupValue: filteredAttendanceStatus[index],
-                              activeColor: Colors.grey,
-                              onChanged: (value) {
-                                setState(() {
-                                  // Cập nhật trạng thái điểm danh trong danh sách gốc
-                                  attendanceStatus[employeeNames.indexOf(filteredNames[index])] = value;
-                                });
-                              },
+                            Icon(
+                              attendanceStatus[employees.indexOf(employee)] ==
+                                      false
+                                  ? Icons.radio_button_checked
+                                  : Icons.radio_button_unchecked,
+                              color: attendanceStatus[
+                                          employees.indexOf(employee)] ==
+                                      false
+                                  ? Colors.orange
+                                  : Colors.grey,
                             ),
+                            const SizedBox(width: 4),
                             const Text('Muộn'),
                           ],
                         ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            // Hiển thị nút "Lưu" chỉ khi đã cuộn hết danh sách
-            if (_isEndOfList)
-              Align(
-                alignment: Alignment.bottomRight, // Đặt nút ở góc dưới bên phải
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: FloatingActionButton.extended(
-                    onPressed: _saveAttendance, // Gọi hàm lưu điểm danh
-                    label: const Text('Lưu'),
-                    icon: const Icon(Icons.save),
-                    backgroundColor: Colors.blue,
+                      ),
+                    ],
                   ),
-                ),
-              ),
-          ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          height: 45,
+          width: 30,
+          child: FloatingActionButton.extended(
+            onPressed: _saveAttendance,
+            label: const Text(
+              'Lưu',
+              style: TextStyle(fontSize: 14),
+            ),
+            icon: const Icon(
+              Icons.save,
+              size: 18,
+            ),
+            backgroundColor: Colors.blue,
+          ),
         ),
       ),
     );
   }
+
 }
+

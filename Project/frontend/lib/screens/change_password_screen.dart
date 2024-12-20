@@ -6,11 +6,24 @@ class ChangePasswordScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context); // Quay lại màn hình trước đó
+          },
+        ),
+        title: Text('Bàn 101'),
+        centerTitle: true, // Căn giữa tiêu đề
+        backgroundColor: Colors.blue, // Màu nền AppBar
+      ),
       body: Center(
-        child: Text('Giao diện thay đổi mật khẩu', style: TextStyle(
-          fontSize: 24,
-        ),),
+        child: Text(
+          'Nội dung chính của Bàn 101',
+          style: TextStyle(fontSize: 18),
+        ),
       ),
     );
   }
 }
+

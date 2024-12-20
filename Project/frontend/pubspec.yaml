@@ -93,6 +93,8 @@ flutter:
     - assets/clients.png
     - assets/food.png
     - assets/order.png
+    - assets/check.png
+    - assets/clock.png
   
   uses-material-design: true
 

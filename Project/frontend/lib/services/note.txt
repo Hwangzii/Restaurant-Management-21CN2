@@ -11,3 +11,6 @@ frontend/lib/services:
     trực tiếp trong các màn hình, làm cho mã không 
     tách bạch và phức tạp hơn. Điều này làm tăng độ 
     khó khi debug và bảo trì.
+
+run web:
+- flutter run -d chrome --web-browser-flag="--disable-web-security"
