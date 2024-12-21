@@ -2,6 +2,7 @@ import 'package:app/screens/order_food_screen.dart';
 import 'package:app/screens/tables_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:app/controllers/notification_controller.dart'; // Import controller
+import 'package:app/screens/food_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -13,7 +14,7 @@ const Color commonIconBackgroundColor = Color(0xFFF5F5F5);
 
 // Danh sách dữ liệu icon
 final List<Map<String, dynamic>> iconsData = [
-  {'imagePath': 'assets/food.png', 'name': 'Món ăn', 'color': commonIconBackgroundColor,},
+  {'imagePath': 'assets/food.png', 'name': 'Món ăn', 'color': commonIconBackgroundColor,'route': '/FoodScreen'},
   {'imagePath': 'assets/clients.png', 'name': 'khách hàng', 'color': commonIconBackgroundColor},
   {'imagePath': 'assets/order.png', 'name': 'Gọi món', 'color': commonIconBackgroundColor, 'route': '/TablesScreen'},
   {'imagePath': 'assets/staff_check.png', 'name': 'Điểm danh', 'color': commonIconBackgroundColor, 'route': '/StaffCheckScreen'},

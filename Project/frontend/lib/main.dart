@@ -8,6 +8,7 @@ import 'package:app/screens/shift_registration_screen.dart';
 import 'package:app/screens/staff_check_screen.dart';
 import 'package:app/screens/tables_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:app/screens/food_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
         '/TablesScreen': (context) => TablesScreen(),
         '/StaffCheckScreen': (context) => StaffCheckScreen(),
         '/PayPrintScreen': (context) => PayPrintScreen(),
+        '/FoodScreen' : (context) => FoodScreen()
       },
     );
   }

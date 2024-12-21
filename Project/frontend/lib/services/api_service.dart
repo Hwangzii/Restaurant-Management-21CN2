@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 
 class ApiService {
   final String baseUrl =
-      'https://64b5-2402-800-61cf-d12-2d0d-a28a-3f9f-fc25.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://e5c6-2402-800-61cf-d12-907d-800d-a5b6-c258.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   // Gửi request đăng nhập
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -164,7 +164,7 @@ class ApiService {
 
   // Hàm thêm món ăn
   Future<bool> addFood(String itemName, double itemPrice, String itemDescribe,
-      int itemType, int itemStatus, int restaurant) async {
+      int itemType, bool itemStatus, int restaurant) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/menu_items/'),
