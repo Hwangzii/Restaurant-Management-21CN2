@@ -1,3 +1,4 @@
+import 'package:app/screens/menu_options.dart';
 import 'package:app/screens/order_food_screen.dart';
 import 'package:app/screens/tables_screen.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +14,7 @@ const Color commonIconBackgroundColor = Color(0xFFF5F5F5);
 
 // Danh sách dữ liệu icon
 final List<Map<String, dynamic>> iconsData = [
-  {'imagePath': 'assets/food.png', 'name': 'Món ăn', 'color': commonIconBackgroundColor,},
+  {'imagePath': 'assets/food.png', 'name': 'Món ăn', 'color': commonIconBackgroundColor, 'route': '/FoodScreen'},
   {'imagePath': 'assets/clients.png', 'name': 'khách hàng', 'color': commonIconBackgroundColor},
   {'imagePath': 'assets/order.png', 'name': 'Gọi món', 'color': commonIconBackgroundColor, 'route': '/TablesScreen'},
   {'imagePath': 'assets/staff_check.png', 'name': 'Điểm danh', 'color': commonIconBackgroundColor, 'route': '/StaffCheckScreen'},
@@ -44,17 +45,25 @@ class _HomeScreenState extends State<HomeScreen> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Icon avatar với kích thước nhỏ hơn
-            CircleAvatar(
-              radius: 15, // Kích thước avatar
-              backgroundImage: AssetImage('assets/user_icon.png'),
+            // Avatar với sự kiện chuyển form
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MenuOptions()),
+                );
+              },
+              child: CircleAvatar(
+                radius: 18, // Kích thước avatar
+                backgroundImage: AssetImage('assets/user_icon.png'),
+              ),
             ),
 
             // Thanh tìm kiếm
             Expanded(
               child: Container(
                 margin: EdgeInsets.symmetric(horizontal: 20),
-                height: 30,
+                height: 40,
                 child: TextField(
                   decoration: InputDecoration(
                     contentPadding: EdgeInsets.symmetric(vertical: 0),
@@ -83,14 +92,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                   icon: Image.asset(
                     'assets/bell.png',
-                    width: 18,
-                    height: 18,
+                    width: 24,
+                    height: 24,
                   ),
                 ),
                 if (_notificationController.getNotificationCount() > 0)
                   Positioned(
-                    right: 5,
-                    top: 5,
+                    right: 0,
+                    top: 0,
                     child: Container(
                       padding: EdgeInsets.all(4),
                       decoration: BoxDecoration(
@@ -116,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(height: 10),
+            SizedBox(height: 15),
             // Hàng đầu tiên: text "Tổng doanh thu (VNĐ)" và icon con mắt (eye)
             Container(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -134,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Color(0xFF929292),
                         ),
                       ),
-                      SizedBox(width: 10),
+                      SizedBox(width: 15),
                       Icon(
                         Icons.remove_red_eye,
                         size: 18,
@@ -142,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 5),
+                  SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
@@ -166,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               width: 10,
                               height: 10,
                             ),
-                            SizedBox(width: 5),
+                            SizedBox(width: 10),
                             Text(
                               '8,2%',
                               style: TextStyle(
@@ -182,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
         
-            SizedBox(height: 2,),
+            SizedBox(height: 5,),
         
             // Đường kẻ thẳng ngăn cách
             Padding(
@@ -193,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
         
-            SizedBox(height: 2,),  
+            SizedBox(height: 5,),  
         
             
             // Hàng thứ hai: hiển thị 4 icon chia đều ở đây
@@ -278,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
         
-            SizedBox(height: 2,),
+            SizedBox(height: 5,),
         
             // Hàng thứ 3
             Container(
@@ -395,6 +404,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
+
+            SizedBox(height: 5,),
+        
+            // Đường kẻ thẳng ngăn cách
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Divider(
+                color: Color(0xFFF2F3F4),
+                thickness: 1,
+              ),
+            ),
+        
+            SizedBox(height: 5,), 
           ],
         ),
       ),

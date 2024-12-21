@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
-import 'change_password_screen.dart';  // Đảm bảo bạn đã import trang ChangePasswordScreen
+import 'change_password_screen.dart';
+import 'account_screen.dart'; // Đảm bảo import trang AccountScreen
 
 class MenuOptions extends StatelessWidget {
   @override
@@ -54,7 +55,8 @@ class MenuOptions extends StatelessWidget {
                 // Chuyển tới màn hình ChangePasswordScreen khi ấn vào "Thay đổi mật khẩu"
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ChangePasswordScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => ChangePasswordScreen()),
                 );
               },
               child: Row(
@@ -67,6 +69,38 @@ class MenuOptions extends StatelessWidget {
                   SizedBox(width: 15), // Khoảng cách giữa icon và text
                   Text(
                     'Thay đổi mật khẩu', // Văn bản
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(height: screenHeight * 0.03), // Khoảng cách xuống mục tiếp theo
+
+            // Icon người dùng và text "Quản lý người dùng"
+            GestureDetector(
+              onTap: () {
+                // Chuyển tới màn hình AccountScreen khi ấn vào "Quản lý người dùng"
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => AccountScreen()), // Đảm bảo bạn đã tạo AccountScreen
+                );
+              },
+              child: Row(
+                children: [
+                  Image.asset(
+                    'assets/clients.png', // Đường dẫn tới ảnh của bạn
+                    width: 16, // Kích thước ảnh
+                    height: 16,
+                  ),
+                  SizedBox(width: 15), // Khoảng cách giữa icon và text
+                  Text(
+                    'Cài đặt thông tin cá nhân', // Văn bản
                     style: TextStyle(
                       color: Colors.black,
                       fontSize: 14,

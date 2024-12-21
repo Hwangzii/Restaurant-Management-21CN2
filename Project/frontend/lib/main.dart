@@ -1,3 +1,5 @@
+import 'package:app/screens/clients_screen.dart';
+import 'package:app/screens/food_screen.dart';
 import 'package:app/screens/home_screen.dart';
 import 'package:app/screens/login_screen.dart';
 import 'package:app/screens/manager_screen.dart';
@@ -22,9 +24,13 @@ class MyApp extends StatelessWidget {
       initialRoute: '/', // Màn hình đầu tiên khi app chạy là EnterOtpScreen
       routes: {
         '/': (context) => ManagerScreen(),
+        '/FoodScreen' : (context) => FoodScreen(),
+        '/ClientsScreen' : (context) => ClientsScreen(),
         '/TablesScreen': (context) => TablesScreen(),
         '/StaffCheckScreen': (context) => StaffCheckScreen(),
-        '/PayPrintScreen': (context) => PayPrintScreen(),
+        // '/PayPrintScreen': (context) => PayPrintScreen(),
+        
+        
       },
     );
   }

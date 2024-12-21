@@ -4,9 +4,11 @@ import 'package:app/widgets/list_order_food.dart';
 import 'package:flutter/material.dart';
 import 'package:app/widgets/food_items.dart';
 
+
 class OrderFoodScreen extends StatefulWidget {
   final String tableName;
   final String selectedType;
+  
 
   const OrderFoodScreen(
       {super.key, required this.tableName, required this.selectedType});
@@ -23,6 +25,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
   List<Map<String, dynamic>> filteredItems = [];
   List<Map<String, dynamic>> selectedItems = []; // Danh sách món đã chọn
   int selectedOption = 0;
+
 
   final List<String> options = [
     'Tất cả',
@@ -85,6 +88,18 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     });
   }
 
+  int _TotalQuantityDish(){
+    return selectedItems.fold(0, (sum, item) {
+      try {
+        int quantity = item['quantity'] ?? 0; // Chỉ lấy tổng số lượng
+        return sum + quantity;
+      } catch (e) {
+        print('Lỗi tính tổng số lượng: $e');
+        return sum;
+      }
+    });
+  }
+
   void _filterItemsByOption(int option) {
     setState(() {
       if (option == 0) {
@@ -105,40 +120,59 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        elevation: 0,
         title: Text('${widget.tableName}',
             style: TextStyle(color: Colors.black, fontSize: 20)),
         centerTitle: true,
       ),
-      backgroundColor: const Color(0xFFF2F3F4),
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           Column(
             children: [
               // Thanh tùy chọn
               Container(
+                margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                 color: Colors.white,
-                height: 50,
+                height: 35,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: options.length,
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: TextButton(
-                        onPressed: () {
+                      child: GestureDetector(
+                        onTap: () {
                           setState(() {
                             selectedOption = index;
                             _filterItemsByOption(index);
                           });
                         },
-                        child: Text(
-                          options[index],
-                          style: TextStyle(
-                            color: selectedOption == index
-                                ? Colors.orange
-                                : Colors.black,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                          decoration: BoxDecoration(
+                            color: selectedOption == index ? Color(0xFFF2F2F2) : Colors.white,
+                            borderRadius: BorderRadius.circular(20),
                           ),
+                          child: Center(
+                            child: Text(
+                              options[index],
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: selectedOption == index
+                                  ? Color(0xFFFF8A00)
+                                  : Color(0xFF929292),
+                              ),
+                              ),
+                          ), 
+
+                          // child: Text(
+                          //   options[index],
+                          //   style: TextStyle(
+                          //     color: selectedOption == index
+                          //         ? Color(0xFFFF8A00)
+                          //         : Color(0xFF929292),
+                          //   ),
+                          // ),
                         ),
                       ),
                     );
@@ -147,10 +181,10 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
               ),
               // Thanh tìm kiếm
               Container(
-                margin: const EdgeInsets.all(16.0),
+                margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Color(0xFFF2F2F2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -163,6 +197,10 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                         decoration: const InputDecoration(
                           border: InputBorder.none,
                           hintText: 'Tìm kiếm món ăn',
+                          hintStyle: TextStyle(
+                            color: Color(0xFF929292),
+                            fontSize: 13,
+                          )
                         ),
                         onChanged: (value) {
                           setState(() {
@@ -184,6 +222,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                   itemCount: filteredItems.length,
                   itemBuilder: (context, index) {
                     return FoodItem(
+                      id: filteredItems[index]['item_id'],
                       name: filteredItems[index]['item_name'],
                       status: filteredItems[index]['item_describe'] ?? '...',
                       price: filteredItems[index]['item_price_formatted'],
@@ -231,8 +270,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
               left: 0,
               right: 0,
               child: SizedBox(
-                height: MediaQuery.of(context).size.height *
-                    1, // Đặt chiều cao rõ ràng
+                height: MediaQuery.of(context).size.height * 1, // Đặt chiều cao rõ ràng
                 child: ListOrderFood(
                   selectedItems: selectedItems,
                   onClose: () {
@@ -259,21 +297,50 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
             ),
         ],
       ),
+
+      // Thanh nút ấn xem danh sách món đã gọi, lưu, chuyển đến form thanh toán
       bottomNavigationBar: Container(
         height: 60,
         color: Colors.white,
         child: Row(
           children: [
             Container(
-              width: 60,
-              child: IconButton(
-                icon: Icon(Icons.shopping_cart),
-                color: Colors.orange,
-                onPressed: () {
-                  setState(() {
-                    _showOverlay = !_showOverlay; // Hiển thị/Ẩn overlay
-                  });
-                },
+              width: 50,
+              child: Stack(
+                children: [
+                  IconButton(
+                    icon: Image.asset('assets/shopping-cart.png',height: 24, width: 24),
+                    onPressed: () {
+                      setState(() {
+                        _showOverlay = !_showOverlay; // Hiển thị/Ẩn overlay
+                      });
+                    },
+                  ),
+                  Positioned(
+                    right: 2, // Đặt số về phía góc phải
+                    top: 1,   // Đặt số về phía góc trên
+                    child: _TotalQuantityDish() > 0
+                        ? Container(
+                            height: 18,
+                            width: 18,
+                            padding: EdgeInsets.all(1),
+                            decoration: BoxDecoration(
+                              color: Colors.red, // Màu nền đỏ
+                              shape: BoxShape.circle, // Nền hình tròn
+                            ),
+                            child: Text(
+                              '${_TotalQuantityDish()}', // Hiển thị số
+                              style: TextStyle(
+                                color: Colors.white, // Màu chữ trắng
+                                fontSize: 10, // Kích thước chữ
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center, // Căn giữa chữ trong container
+                            ),
+                          )
+                        : SizedBox.shrink(), // Trả về widget trống khi số lượng = 0
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -283,7 +350,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                   'Lưu',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.black,
+                    color: Color(0xFF929292),
                   ),
                 ),
               ),
@@ -311,19 +378,20 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                         ),
                       ),
                       SizedBox(width: 5), // Khoảng cách giữa text và icon
-                      Icon(
-                        Icons.arrow_forward,
-                        color: Colors.white,
+                      Image.asset(
+                        'assets/angle-small-right.png',
+                        width: 15,
+                        height: 15,
                       ),
                     ],
                   ),
                 ),
               ),
-),
-
+            ),
           ],
         ),
       ),
+    
     );
   }
 }
