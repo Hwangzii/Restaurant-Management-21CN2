@@ -295,26 +295,8 @@ class _TablesScreenState extends State<TablesScreen> {
     String tableName = tables
         .firstWhere((table) => table['table_id'] == tableId)['table_name'];
 
-    if (option == 'Buffet đỏ') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => OrderFoodScreen(
-            tableName: tableName,
-            selectedType: 'Buffet đỏ', // Truyền loại món ăn
-          ),
-        ),
-      );
-    } else if (option == 'Buffet đen') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => OrderFoodScreen(
-            tableName: tableName,
-            selectedType: 'Buffet đen', // Truyền loại món ăn
-          ),
-        ),
-      );
+    if (option == 'Buffet đỏ' || option == 'Buffet đen') {
+      _showGuestCountDialog(option, tableId, tableName);
     } else if (option == 'Gọi món') {
       Navigator.push(
         context,
@@ -322,14 +304,15 @@ class _TablesScreenState extends State<TablesScreen> {
           builder: (context) => OrderFoodScreen(
             tableName: tableName,
             selectedType: 'Tất cả', // Hiển thị tất cả các loại món
+            guestCount: 0, // Không cần số lượng khách
           ),
         ),
       );
     }
   }
 
-  // **THAY ĐỔI**: Hiển thị hộp thoại nhập số lượng khách
-  void _showGuestCountDialog(String option, int tableId) {
+// Cập nhật _showGuestCountDialog để truyền guestCount
+  void _showGuestCountDialog(String option, int tableId, String tableName) {
     TextEditingController guestCountController = TextEditingController();
 
     showDialog(
@@ -337,7 +320,7 @@ class _TablesScreenState extends State<TablesScreen> {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0), // Bo góc nhỏ hơn (8px)
+            borderRadius: BorderRadius.circular(10.0),
           ),
           title: Text('Nhập số lượng khách cho $option'),
           content: TextField(
@@ -356,19 +339,16 @@ class _TablesScreenState extends State<TablesScreen> {
                 int guestCount = int.tryParse(guestCountText) ?? 0;
 
                 if (guestCount > 0) {
-                  Navigator.pop(
-                      dialogContext); // Đóng dialog trước khi chuyển màn hình
+                  Navigator.pop(dialogContext); // Đóng dialog
 
-                  // Lấy tableName từ danh sách tables dựa trên tableId
-                  String tableName = tables.firstWhere(
-                      (table) => table['table_id'] == tableId)['table_name'];
-
+                  // Chuyển sang OrderFoodScreen với số lượng khách
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => OrderFoodScreen(
                         tableName: tableName,
-                        selectedType: '',
+                        selectedType: option, // Truyền loại món (Buffet đỏ/đen)
+                        guestCount: guestCount, // Truyền số lượng khách
                       ),
                     ),
                   );

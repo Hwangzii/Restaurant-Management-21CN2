@@ -13,7 +13,7 @@ router.register('items', InventoryViewSet, basename='inventory')
 router.register('invoice_food', InvoiceFoodViewSet, basename='invoice_food')
 router.register('work_schedule', WorkScheduleViewSet, basename='work_schedule')
 router.register('customers', CustomerViewSet, basename='customers')
-router.register('invoiceInventory', InvoiceInventoryViewSet, basename='invoiceInventory')
+router.register('invoice_inventory', InvoiceInventoryViewSet, basename='invoice_inventory')
 router.register('salaries', SalariesViewSet, basename='salaries')
 
 urlpatterns = [

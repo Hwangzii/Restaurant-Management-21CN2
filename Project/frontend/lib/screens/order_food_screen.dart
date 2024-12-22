@@ -3,13 +3,19 @@ import 'package:app/screens/pay_print_screen.dart';
 import 'package:app/widgets/list_order_food.dart';
 import 'package:flutter/material.dart';
 import 'package:app/widgets/food_items.dart';
+import 'package:intl/intl.dart';
 
 class OrderFoodScreen extends StatefulWidget {
   final String tableName;
   final String selectedType;
+  final int guestCount;
 
-  const OrderFoodScreen(
-      {super.key, required this.tableName, required this.selectedType});
+  const OrderFoodScreen({
+    super.key,
+    required this.tableName,
+    required this.selectedType,
+    required this.guestCount,
+  });
 
   @override
   State<OrderFoodScreen> createState() => _OrderFoodScreenState();
@@ -22,19 +28,23 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
   List<Map<String, dynamic>> menuItems = [];
   List<Map<String, dynamic>> filteredItems = [];
   List<Map<String, dynamic>> selectedItems = []; // Danh sách món đã chọn
+  List<Map<String, dynamic>> temporaryOrders = []; // Danh sách đơn gửi bếp
+  List<Map<String, dynamic>> currentOrder = []; // Danh sách món hiện tại
   int selectedOption = 0;
 
-  final List<String> options = [
-    'Tất cả',
-    'Món chính',
-    'Đồ uống',
-    'Buffee đỏ',
-    'Buffee đen',
-  ];
+  late List<String> options; // Tùy biến options
 
   @override
   void initState() {
     super.initState();
+
+    // Thiết lập options dựa trên loại món
+    if (widget.selectedType.contains('Buffet')) {
+      options = ['Thường', 'Cho trẻ em'];
+    } else {
+      options = ['Tất cả', 'Món chính', 'Đồ uống', 'Buffet đỏ', 'Buffet đen'];
+    }
+
     _loadMenuItems();
   }
 
@@ -44,7 +54,6 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
           await OrderFoodController.fetchMenuItems();
       setState(() {
         menuItems = fetchedItems;
-        // filteredItems = menuItems;
         _filterItemsByType();
       });
     } catch (e) {
@@ -56,18 +65,84 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     String selectedType = widget.selectedType;
     setState(() {
       if (selectedType == 'Buffet đỏ') {
-        // Buffet đỏ thường và trẻ em
         filteredItems = menuItems
             .where((item) => item['item_type'] == 3 || item['item_type'] == 5)
             .toList();
       } else if (selectedType == 'Buffet đen') {
-        // Buffet đen thường và trẻ em
         filteredItems = menuItems
             .where((item) => item['item_type'] == 4 || item['item_type'] == 6)
             .toList();
       } else {
-        // Gọi món: Hiển thị tất cả
         filteredItems = menuItems;
+      }
+    });
+  }
+
+  void _saveOrderAndSendToKitchen() {
+    if (selectedItems.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không có món nào để gửi!')),
+      );
+      return;
+    }
+    String formattedTimestamp =
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+    // Tạo dữ liệu đơn hàng để gửi bếp
+    final orderData = {
+      'table_name': widget.tableName,
+      'order_type': widget.selectedType,
+      'guest_count': widget.guestCount,
+      'items': selectedItems.map((item) {
+        return {
+          'item_name': item['item_name'], // Tên món
+          'quantity': item['quantity'], // Số lượng
+          'item_price': item['item_price'], // Giá mỗi món
+        };
+      }).toList(),
+      'total_amount': _calculateTotal(),
+      'timestamp': formattedTimestamp, // Thời gian gửi
+    };
+
+    // Lưu vào danh sách đơn đã gửi
+    setState(() {
+      temporaryOrders.add(orderData); // Lưu đơn hàng vào lịch sử
+      currentOrder = List.from(selectedItems); // Lưu lại danh sách hiện tại
+      selectedItems.clear(); // Reset danh sách để chuẩn bị gọi món tiếp theo
+    });
+
+    // Hiển thị thông báo gửi thành công
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Đơn hàng đã được gửi tới bếp!')),
+    );
+
+    print('Danh sách đơn đã gửi: $temporaryOrders');
+  }
+
+  void _filterItemsByOption(int option) {
+    setState(() {
+      if (widget.selectedType.contains('Buffet')) {
+        // Lọc món ăn cho Buffet
+        if (option == 0) {
+          filteredItems = menuItems
+              .where((item) => item['item_type'] == 3) // Buffet thường
+              .toList();
+        } else if (option == 1) {
+          filteredItems = menuItems
+              .where((item) => item['item_type'] == 5) // Buffet trẻ em
+              .toList();
+        }
+      } else {
+        // Lọc món ăn cho Gọi món
+        if (option == 0) {
+          filteredItems = menuItems.where((item) {
+            return item['item_type'] >= 1 && item['item_type'] <= 4;
+          }).toList();
+        } else {
+          int selectedType = option;
+          filteredItems = menuItems.where((item) {
+            return item['item_type'] == selectedType;
+          }).toList();
+        }
       }
     });
   }
@@ -85,19 +160,169 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     });
   }
 
-  void _filterItemsByOption(int option) {
-    setState(() {
-      if (option == 0) {
-        filteredItems = menuItems.where((item) {
-          return item['item_type'] >= 1 && item['item_type'] <= 4;
-        }).toList();
-      } else {
-        int selectedType = option;
-        filteredItems = menuItems.where((item) {
-          return item['item_type'] == selectedType;
-        }).toList();
+  int _calculateTotalItems() {
+    try {
+      return selectedItems.fold(0, (sum, item) {
+        int quantity = item['quantity'] ?? 0;
+
+        if (quantity is! int) {
+          print('Lỗi: `quantity` không phải là số nguyên trong $item');
+          return sum;
+        }
+
+        return sum + quantity;
+      });
+    } catch (e) {
+      print('Lỗi khi tính tổng số lượng món: $e');
+      return 0;
+    }
+  }
+
+  void _showOrderHistory() {
+    // Tính tổng tiền của tất cả các đơn hàng
+    int totalAmount = temporaryOrders.fold(0, (sum, order) {
+      // Kiểm tra xem `total_amount` có tồn tại và là số nguyên hay không
+      int orderAmount = order['total_amount'] ?? 0; // Mặc định 0 nếu không có
+      if (orderAmount is! int) {
+        print(
+            'Lỗi: total_amount không phải là số nguyên trong đơn hàng: $order');
+        orderAmount = 0; // Đặt lại giá trị an toàn
       }
+      return sum + orderAmount;
     });
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.8,
+            padding: EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Text('Lịch sử đơn hàng',
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                SizedBox(height: 16),
+                Expanded(
+                  child: temporaryOrders.isEmpty
+                      ? Center(
+                          child: Text(
+                            'Không có lịch sử đơn hàng.',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: temporaryOrders.length,
+                          itemBuilder: (context, index) {
+                            final order = temporaryOrders[index];
+                            return Card(
+                              margin: EdgeInsets.symmetric(vertical: 8),
+                              elevation: 4,
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Bàn: ${order['table_name']}',
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      'Thời gian: ${order['timestamp']}',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'Danh sách món:',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    // Thêm ListView hoặc Column cho danh sách món ăn
+                                    Column(
+                                      children:
+                                          order['items'].map<Widget>((item) {
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 4.0),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  '${item['item_name']}',
+                                                  style:
+                                                      TextStyle(fontSize: 14),
+                                                  overflow: TextOverflow
+                                                      .ellipsis, // Xử lý tràn văn bản
+                                                ),
+                                              ),
+                                              Text(
+                                                'x${item['quantity']} - ${item['item_price']} đ',
+                                                style: TextStyle(
+                                                    color: Colors.grey),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                    Divider(),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Tổng tiền đơn:',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Text(
+                                          '${order['total_amount']} đ',
+                                          style: TextStyle(
+                                              color: Colors.orange,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+
+                Divider(),
+                // Hiển thị tổng tiền của tất cả các đơn hàng
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Tổng tiền tất cả:',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text('${totalAmount} đ',
+                          style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.orange,
+                              fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -109,6 +334,14 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
         title: Text('${widget.tableName}',
             style: TextStyle(color: Colors.black, fontSize: 20)),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.history, color: Colors.orange),
+            onPressed: () {
+              _showOrderHistory(); // Hiển thị lịch sử đơn hàng
+            },
+          ),
+        ],
       ),
       backgroundColor: const Color(0xFFF2F3F4),
       body: Stack(
@@ -266,24 +499,51 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
           children: [
             Container(
               width: 60,
-              child: IconButton(
-                icon: Icon(Icons.shopping_cart),
-                color: Colors.orange,
-                onPressed: () {
-                  setState(() {
-                    _showOverlay = !_showOverlay; // Hiển thị/Ẩn overlay
-                  });
-                },
+              child: Stack(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.shopping_cart),
+                    color: Colors.orange,
+                    onPressed: () {
+                      setState(() {
+                        _showOverlay = !_showOverlay; // Hiển thị/Ẩn overlay
+                      });
+                    },
+                  ),
+                  if (_calculateTotalItems() > 0)
+                    Positioned(
+                      right: 18,
+                      top: -1,
+                      child: Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          '${_calculateTotalItems()}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
             Expanded(
-              child: Container(
-                alignment: Alignment.center,
-                child: Text(
-                  'Lưu',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black,
+              child: GestureDetector(
+                onTap: _saveOrderAndSendToKitchen, // Gọi hàm lưu và gửi
+                child: Container(
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Lưu',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
               ),

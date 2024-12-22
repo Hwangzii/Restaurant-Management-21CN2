@@ -34,8 +34,8 @@ class MenuItem(models.Model):
     item_name = models.CharField(max_length=100)
     item_price = models.DecimalField(max_digits=10, decimal_places=0, null=True, blank=True)
     item_describe = models.CharField(max_length=50, null=True, blank=True)
-    item_type = models.IntegerField()  # Bạn có thể dùng choices tùy theo nghiệp vụ
-    item_status = models.BooleanField(default=False)  # 1 = hoạt động, 0 = không hoạt động
+    item_type = models.IntegerField()  
+    item_status = models.BooleanField(default=True)  # 1 = hoạt động, 0 = không hoạt động
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
