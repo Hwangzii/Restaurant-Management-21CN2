@@ -1,4 +1,5 @@
 import 'package:app/models/item.dart';
+import 'package:app/models/order.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -6,7 +7,7 @@ import 'package:intl/intl.dart';
 
 class ApiService {
   final String baseUrl =
-      'https://60eb-42-116-146-153.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://7944-14-232-55-213.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   // Gửi request đăng nhập
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -407,6 +408,47 @@ class ApiService {
     } catch (e) {
       print('Lỗi khi xóa nhân viên: $e');
       return false;
+    }
+  }
+
+  Future<void> createOrder(Order order) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/orders/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(order.toJson()),
+    );
+
+    if (response.statusCode != 201) {
+      throw Exception('Failed to create order');
+    }
+  }
+
+  Future<void> updateOrder(int id, Order order) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/orders/$id/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(order.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update order');
+    }
+  }
+
+  Future<void> deleteOrder(int id) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/orders/$id/'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception('Failed to delete order');
     }
   }
 }

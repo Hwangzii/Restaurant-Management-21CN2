@@ -26,7 +26,6 @@ class Account(models.Model):
     def __str__(self):
         return self.username
     
-from django.db import models
 
 class MenuItem(models.Model):
     item_id = models.AutoField(primary_key=True)  # Khóa chính tự tăng
@@ -86,7 +85,6 @@ class Employee(models.Model):
     def __str__(self):
         return self.full_name
 
-from django.db import models
 
 class Inventory(models.Model):
     item_id = models.AutoField(primary_key=True)  # Khóa chính tự tăng
@@ -110,7 +108,7 @@ class InvoiceFood(models.Model):
     list_item = models.CharField(max_length=1)
     total_amount = models.DecimalField(max_digits=10, decimal_places=0)
     payment_method = models.IntegerField()
-    invoice_type = models.IntegerField()
+    invoice_type = models.IntegerField(default=1)
     created_at = models.DateTimeField()
     sale_price = models.DecimalField(max_digits=10, decimal_places=0)
     table_name = models.CharField(max_length=20)
@@ -126,8 +124,8 @@ class WorkSchedule(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='work_schedule')
     work_date = models.DateField()
     shift_type = models.CharField(max_length=50)
-    shift_start = models.TimeField()
-    shift_end = models.TimeField()
+    status = models.CharField(max_length=10)
+    describe = models.CharField(max_length=50)
 
     class Meta:
         db_table = 'work_schedule'
@@ -154,7 +152,7 @@ class InvoiceInventory(models.Model):
     invoice_inventory_id = models.AutoField(primary_key=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=0)
     payment_method = models.CharField(max_length=30)
-    invoice_type = models.IntegerField()
+    invoice_type = models.IntegerField(default=2)
     created_at = models.DateTimeField()
     item = models.ForeignKey(Inventory, on_delete=models.CASCADE, related_name='item')
 
@@ -177,4 +175,17 @@ class Salaries(models.Model):
         db_table = 'Salaries'
     def __str__(self):
         return self.salary_id
+    
+class OrderDetails(models.Model):
+    table_name = models.CharField(max_length=50)  # Tên bàn
+    item_name = models.CharField(max_length=255)  # Tên món ăn
+    quantity = models.IntegerField()              # Số lượng
+    item_price = models.IntegerField()            # Giá mỗi món
+    timestamp = models.DateTimeField(auto_now_add=True)  # Thời gian gọi món
+    status = models.CharField(max_length=50, default='Pending')  # Trạng thái món
+
+    class Meta:
+        db_table = 'order_details'
+    def __str__(self):
+        return f"{self.table_name} - {self.item_name}"
 

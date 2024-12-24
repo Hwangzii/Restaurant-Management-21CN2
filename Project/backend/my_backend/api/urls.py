@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import CustomerViewSet, EmployeeViewSet, InvoiceFoodViewSet, InvoiceInventoryViewSet, LoginView, SalariesViewSet, VerifyOTPView, FloorViewSet, TableViewSet, AccountViewSet, MenuItemViewSet, InventoryViewSet, WorkScheduleViewSet
+from .views import CustomerViewSet, EmployeeViewSet, InvoiceFoodViewSet, InvoiceInventoryViewSet, LoginView, OrderDetailsViewSet, SalariesViewSet, VerifyOTPView, FloorViewSet, TableViewSet, AccountViewSet, MenuItemViewSet, InventoryViewSet, WorkScheduleViewSet
 
 router = DefaultRouter()
 router.register('accounts', AccountViewSet, basename='accounts')
@@ -15,6 +15,7 @@ router.register('work_schedule', WorkScheduleViewSet, basename='work_schedule')
 router.register('customers', CustomerViewSet, basename='customers')
 router.register('invoice_inventory', InvoiceInventoryViewSet, basename='invoice_inventory')
 router.register('salaries', SalariesViewSet, basename='salaries')
+router.register('orders', OrderDetailsViewSet, basename='order-details')
 
 urlpatterns = [
     path('admin/', admin.site.urls),

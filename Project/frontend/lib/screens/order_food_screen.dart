@@ -1,4 +1,5 @@
 import 'package:app/controllers/oder_food_controller.dart';
+import 'package:app/models/order.dart';
 import 'package:app/screens/pay_print_screen.dart';
 import 'package:app/widgets/list_order_food.dart';
 import 'package:flutter/material.dart';
@@ -78,44 +79,65 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     });
   }
 
-  void _saveOrderAndSendToKitchen() {
+  void _saveOrderAndSendToKitchen() async {
     if (selectedItems.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Không có món nào để gửi!')),
       );
       return;
     }
+
     String formattedTimestamp =
         DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
-    // Tạo dữ liệu đơn hàng để gửi bếp
-    final orderData = {
-      'table_name': widget.tableName,
-      'order_type': widget.selectedType,
-      'guest_count': widget.guestCount,
-      'items': selectedItems.map((item) {
-        return {
-          'item_name': item['item_name'], // Tên món
-          'quantity': item['quantity'], // Số lượng
-          'item_price': item['item_price'], // Giá mỗi món
-        };
-      }).toList(),
-      'total_amount': _calculateTotal(),
-      'timestamp': formattedTimestamp, // Thời gian gửi
-    };
 
-    // Lưu vào danh sách đơn đã gửi
-    setState(() {
-      temporaryOrders.add(orderData); // Lưu đơn hàng vào lịch sử
-      currentOrder = List.from(selectedItems); // Lưu lại danh sách hiện tại
-      selectedItems.clear(); // Reset danh sách để chuẩn bị gọi món tiếp theo
-    });
+    // Tạo danh sách các món ăn từ `selectedItems`
+    List<Map<String, dynamic>> items = selectedItems.map((item) {
+      return {
+        'item_name': item['item_name'],
+        'quantity': item['quantity'],
+        'item_price': item['item_price'],
+      };
+    }).toList();
 
-    // Hiển thị thông báo gửi thành công
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Đơn hàng đã được gửi tới bếp!')),
+    // Tạo dữ liệu order
+    final order = Order(
+      tableName: widget.tableName,
+      itemName: widget.selectedType, // Có thể thay bằng dữ liệu phù hợp
+      quantity: widget.guestCount,
+      itemPrice: _calculateTotal(), // Tổng tiền
+      status: 'Pending',
     );
 
-    print('Danh sách đơn đã gửi: $temporaryOrders');
+    try {
+      // Gọi API để lưu đơn hàng
+      await OrderFoodController.addOrder(order);
+
+      // Thêm đơn hàng vào danh sách tạm thời
+      setState(() {
+        temporaryOrders.add({
+          'table_name': widget.tableName,
+          'order_type': widget.selectedType,
+          'guest_count': widget.guestCount,
+          'items': items,
+          'total_amount': _calculateTotal(),
+          'timestamp': formattedTimestamp,
+        });
+
+        // Cập nhật danh sách hiện tại và xóa danh sách đã chọn
+        currentOrder = List.from(selectedItems);
+        selectedItems.clear();
+      });
+
+      // Hiển thị thông báo thành công
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Đơn hàng đã được gửi tới bếp!')),
+      );
+    } catch (e) {
+      // Hiển thị thông báo lỗi
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi khi gửi đơn hàng: $e')),
+      );
+    }
   }
 
   void _filterItemsByOption(int option) {
@@ -350,28 +372,51 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
             children: [
               // Thanh tùy chọn
               Container(
+                margin: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                 color: Colors.white,
-                height: 50,
+                height: 35,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: options.length,
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: TextButton(
-                        onPressed: () {
+                      child: GestureDetector(
+                        onTap: () {
                           setState(() {
                             selectedOption = index;
                             _filterItemsByOption(index);
                           });
                         },
-                        child: Text(
-                          options[index],
-                          style: TextStyle(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 16.0),
+                          decoration: BoxDecoration(
                             color: selectedOption == index
-                                ? Colors.orange
-                                : Colors.black,
+                                ? Color(0xFFF2F2F2)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(20),
                           ),
+                          child: Center(
+                            child: Text(
+                              options[index],
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: selectedOption == index
+                                    ? Color(0xFFFF8A00)
+                                    : Color(0xFF929292),
+                              ),
+                            ),
+                          ),
+
+                          // child: Text(
+                          //   options[index],
+                          //   style: TextStyle(
+                          //     color: selectedOption == index
+                          //         ? Color(0xFFFF8A00)
+                          //         : Color(0xFF929292),
+                          //   ),
+                          // ),
                         ),
                       ),
                     );
@@ -380,10 +425,10 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
               ),
               // Thanh tìm kiếm
               Container(
-                margin: const EdgeInsets.all(16.0),
+                margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 16),
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Color(0xFFF2F2F2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -394,9 +439,12 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                       child: TextField(
                         controller: searchController,
                         decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Tìm kiếm món ăn',
-                        ),
+                            border: InputBorder.none,
+                            hintText: 'Tìm kiếm món ăn',
+                            hintStyle: TextStyle(
+                              color: Color(0xFF929292),
+                              fontSize: 13,
+                            )),
                         onChanged: (value) {
                           setState(() {
                             filteredItems = menuItems
@@ -417,6 +465,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                   itemCount: filteredItems.length,
                   itemBuilder: (context, index) {
                     return FoodItem(
+                      id: filteredItems[index]['item_id'],
                       name: filteredItems[index]['item_name'],
                       status: filteredItems[index]['item_describe'] ?? '...',
                       price: filteredItems[index]['item_price_formatted'],
