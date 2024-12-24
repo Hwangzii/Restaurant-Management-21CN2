@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 
 class ApiService {
   final String baseUrl =
-      'https://e5c6-2402-800-61cf-d12-907d-800d-a5b6-c258.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://8c75-2402-800-61cf-d614-509e-532b-7fca-3e7f.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   // Gửi request đăng nhập
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -164,7 +164,7 @@ class ApiService {
 
   // Hàm thêm món ăn
   Future<bool> addFood(String itemName, double itemPrice, String itemDescribe,
-      int itemType, int itemStatus, int restaurant) async {
+      int itemType, bool itemStatus, int restaurant) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/menu_items/'),
@@ -407,6 +407,57 @@ class ApiService {
     } catch (e) {
       print('Lỗi khi xóa nhân viên: $e');
       return false;
+    }
+  }
+
+  // Hàm gọi API để lấy danh sách lịch làm việc
+  Future<List<Map<String, dynamic>>> fetchWorkSchedules() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/work_schedule/'));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is List) {
+          // Trả về danh sách các lịch làm
+          return List<Map<String, dynamic>>.from(data);
+        } else {
+          throw Exception("Unexpected response format: not a list");
+        }
+      } else {
+        print("Error fetching work schedules: ${response.statusCode} ${response.reasonPhrase}");
+        print("Response body: ${response.body}");
+        throw Exception("Failed to load work schedules");
+      }
+    } catch (e) {
+      print("Error fetching work schedules: $e");
+      throw Exception("Error fetching work schedules");
+    }
+  }
+
+  //Hàm gọi API lưu ca làm 
+  Future<void> saveWorkSchedules(List<Map<String, dynamic>> shifts) async {
+    for (var shift in shifts) {
+      try {
+        // Gửi từng đối tượng qua API
+        final response = await http.post(
+          Uri.parse('$baseUrl/work_schedule/'),
+          headers: {
+            "Content-Type": "application/json; charset=UTF-8",
+          },
+          body: jsonEncode(shift), // Chuyển shift thành JSON
+        );
+
+        if (response.statusCode == 201 || response.statusCode == 200) {
+          // In ra thông tin thành công
+          print("Ca làm lưu thành công: ${jsonEncode(shift)}");
+        } else {
+          // In lỗi trả về từ API
+          print("Lỗi khi lưu ca làm: ${response.body}");
+        }
+      } catch (e) {
+        // In lỗi khi không kết nối được với server
+        print("Lỗi kết nối hoặc xử lý: $e");
+      }
     }
   }
 }

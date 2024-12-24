@@ -26,7 +26,7 @@ class OrderFoodController {
   }
 
   // Hàm thêm món ăn
-  static Future<bool> addFoodItem(String itemName, double itemPrice, String itemDescribe, int itemType, int itemStatus, int restaurant) async {
+  static Future<bool> addFoodItem(String itemName, double itemPrice, String itemDescribe, int itemType, bool itemStatus, int restaurant) async {
     try {
       bool success = await ApiService().addFood(itemName, itemPrice, itemDescribe, itemType, itemStatus, restaurant);
       return success;

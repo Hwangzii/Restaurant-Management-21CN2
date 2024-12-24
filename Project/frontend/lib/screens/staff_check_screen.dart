@@ -27,22 +27,43 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
   List<bool?> attendanceStatus = [];
   String _searchQuery = '';
   String _selectedShift = 'ca sáng'; // Dropdown giá trị mặc định
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     _controller = StaffCheckAppController();
 
-    // Gọi API để lấy danh sách nhân viên
-    StaffCheckAppController.fetchEmployees().then((data) {
+    // Gọi API để lấy danh sách nhân viên theo ngày hiện tại và ca sáng
+    _fetchFilteredEmployees(DateTime.now(), _selectedShift);
+  }
+
+  Future<void> _fetchFilteredEmployees(DateTime date, String shiftType) async {
+    setState(() => _isLoading = true);
+    try {
+      // Gọi API qua controller
+      final data = await _controller.fetchFilteredEmployees(
+        selectedDate: date,
+        shiftType: shiftType,
+      );
+
+      // Cập nhật danh sách nhân viên và trạng thái điểm danh
       setState(() {
         employees = data;
         attendanceStatus = List.filled(employees.length, null);
       });
-    }).catchError((error) {
-      print('Error loading employees: $error');
-    });
+
+      print("Filtered Employees: $employees");
+    } catch (e) {
+      print('Error fetching filtered employees: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lỗi khi tải danh sách nhân viên')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
+
 
   void _saveAttendance() {
     List<String> attendanceDetails = [];
@@ -64,13 +85,12 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
     );
   }
 
-  
   @override
   Widget build(BuildContext context) {
     DateTime now = DateTime.now(); // Thời gian hiện tại
     String formattedDate = "${now.day}/${now.month}/${now.year}"; // Định dạng ngày tháng năm
 
-    if (employees.isEmpty || attendanceStatus.isEmpty) {
+    if (_isLoading) {
       return Scaffold(
         appBar: AppBar(title: const Text('Điểm danh nhân viên')),
         body: const Center(child: CircularProgressIndicator()),
@@ -96,19 +116,20 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
                   'Điểm danh nhân viên',
                   style: TextStyle(color: Colors.black, fontSize: 20),
                 ),
-                const SizedBox(width: 16), // Khoảng cách giữa title và ngày tháng
+                const SizedBox(width: 16),
                 Text(
-                  formattedDate, // Hiển thị ngày tháng năm
+                  formattedDate,
                   style: const TextStyle(color: Colors.grey, fontSize: 16),
                 ),
-                const SizedBox(width: 16), // Khoảng cách giữa ngày tháng và Dropdown
+                const SizedBox(width: 16),
                 DropdownButton<String>(
-                  value: _selectedShift, // Giá trị mặc định
-                  underline: Container(), // Xóa đường gạch chân
+                  value: _selectedShift,
+                  underline: Container(),
                   onChanged: (String? newValue) {
                     setState(() {
                       _selectedShift = newValue!;
                     });
+                    _fetchFilteredEmployees(DateTime.now(), _selectedShift);
                   },
                   items: <String>['ca sáng', 'ca tối']
                       .map<DropdownMenuItem<String>>((String value) {
@@ -118,6 +139,7 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
                     );
                   }).toList(),
                 ),
+
               ],
             ),
             Text(
@@ -148,10 +170,10 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
           ),
           Expanded(
             child: ListView.separated(
-              itemCount: filteredEmployees.length,
+              itemCount: employees.length,
               separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
-                final employee = filteredEmployees[index];
+                final employee = employees[index];
                 return ListTile(
                   title: Text(employee['full_name']),
                   trailing: Row(
@@ -170,13 +192,10 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              attendanceStatus[employees.indexOf(employee)] ==
-                                      true
+                              attendanceStatus[employees.indexOf(employee)] == true
                                   ? Icons.radio_button_checked
                                   : Icons.radio_button_unchecked,
-                              color: attendanceStatus[
-                                          employees.indexOf(employee)] ==
-                                      true
+                              color: attendanceStatus[employees.indexOf(employee)] == true
                                   ? Colors.orange
                                   : Colors.grey,
                             ),
@@ -198,13 +217,10 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
                         child: Row(
                           children: [
                             Icon(
-                              attendanceStatus[employees.indexOf(employee)] ==
-                                      false
+                              attendanceStatus[employees.indexOf(employee)] == false
                                   ? Icons.radio_button_checked
                                   : Icons.radio_button_unchecked,
-                              color: attendanceStatus[
-                                          employees.indexOf(employee)] ==
-                                      false
+                              color: attendanceStatus[employees.indexOf(employee)] == false
                                   ? Colors.orange
                                   : Colors.grey,
                             ),
@@ -242,6 +258,4 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
       ),
     );
   }
-
 }
-
