@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app/widgets/food_items.dart';
 import 'package:app/controllers/food_controller.dart';
+import 'package:app/services/api_service.dart';
 
 class FoodScreen extends StatefulWidget {
   const FoodScreen({super.key});
@@ -12,6 +13,9 @@ class FoodScreen extends StatefulWidget {
 class _FoodScreenState extends State<FoodScreen> {
   List<Map<String, dynamic>> menuItems = [];  // Danh sách món ăn
   List<Map<String, dynamic>> filteredItems = []; // Món ăn sau khi lọc (nếu cần)
+
+  final FoodController foodController = FoodController(ApiService());
+
 
   // Controllers cho form thêm món ăn mới
   TextEditingController itemNameController = TextEditingController();
@@ -114,7 +118,8 @@ class _FoodScreenState extends State<FoodScreen> {
                 }
 
                 try {
-                  final success = await FoodController.addFood(
+                  final success = await foodController.addFood(
+
                     itemName,
                     itemPrice,
                     itemDescribe,
@@ -195,7 +200,7 @@ Widget build(BuildContext context) {
                 onDismissed: (direction) async {
                   try {
                     // Gọi phương thức deleteItem để xóa món ăn trên server
-                    await FoodController.deleteItem(filteredItems[index]['item_id']); 
+                    await foodController.deleteItem(filteredItems[index]['item_id']); 
 
                     // Sau khi xóa, cập nhật danh sách món ăn
                     setState(() {

@@ -20,7 +20,7 @@ final List<Map<String, dynamic>> iconsData = [
   {'imagePath': 'assets/staff_check.png', 'name': 'Điểm danh', 'color': commonIconBackgroundColor, 'route': '/StaffCheckScreen'},
   {'imagePath': 'assets/food.png', 'name': 'Khuyến mãi', 'color': commonIconBackgroundColor},
   {'imagePath': 'assets/food.png', 'name': 'Gọi món', 'color': commonIconBackgroundColor},
-  {'imagePath': 'assets/food.png', 'name': 'Thanh toán', 'color': commonIconBackgroundColor},
+  {'imagePath': 'assets/food.png', 'name': 'Thanh toán', 'color': commonIconBackgroundColor, 'route': '/PayrollScreen'},
   {'imagePath': 'assets/food.png', 'name': 'Thông báo', 'color': commonIconBackgroundColor},
 ];
        

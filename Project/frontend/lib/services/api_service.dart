@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 
 class ApiService {
   final String baseUrl =
-      'https://e5c6-2402-800-61cf-d12-907d-800d-a5b6-c258.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://7944-14-232-55-213.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   // Gửi request đăng nhập
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -163,11 +163,13 @@ class ApiService {
   }
 
   // Hàm thêm món ăn
-  Future<bool> addFood(String itemName, double itemPrice, String itemDescribe,
+    Future<bool> addFood(String itemName, double itemPrice, String itemDescribe,
       int itemType, bool itemStatus, int restaurant) async {
+    final addUrl = '$baseUrl/menu_items/'; // Đường dẫn lấy API menu
+
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/menu_items/'),
+        Uri.parse('$addUrl/menu_items/'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
         body: json.encode({
           'item_name': itemName,
@@ -247,8 +249,9 @@ class ApiService {
   }
 
   Future<void> deleteItem(int id) async {
+    final deleteUrl = '$baseUrl/menu_items/'; // Đường dẫn lấy API menu
     final response = await http.delete(
-      Uri.parse('$baseUrl/items/$id/'),
+      Uri.parse('$deleteUrl/items/$id/'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

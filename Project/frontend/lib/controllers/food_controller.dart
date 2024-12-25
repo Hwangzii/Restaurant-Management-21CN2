@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'package:app/services/api_service.dart'; // Service API được định nghĩa riêng
 import 'package:http/http.dart' as http;
 
-final String baseUrl =
-    'https://e5c6-2402-800-61cf-d12-907d-800d-a5b6-c258.ngrok-free.app/api'; // URL API cần được thay bằng URL thực tế
 
 class FoodController {
+ FoodController(this._apiService);
+
+final ApiService _apiService;
+
   // Hàm lấy danh sách món ăn từ API
   static Future<List<Map<String, dynamic>>> fetchMenuItems() async {
     try {
@@ -33,23 +35,22 @@ class FoodController {
   }
 
   // Hàm thêm món ăn vào cơ sở dữ liệu thông qua API
-  static Future<bool> addFood(
-      String itemName,
-      double itemPrice,
-      String itemDescribe,
-      int itemType,
-      bool itemStatus,
-      int restaurant) async {
+   Future<bool> addFood(
+    String itemName,
+    double itemPrice,
+    String itemDescribe,
+    int itemType,
+    bool itemStatus,
+    int restaurant,
+  ) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/menu_items/'),
+        Uri.parse('${_apiService.baseUrl}/menu_items/'),
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
         body: json.encode({
           'item_name': itemName,
           'item_price': itemPrice.toString(),
-          'item_price_formatted': itemPrice
-              .toStringAsFixed(3)
-              .replaceAll('.', ','), // Định dạng giá nếu cần
+          'item_price_formatted': itemPrice.toStringAsFixed(3).replaceAll('.', ','),
           'item_describe': itemDescribe,
           'item_type': itemType,
           'item_status': itemStatus,
@@ -64,8 +65,7 @@ class FoodController {
         return true;
       } else {
         print('Server Response: ${response.body}');
-        throw Exception(
-            'Lỗi khi thêm món ăn. Mã trạng thái: ${response.statusCode}');
+        throw Exception('Lỗi khi thêm món ăn. Mã trạng thái: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Lỗi khi thêm món ăn: $e');
@@ -73,29 +73,27 @@ class FoodController {
   }
 
 
-// Ham xoa mon an
-  static Future<void> deleteItem(int id) async {
+
+// Hàm xóa món ăn
+Future<void> deleteItem(int id) async {
+  try {
+    // Xây dựng URL từ ApiService
     final response = await http.delete(
-      Uri.parse('$baseUrl/menu_items/$id/'),
+      Uri.parse('${_apiService.baseUrl}/menu_items/$id/'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
     );
 
     if (response.statusCode != 204) {
-      throw Exception('Failed to delete item');
+      // Ném lỗi nếu trạng thái không phải 204
+      throw Exception('Failed to delete item. Status Code: ${response.statusCode}');
     }
+  } catch (e) {
+    // Log lỗi và ném lại ngoại lệ
+    print('Error deleting item: $e');
+    throw Exception('Error deleting item: $e');
   }
+}
 
-// // Hàm thêm món ăn
-//   static Future<bool> addFoodItem(String itemName, double itemPrice, String itemDescribe, int itemType, int itemStatus, int restaurant) async {
-//     try {
-//       bool success = await ApiService().addFood(itemName, itemPrice, itemDescribe, itemType, itemStatus, restaurant);
-//       return success;
-//     } catch (e) {
-//       rethrow;
-//     }
-//   }
-
-  
 }
