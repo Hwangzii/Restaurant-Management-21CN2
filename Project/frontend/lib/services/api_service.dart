@@ -326,8 +326,9 @@ class ApiService {
 
   // Hàm xóa item trong kho
   Future<void> deleteItem(int id) async {
+    final deleteUrl = '$baseUrl/menu_items/'; // Đường dẫn lấy API menu
     final response = await http.delete(
-      Uri.parse('$baseUrl/items/$id/'),
+      Uri.parse('$deleteUrl/items/$id/'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

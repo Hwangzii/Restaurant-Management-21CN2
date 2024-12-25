@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app/widgets/food_items.dart';
 import 'package:app/controllers/food_controller.dart';
+import 'package:app/services/api_service.dart';
 
 class FoodScreen extends StatefulWidget {
   const FoodScreen({super.key});
@@ -12,6 +13,9 @@ class FoodScreen extends StatefulWidget {
 class _FoodScreenState extends State<FoodScreen> {
   List<Map<String, dynamic>> menuItems = [];  // Danh sách món ăn
   List<Map<String, dynamic>> filteredItems = []; // Món ăn sau khi lọc (nếu cần)
+
+  final FoodController foodController = FoodController(ApiService());
+
 
   // Controllers cho form thêm món ăn mới
   TextEditingController itemNameController = TextEditingController();
@@ -114,7 +118,8 @@ class _FoodScreenState extends State<FoodScreen> {
                 }
 
                 try {
-                  final success = await FoodController.addFood(
+                  final success = await foodController.addFood(
+
                     itemName,
                     itemPrice,
                     itemDescribe,
@@ -151,88 +156,89 @@ class _FoodScreenState extends State<FoodScreen> {
 
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Danh sách món ăn',
-          style: TextStyle(color: Colors.black, fontSize: 20),
-        ),
-        centerTitle: true,
-        actions: [
-          PopupMenuButton<String>( 
-            onSelected: (value) {
-              if (value == 'add_new') {
-                _showAddFoodDialog(); // Thêm món ăn mới
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return [
-                PopupMenuItem<String>(
-                  value: 'add_new',
-                  child: Text('Thêm món ăn mới'),
-                ),
-                PopupMenuItem<String>(
-                  value: 'select_multiple',
-                  child: Text('Chọn nhiều món'),
-                ),
-              ];
-            },
-          ),
-        ],
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      title: const Text(
+        'Danh sách món ăn',
+        style: TextStyle(color: Colors.black, fontSize: 20),
       ),
-      backgroundColor: const Color(0xFFF2F3F4),
-      body: menuItems.isEmpty
-          ? const Center(child: CircularProgressIndicator())  // Hiển thị loading khi chưa có món ăn
-          : ListView.builder(
-              itemCount: filteredItems.length,  // Đếm số món ăn để hiển thị
-              itemBuilder: (context, index) {
-                return Dismissible(
-                  key: Key(filteredItems[index]['item_name']),  // Sử dụng key để xác định mỗi item
-                  direction: DismissDirection.endToStart,  // Vuốt từ phải sang trái
-                  onDismissed: (direction) async {
-                    try {
-                      // Gọi phương thức deleteItem để xóa món ăn trên server
-                      await FoodController.deleteItem(filteredItems[index]['item_id']); 
+      centerTitle: true,
+      actions: [
+        PopupMenuButton<String>( 
+          onSelected: (value) {
+            if (value == 'add_new') {
+              _showAddFoodDialog(); // Thêm món ăn mới
+            }
+          },
+          itemBuilder: (BuildContext context) {
+            return [
+              PopupMenuItem<String>(
+                value: 'add_new',
+                child: Text('Thêm món ăn mới'),
+              ),
+              PopupMenuItem<String>(
+                value: 'select_multiple',
+                child: Text('Chọn nhiều món'),
+              ),
+            ];
+          },
+        ),
+      ],
+    ),
+    backgroundColor: const Color(0xFFF2F3F4),
+    body: menuItems.isEmpty
+        ? const Center(child: CircularProgressIndicator())  // Hiển thị loading khi chưa có món ăn
+        : ListView.builder(
+            itemCount: filteredItems.length,  // Đếm số món ăn để hiển thị
+            itemBuilder: (context, index) {
+              return Dismissible(
+                key: Key(filteredItems[index]['item_name']),  // Sử dụng key để xác định mỗi item
+                direction: DismissDirection.endToStart,  // Vuốt từ phải sang trái
+                onDismissed: (direction) async {
+                  try {
+                    // Gọi phương thức deleteItem để xóa món ăn trên server
+                    await foodController.deleteItem(filteredItems[index]['item_id']); 
 
-                      // Sau khi xóa, cập nhật danh sách món ăn
-                      setState(() {
-                        filteredItems.removeAt(index);  // Xóa item khỏi danh sách hiển thị
-                      });
+                    // Sau khi xóa, cập nhật danh sách món ăn
+                    setState(() {
+                      filteredItems.removeAt(index);  // Xóa item khỏi danh sách hiển thị
+                    });
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Đã xóa món ăn!')),
-                      );
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Lỗi khi xóa món ăn: $e')),
-                      );
-                    }
-                  },
-                  background: Container(
-                    color: Colors.red,  // Màu nền khi vuốt qua
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 20.0),
-                        child: Icon(Icons.delete, color: Colors.white),
-                      ),
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Đã xóa món ăn!')),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Lỗi khi xóa món ăn: $e')),
+                    );
+                  }
+                },
+                background: Container(
+                  color: Colors.red,  // Màu nền khi vuốt qua
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 20.0),
+                      child: Icon(Icons.delete, color: Colors.white),
                     ),
                   ),
-                  child: FoodItem(
-                    name: filteredItems[index]['item_name'],
-                    status: filteredItems[index]['item_describe'] ?? '...',
-                    price: filteredItems[index]['item_price_formatted'],
-                    id: filteredItems[index]['item_id'],
-                    onAdd: () {
-                      print('Đã thêm: ${filteredItems[index]['item_name']}');
-                    },
-                  ),
-                );
-              },
-            ),
-    );
-  }
+                ),
+                child: FoodItem(
+                  name: filteredItems[index]['item_name'],
+                  status: filteredItems[index]['item_describe'] ?? '...',
+                  price: filteredItems[index]['item_price_formatted'],
+                  id: filteredItems[index]['item_id'],
+                  onAdd: () {
+                    print('Đã thêm: ${filteredItems[index]['item_name']}');
+                  },
+                ),
+              );
+            },
+          ),
+  );
+}
+
 }

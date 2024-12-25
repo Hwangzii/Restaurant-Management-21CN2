@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:app/controllers/pay_controller.dart';
 import 'package:app/controllers/tables_controller.dart';
+import 'package:app/widgets/show_slider_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:app/controllers/oder_food_controller.dart';
 import 'package:intl/intl.dart';
@@ -293,6 +294,16 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
     return orderTotal; //+ widget.buffetTotal
   }
 
+  int _totalQuantity() {
+    int totalQuantity = orderItems.fold(0, (sum, item) {
+      int quantity = item['quantity'] ?? 0;
+      return sum + quantity;
+    });
+
+    return totalQuantity;
+  }
+
+
   String _extractTime(String? dateTime) {
     if (dateTime == null) return 'Unknown'; // Xử lý khi giá trị null
     try {
@@ -452,125 +463,398 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
                               );
                             }
                           },
-                          child: Container(
-                            margin:
-                            EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                            padding: EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item['item_name'] ?? 'Unknown',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                          height:
-                                              4), // Khoảng cách giữa tên món và thời gian
-                                      Text(
-                                        _extractTime(item[
-                                            'timestamp']), // Hiển thị thời gian
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.grey[600],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                          child: Column(
+                            children: [
+                              // Đường kẻ mờ nhạt giữa các item
+                              Divider(
+                                color: Colors.grey[300], // Màu sắc của đường kẻ
+                                thickness: 1, // Độ dày của đường kẻ
+                                indent: 16, // Khoảng cách từ bên trái
+                                endIndent: 16, // Khoảng cách từ bên phải
+                              ),
+                              Container(
+                                margin:
+                                EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                                padding: EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                Expanded(
-                                  flex: 1,
-                                  child: Text(
-                                    '${item['quantity']}',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey[700],
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        '${item['item_price'] * item['quantity']} đ',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.black,
-                                        ),
-                                        textAlign: TextAlign.right,
-                                      ),
-                                      SizedBox(
-                                          height:
-                                              4), // Khoảng cách giữa giá và trạng thái
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.end,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Image.asset(
-                                            item['status'] == 'Processed'
-                                                ? 'assets/check.png' // Hình ảnh cho trạng thái đã xử lý
-                                                : 'assets/clock.png', // Hình ảnh cho trạng thái đang xử lý
-                                            width: 12, // Chiều rộng hình ảnh
-                                            height: 12, // Chiều cao hình ảnh
-                                            fit: BoxFit
-                                                .contain, // Điều chỉnh kích thước hình ảnh phù hợp
+                                          Text(
+                                            item['item_name'] ?? 'Unknown',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                              height:
+                                                  4), // Khoảng cách giữa tên món và thời gian
+                                          Text(
+                                            _extractTime(item[
+                                                'timestamp']), // Hiển thị thời gian
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
+                                            ),
                                           ),
                                         ],
-                                      )
-                                    ],
-                                  ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 1,
+                                      child: Text(
+                                        '${item['quantity']}',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey[700],
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            '${item['item_price'] * item['quantity']} đ',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.black,
+                                            ),
+                                            textAlign: TextAlign.right,
+                                          ),
+                                          SizedBox(
+                                              height:
+                                                  4), // Khoảng cách giữa giá và trạng thái
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            children: [
+                                              Image.asset(
+                                                item['status'] == 'Processed'
+                                                    ? 'assets/check.png' // Hình ảnh cho trạng thái đã xử lý
+                                                    : 'assets/clock.png', // Hình ảnh cho trạng thái đang xử lý
+                                                width: 12, // Chiều rộng hình ảnh
+                                                height: 12, // Chiều cao hình ảnh
+                                                fit: BoxFit
+                                                    .contain, // Điều chỉnh kích thước hình ảnh phù hợp
+                                              ),
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                              
+                            ],
                           ),
                         );
                       },
                     ),
                   ),
                 ),
+                
 
-                Container(
-                  padding: EdgeInsets.all(16),
-                  color: Colors.white,
+                // Container(
+                //   padding: EdgeInsets.all(16),
+                //   color: Colors.white,
+                //   child: Row(
+                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //     children: [
+                //       // Sử dụng Flexible để giới hạn kích thước của Text
+                //       Flexible(
+                //         child: Text(
+                //           'Tổng tiền: ${_calculateTotal()} đ',
+                //           style: TextStyle(
+                //               fontSize: 18, fontWeight: FontWeight.bold),
+                //           overflow: TextOverflow
+                //               .ellipsis, // Thêm để xử lý tràn văn bản
+                //         ),
+                //       ),
+                //       SizedBox(width: 10), // Khoảng cách giữa Text và Button
+                //       ElevatedButton(
+                //         onPressed: _showPaymentPopup,
+                //         style: ElevatedButton.styleFrom(
+                //           backgroundColor: Colors.orange,
+                //         ),
+                //         child: Text('Thanh toán'),
+                //       ),
+                //     ],
+                //   ),
+                // ),
+              ],
+            ),
+
+      // navigator bar
+      bottomNavigationBar: Container(
+        height: 150,
+        decoration: BoxDecoration(
+          color: Colors.white, // Đặt màu nền cho container
+          border: Border(
+            top: BorderSide(color: Colors.grey.shade300, width: 1), // Đường ngăn cách giữa navigator và body
+          ),
+        ),
+        child: Row(
+          children: [
+            // Phần bên trái với 4 dòng văn bản chiếm 2/3 chiều rộng
+            Expanded(
+              flex: 2,
+              child: _buildTextColumn(),
+            ),
+            VerticalDivider(
+              width: 1,
+              color: Colors.grey.shade300, // Đường kẻ mờ ngăn giữa 2 cột
+            ),
+            // Phần bên phải với 2 button căn giữa chiếm 1/3 chiều rộng
+            Expanded(
+              flex: 1,
+              child: _buildButtonColumn(),
+            ),
+          ],
+        ),
+      ),
+
+    );
+  }
+
+
+  Widget _buildTextColumn() {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Text("Vé:", style: TextStyle(fontSize: 14, color: Colors.black)),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text("buffet đỏ", style: TextStyle(fontSize: 14, color: Colors.black)),
+                ),
+              ],
+            ),
+            SizedBox(height: 5),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Text("SL:", style: TextStyle(fontSize: 14, color: Colors.black)),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text("${_totalQuantity()}", style: TextStyle(fontSize: 14, color: Colors.black)),
+                ),
+              ],
+            ),
+            SizedBox(height: 5),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Text("KM:", style: TextStyle(fontSize: 14, color: Colors.black)),
+                ),
+                Expanded(
+                  flex: 2,
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Sử dụng Flexible để giới hạn kích thước của Text
-                      Flexible(
-                        child: Text(
-                          'Tổng tiền: ${_calculateTotal()} đ',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                          overflow: TextOverflow
-                              .ellipsis, // Thêm để xử lý tràn văn bản
+                      Text("0%", style: TextStyle(fontSize: 14, color: Colors.black)),
+                      Spacer(),
+                      GestureDetector(
+                        onTap: () {
+                          showSliderDialog(context); // Gọi hàm hiển thị dialog
+                        },
+                        child: Image.asset(
+                          'assets/edit-text.png', // Đường dẫn đến hình ảnh thay thế cho icon
+                          width: 24,  // Kích thước của hình ảnh
+                          height: 24, // Kích thước của hình ảnh
+                          color: Colors.orange, // Màu sắc nếu cần (có thể bỏ nếu không muốn thay đổi màu)
                         ),
-                      ),
-                      SizedBox(width: 10), // Khoảng cách giữa Text và Button
-                      ElevatedButton(
-                        onPressed: _showPaymentPopup,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                        ),
-                        child: Text('Thanh toán'),
                       ),
                     ],
                   ),
-                )
+                ),
+
               ],
             ),
+            SizedBox(height: 5),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Text("T.Tiền:", style: TextStyle(fontSize: 14, color: Colors.black)),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text("${_calculateTotal()} đ", style: TextStyle(fontSize: 14, color: Colors.black)),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
+
+  Widget _buildButtonColumn() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Button trên màu cam với chiều rộng cố định
+          Container(
+            width: 150,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                print("Button 1 pressed");
+              },
+              label: Text(
+                "Thanh toán",
+                style: TextStyle(color: Colors.white),
+                textAlign: TextAlign.left,
+              ),
+              icon: Image.asset(
+                'assets/dollar.png',
+                width: 16,
+                height: 16,
+              ),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Colors.orange),
+                foregroundColor: MaterialStateProperty.all(Colors.black),
+                elevation: MaterialStateProperty.all(0),
+                shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                )),
+                padding: MaterialStateProperty.all(EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
+                minimumSize: MaterialStateProperty.all(Size(200, 50)),  // Chiều rộng và chiều cao tối thiểu của nút
+              ),
+            ),
+          ),
+          SizedBox(height: 10),
+          // Button dưới màu xám với chiều rộng cố định
+          Container(
+            width: 150,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                print("Button 2 pressed");
+              },
+              label: Text(
+                "In hóa đơn",
+                style: TextStyle(color: Colors.black),
+                textAlign: TextAlign.left,
+              ),
+              icon: Image.asset(
+                'assets/print.png',
+                width: 16,
+                height: 16,
+              ),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Color(0xFFF2F2F2)),
+                foregroundColor: MaterialStateProperty.all(Colors.black),
+                elevation: MaterialStateProperty.all(0),
+                shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                )),
+                padding: MaterialStateProperty.all(EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
+                minimumSize: MaterialStateProperty.all(Size(200, 50)),  // Chiều rộng và chiều cao tối thiểu của nút
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
+
+
+
+
+Widget _buildButtonColumn() {
+  return Center(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Button trên màu cam với chiều rộng cố định
+        Container(
+          width: 150,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              print("Button 1 pressed");
+            },
+            label: Text(
+              "Thanh toán",
+              style: TextStyle(color: Colors.white),
+              textAlign: TextAlign.left,
+            ),
+            icon: Image.asset(
+              'assets/dollar.png',
+              width: 16,
+              height: 16,
+            ),
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Colors.orange),
+              foregroundColor: MaterialStateProperty.all(Colors.black),
+              elevation: MaterialStateProperty.all(0),
+              shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
+              )),
+              padding: MaterialStateProperty.all(EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
+              minimumSize: MaterialStateProperty.all(Size(200, 50)),  // Chiều rộng và chiều cao tối thiểu của nút
+            ),
+          ),
+        ),
+        SizedBox(height: 10),
+        // Button dưới màu xám với chiều rộng cố định
+        Container(
+          width: 150,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              print("Button 2 pressed");
+            },
+            label: Text(
+              "In hóa đơn",
+              style: TextStyle(color: Colors.black),
+              textAlign: TextAlign.left,
+            ),
+            icon: Image.asset(
+              'assets/print.png',
+              width: 16,
+              height: 16,
+            ),
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Color(0xFFF2F2F2)),
+              foregroundColor: MaterialStateProperty.all(Colors.black),
+              elevation: MaterialStateProperty.all(0),
+              shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
+              )),
+              padding: MaterialStateProperty.all(EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
+              minimumSize: MaterialStateProperty.all(Size(200, 50)),  // Chiều rộng và chiều cao tối thiểu của nút
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+

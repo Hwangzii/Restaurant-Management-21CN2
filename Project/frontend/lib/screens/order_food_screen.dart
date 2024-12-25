@@ -550,17 +550,24 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                 ],
               ),
             ),
-            Expanded(
-              child: GestureDetector(
-                onTap: _saveOrderAndSendToKitchen, // Gọi hàm lưu và gửi
-                child: Container(
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Lưu',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                    ),
+            SizedBox(
+              width: 150,
+              child: ElevatedButton(
+                onPressed: _saveOrderAndSendToKitchen, // Gọi hàm lưu và gửi
+                style: ElevatedButton.styleFrom(
+                  
+                  backgroundColor: Colors.white, // Màu nền
+                  foregroundColor: Colors.black, // Màu chữ
+                  elevation: 0, // Bỏ đổ bóng
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5), // Bo góc
+                  ),
+                ),
+                child: Text(
+                  'Lưu',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black, // Màu chữ
                   ),
                 ),
               ),
