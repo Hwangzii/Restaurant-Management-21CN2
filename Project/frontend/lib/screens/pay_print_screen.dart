@@ -504,7 +504,7 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Text(
-                                      '${item['item_price'] * item['quantity']} đ',
+                                      '${item['item_price']} đ', //* item['quantity']
                                       style: TextStyle(
                                         fontSize: 16,
                                         color: Colors.black,
@@ -517,10 +517,15 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
                                       children: [
+                                        () {
+                                          print('Status: ${item['status']}');
+                                          return const SizedBox(); // Trả về một widget rỗng để không ảnh hưởng tới giao diện
+                                        }(),
                                         Image.asset(
-                                          item['status'] == 'Processed'
+                                          '${item['status']}' == 'Served'
                                               ? 'assets/check.png' // Hình ảnh cho trạng thái đã xử lý
                                               : 'assets/clock.png', // Hình ảnh cho trạng thái đang xử lý
+
                                           width: 12, // Chiều rộng hình ảnh
                                           height: 12, // Chiều cao hình ảnh
                                           fit: BoxFit

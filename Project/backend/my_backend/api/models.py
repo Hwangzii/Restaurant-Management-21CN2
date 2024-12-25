@@ -187,7 +187,8 @@ class OrderDetails(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)  # Thời gian gọi món
     status = models.CharField(max_length=50, default='Pending')  # Trạng thái món
     buffet_total = models.IntegerField(null=True, blank=True)
-
+    describe = models.TextField(null=True, blank= True)
+    type = models.TextField(null= True, blank= True)
     class Meta:
         db_table = 'order_details'
     def __str__(self):

@@ -589,4 +589,64 @@ class ApiService {
       throw Exception('Failed to fetch orders for table $tableName');
     }
   }
+
+  /// Lấy danh sách tất cả món ăn đang chờ (Pending)
+  Future<List<dynamic>> fetchAllPendingOrders() async {
+    final String url = '$baseUrl/orders/list-chef/';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        // Giải mã body thành UTF-8 trước khi xử lý JSON
+        final decodedBody = utf8.decode(response.bodyBytes);
+        final data = jsonDecode(decodedBody);
+        return data; // Trả về danh sách món ăn đang Pending
+      } else {
+        throw Exception(
+            'Failed to fetch pending orders: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error in fetchAllPendingOrders: $e');
+      throw Exception('Unable to fetch all pending orders.');
+    }
+  }
+
+  /// Gọi API để đánh dấu món ăn là "Served"
+  Future<void> markOrderAsServed(int orderId) async {
+    final String url = '$baseUrl/orders/$orderId/mark-as-served/';
+
+    try {
+      final response = await http.patch(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Failed to mark order as served: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error marking order as served: $e');
+    }
+  }
+
+  // Gửi danh sách tất cả món ăn
+  Future<void> addMultipleOrderItems(Map<String, dynamic> data) async {
+    final String url = '$baseUrl/orders/add-multiple-items/';
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+      if (response.statusCode != 201) {
+        throw Exception('Failed to add multiple items: ${response.body}');
+      }
+    } catch (e) {
+      print('Error in addMultipleOrderItems: $e');
+      throw Exception('Unable to add multiple items.');
+    }
+  }
 }

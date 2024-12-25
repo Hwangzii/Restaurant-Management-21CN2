@@ -5,6 +5,8 @@ class Order {
   final int quantity;
   final int itemPrice;
   final String status;
+  final String type;
+  final String describe;
 
   Order({
     this.id,
@@ -12,6 +14,8 @@ class Order {
     required this.itemName,
     required this.quantity,
     required this.itemPrice,
+    required this.type,
+    required this.describe,
     this.status = 'Pending',
   });
 
@@ -23,6 +27,8 @@ class Order {
       'quantity': quantity,
       'item_price': itemPrice,
       'status': status,
+      'type': type,
+      'describe': describe,
     };
   }
 
@@ -34,6 +40,8 @@ class Order {
       itemName: json['item_name'],
       quantity: json['quantity'],
       itemPrice: json['item_price'],
+      type: json['type'],
+      describe: json['describe'],
       status: json['status'],
     );
   }

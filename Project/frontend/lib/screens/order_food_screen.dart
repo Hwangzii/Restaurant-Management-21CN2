@@ -36,7 +36,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
   List<Map<String, dynamic>> temporaryOrders = []; // Danh sách đơn gửi bếp
   List<Map<String, dynamic>> currentOrder = []; // Danh sách món hiện tại
   int selectedOption = 0;
-
+  bool isButtonDisabled = false; // Biến kiểm soát trạng thái nút
   late List<String> options;
 
   @override
@@ -83,8 +83,9 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     });
   }
 
-  // Lưu món ăn và gửi tới API
   Future<void> _saveOrderAndSendToKitchen() async {
+    if (isButtonDisabled) return;
+
     if (selectedItems.isEmpty && widget.buffetTotal <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Không có món nào để gửi!')),
@@ -92,61 +93,78 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
       return;
     }
 
-    String formattedTimestamp =
-        DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+    setState(() {
+      isButtonDisabled = true; // Vô hiệu hóa nút
+    });
 
     try {
-      // Gửi Buffet lên API
-      if (widget.buffetTotal > 0) {
-        await OrderFoodController.addOrderItem({
-          'table_name': widget.tableName,
-          'item_name': widget.selectedType, // Buffet đỏ / Buffet đen
-          'quantity': widget.guestCount,
-          'item_price': widget.buffetTotal, // Giá mỗi khách~/ widget.guestCount
-          'status': 'Pending',
-        });
-      }
-      // Gửi từng món ăn lên API
-      for (var item in selectedItems) {
-        await OrderFoodController.addOrderItem({
-          'table_name': widget.tableName,
+      // Kiểm tra nếu bàn đã có Buffet
+      bool hasBuffet = await OrderFoodController.hasBuffet(widget.tableName);
+
+      Map<String, dynamic>? buffet = (!hasBuffet && widget.buffetTotal > 0)
+          ? {
+              'item_name': widget.selectedType, // Buffet đỏ / Buffet đen
+              'quantity': widget.guestCount,
+              'item_price': widget.buffetTotal,
+              'status': 'Pending',
+            }
+          : null; // Không gửi Buffet nếu đã tồn tại
+
+      // Gửi các món ăn khác
+      List<Map<String, dynamic>> itemsToSend = selectedItems.map((item) {
+        return {
           'item_name': item['item_name'],
           'quantity': item['quantity'],
           'item_price': item['item_price'],
+          'type': widget.selectedType,
+          'describe': item['note'],
           'status': 'Pending',
-        });
-      }
-      // Sau khi gửi đơn hàng, xóa các món đã chọn
-      setState(() {
-        selectedItems.clear(); // Xóa danh sách các món đã chọn
-      });
+        };
+      }).toList();
 
-      // Cập nhật lịch sử đơn hàng tạm thời và giao diện
-      setState(() {
-        temporaryOrders.add({
-          'table_name': widget.tableName,
-          'order_type': widget.selectedType,
-          'guest_count': widget.guestCount,
-          'items': OrderFoodController.buildItems(selectedItems),
-          'total_amount': _calculateTotal(),
-          'timestamp': formattedTimestamp,
-        });
-        currentOrder = List.from(selectedItems);
-      });
+      // Gửi toàn bộ món ăn qua controller
+      await OrderFoodController.sendOrderItems(
+        tableName: widget.tableName,
+        buffet: buffet, // Chỉ gửi Buffet nếu không trùng lặp
+        items: itemsToSend,
+      );
       await TablesController.checkAndUpdateTableStatus(widget.tableName);
       // Gọi hàm reload từ màn hình cha
       // ignore: unnecessary_null_comparison
       if (widget.onUpdate != null) {
         widget.onUpdate(); // Gọi callback
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Đơn hàng đã được gửi tới bếp!')),
-      );
+      // Sau khi gửi, xóa danh sách món đã chọn
+      setState(() {
+        selectedItems.clear(); // Xóa danh sách các món đã chọn
+      });
+
+      // Hiển thị thông báo kết quả
+      if (hasBuffet) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Các món đã được gửi, Buffet không được gửi vì đã tồn tại!'),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Đơn hàng đã được gửi tới bếp!'),
+          ),
+        );
+      }
     } catch (e) {
       print('Lỗi khi gửi đơn hàng: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Lỗi khi gửi đơn hàng.')),
       );
+    } finally {
+      Future.delayed(const Duration(seconds: 2), () {
+        setState(() {
+          isButtonDisabled = false; // Kích hoạt lại nút
+        });
+      });
     }
   }
 

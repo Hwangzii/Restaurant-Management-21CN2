@@ -494,7 +494,7 @@ class _TablesScreenState extends State<TablesScreen> {
                         MaterialPageRoute(
                           builder: (context) => OrderFoodScreen(
                             tableName: tableName,
-                            selectedType: hasBuffet ? "Buffet" : "Tất cả",
+                            selectedType: hasBuffet ? "Buffet" : "Gọi món", //
                             guestCount: 0,
                             buffetTotal: 0,
                             onUpdate:

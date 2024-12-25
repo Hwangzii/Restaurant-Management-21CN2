@@ -202,6 +202,48 @@ class OrderDetailsViewSet(viewsets.ViewSet):
         serializer = OrderDetailsSerializer(orders, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'], url_path='list-chef')
+    def list_chef(self, request):
+        try:
+            orders = OrderDetails.objects.filter(status="Pending")  # Lấy tất cả món ăn đang 'Pending'
+            serializer = OrderDetailsSerializer(orders, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    # Cập nhật trạng thái món thành "Served"
+    @action(detail=True, methods=['patch'], url_path='mark-as-served')
+    def mark_as_served(self, request, pk=None):
+        try:
+            # Tìm món ăn theo ID
+            order = OrderDetails.objects.get(pk=pk)
+            
+            # Kiểm tra trạng thái hiện tại
+            if order.status == "Served":
+                return Response(
+                    {"message": "Order is already served."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            
+            # Cập nhật trạng thái thành "Served"
+            order.status = "Served"
+            order.save()
+
+            return Response(
+                {"message": "Order marked as served successfully."},
+                status=status.HTTP_200_OK,
+            )
+        except OrderDetails.DoesNotExist:
+            return Response(
+                {"error": "Order not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
     # Thêm món mới
     def create(self, request):
         # Kiểm tra dữ liệu đầu vào
@@ -329,6 +371,46 @@ class OrderDetailsViewSet(viewsets.ViewSet):
                             status=status.HTTP_200_OK)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'], url_path='add-multiple-items')
+    def add_multiple_items(self, request):
+        items = request.data.get('items', [])
+        table_name = request.data.get('table_name', '')
+        buffet = request.data.get('buffet', None)
+
+        if not items or not table_name:
+            return Response(
+                {'error': 'Invalid data. Items and table_name are required.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            # Thêm Buffet nếu có
+            if buffet:
+                OrderDetails.objects.create(
+                    table_name=table_name,
+                    item_name=buffet['item_name'],
+                    quantity=buffet['quantity'],
+                    item_price=buffet['item_price'],
+                    status='Pending',
+                )
+
+            # Thêm từng món ăn từ danh sách items
+            for item in items:
+                OrderDetails.objects.create(
+                    table_name=table_name,
+                    item_name=item['item_name'],
+                    quantity=item['quantity'],
+                    item_price=item['item_price'],
+                    type=item.get('type', ''),
+                    describe=item.get('describe', ''),
+                    status=item['status'],
+                )
+
+            return Response({'message': 'Items added successfully.'}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 
