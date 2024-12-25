@@ -19,6 +19,8 @@ class Account(models.Model):
     key = models.CharField(max_length=50, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_2fa_enabled = models.BooleanField(default=False)
+    role = models.IntegerField()
+    restaurant_id = models.IntegerField()
 
     class Meta:
         db_table = 'accounts'  # Trỏ đến bảng Account_tb trong SQL Server
@@ -48,7 +50,7 @@ class MenuItem(models.Model):
 class Floors(models.Model):
     floor_id = models.AutoField(primary_key=True)  # Khóa chính
     floor_name = models.CharField(max_length=100)  # Tên tầng
-    restaurant = models.ForeignKey('Restaurant', on_delete=models.CASCADE)
+    restaurant_id = models.IntegerField()  # ID nhà hàng liên kết
 
     class Meta:
         db_table = 'floors'

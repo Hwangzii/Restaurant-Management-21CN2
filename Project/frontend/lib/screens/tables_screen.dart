@@ -371,7 +371,7 @@ class _TablesScreenState extends State<TablesScreen> {
                 String guestCountText = guestCountController.text.trim();
                 int guestCount = int.tryParse(guestCountText) ?? 0;
 
-                if (guestCount > 0) {
+                if (guestCount > 1) {
                   Navigator.pop(dialogContext); // Đóng dialog
 
                   // Giá buffet cho từng loại
@@ -397,7 +397,7 @@ class _TablesScreenState extends State<TablesScreen> {
                     ),
                   );
                 } else {
-                  _showErrorSnackBar('Số lượng khách phải lớn hơn 0');
+                  _showErrorSnackBar('Số lượng khách phải lớn hơn 1');
                 }
               },
               child: Text('Xác nhận'),

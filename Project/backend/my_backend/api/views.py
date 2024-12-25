@@ -72,25 +72,21 @@ class LoginView(APIView):
         except Account.DoesNotExist:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
 
-# View để xác thực OTP và cấp JWT token
 class VerifyOTPView(APIView):
-
     def post(self, request):
         username = request.data.get('username')
         otp = request.data.get('otp')
-        
+
         try:
+            # Lấy tài khoản
             account = Account.objects.get(username=username)
 
-            # Xác thực OTP với mã bí mật của người dùng
+            # Xác minh OTP
             if verify_otp(account.key, otp, window=1):
-                # Sau khi xác thực OTP, cấp JWT token cho người dùng
-                tokens = get_tokens_for_user(account)
-                account.is_2fa_enabled = True
-                account.save()
                 return Response({
                     'message': 'OTP verified successfully',
-                    'tokens': tokens
+                    'restaurant_id': account.restaurant_id,
+                    'role': account.role
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)

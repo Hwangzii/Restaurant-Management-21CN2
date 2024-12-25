@@ -9,7 +9,7 @@ class RestaurantSerializer(serializers.ModelSerializer):
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
-        fields = ['id', 'username', 'password','name','user_phone','email','key','created_at','is_2fa_enabled']  # Các trường bạn muốn trả về
+        fields = ['id', 'username', 'password','name','user_phone','email','key','created_at','is_2fa_enabled','role','restaurant_id']  # Các trường bạn muốn trả về
 
 class MenuItemSerializer(serializers.ModelSerializer):
     restaurant = serializers.SlugRelatedField(

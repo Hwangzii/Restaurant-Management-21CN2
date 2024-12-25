@@ -49,7 +49,12 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        return {'success': true};
+        final data = json.decode(response.body);
+        return {
+          'success': true,
+          "restaurant_id": data['restaurant_id'],
+          "role": data['role'],
+        };
       } else {
         return {'success': false};
       }
