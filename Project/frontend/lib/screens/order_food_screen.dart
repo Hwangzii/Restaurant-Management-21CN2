@@ -1,17 +1,26 @@
 import 'package:app/controllers/oder_food_controller.dart';
+import 'package:app/controllers/tables_controller.dart';
 import 'package:app/screens/pay_print_screen.dart';
 import 'package:app/widgets/list_order_food.dart';
 import 'package:flutter/material.dart';
 import 'package:app/widgets/food_items.dart';
-
+import 'package:intl/intl.dart';
 
 class OrderFoodScreen extends StatefulWidget {
   final String tableName;
   final String selectedType;
-  
+  final int guestCount;
+  final int buffetTotal;
+  final VoidCallback onUpdate; // Hàm callback để gọi
 
-  const OrderFoodScreen(
-      {super.key, required this.tableName, required this.selectedType});
+  const OrderFoodScreen({
+    Key? key,
+    required this.tableName,
+    required this.selectedType,
+    required this.guestCount,
+    this.buffetTotal = 0,
+    required this.onUpdate,
+  }) : super(key: key);
 
   @override
   State<OrderFoodScreen> createState() => _OrderFoodScreenState();
@@ -24,20 +33,23 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
   List<Map<String, dynamic>> menuItems = [];
   List<Map<String, dynamic>> filteredItems = [];
   List<Map<String, dynamic>> selectedItems = []; // Danh sách món đã chọn
+  List<Map<String, dynamic>> temporaryOrders = []; // Danh sách đơn gửi bếp
+  List<Map<String, dynamic>> currentOrder = []; // Danh sách món hiện tại
   int selectedOption = 0;
 
-
-  final List<String> options = [
-    'Tất cả',
-    'Món chính',
-    'Đồ uống',
-    'Buffee đỏ',
-    'Buffee đen',
-  ];
+  late List<String> options;
 
   @override
   void initState() {
     super.initState();
+
+    // Thiết lập options dựa trên loại món
+    if (widget.selectedType.contains('Buffet')) {
+      options = ['Thường', 'Cho trẻ em', 'Món chính', 'Đồ uống'];
+    } else {
+      options = ['Tất cả', 'Món chính', 'Đồ uống'];
+    }
+
     _loadMenuItems();
   }
 
@@ -47,7 +59,6 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
           await OrderFoodController.fetchMenuItems();
       setState(() {
         menuItems = fetchedItems;
-        // filteredItems = menuItems;
         _filterItemsByType();
       });
     } catch (e) {
@@ -59,18 +70,203 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     String selectedType = widget.selectedType;
     setState(() {
       if (selectedType == 'Buffet đỏ') {
-        // Buffet đỏ thường và trẻ em
         filteredItems = menuItems
             .where((item) => item['item_type'] == 3 || item['item_type'] == 5)
             .toList();
       } else if (selectedType == 'Buffet đen') {
-        // Buffet đen thường và trẻ em
         filteredItems = menuItems
             .where((item) => item['item_type'] == 4 || item['item_type'] == 6)
             .toList();
       } else {
-        // Gọi món: Hiển thị tất cả
         filteredItems = menuItems;
+      }
+    });
+  }
+
+  // Lưu món ăn và gửi tới API
+  Future<void> _saveOrderAndSendToKitchen() async {
+    if (selectedItems.isEmpty && widget.buffetTotal <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không có món nào để gửi!')),
+      );
+      return;
+    }
+
+    String formattedTimestamp =
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+
+    try {
+      // Gửi Buffet lên API
+      if (widget.buffetTotal > 0) {
+        await OrderFoodController.addOrderItem({
+          'table_name': widget.tableName,
+          'item_name': widget.selectedType, // Buffet đỏ / Buffet đen
+          'quantity': widget.guestCount,
+          'item_price': widget.buffetTotal, // Giá mỗi khách~/ widget.guestCount
+          'status': 'Pending',
+        });
+      }
+      // Gửi từng món ăn lên API
+      for (var item in selectedItems) {
+        await OrderFoodController.addOrderItem({
+          'table_name': widget.tableName,
+          'item_name': item['item_name'],
+          'quantity': item['quantity'],
+          'item_price': item['item_price'],
+          'status': 'Pending',
+        });
+      }
+      // Sau khi gửi đơn hàng, xóa các món đã chọn
+      setState(() {
+        selectedItems.clear(); // Xóa danh sách các món đã chọn
+      });
+
+      // Cập nhật lịch sử đơn hàng tạm thời và giao diện
+      setState(() {
+        temporaryOrders.add({
+          'table_name': widget.tableName,
+          'order_type': widget.selectedType,
+          'guest_count': widget.guestCount,
+          'items': OrderFoodController.buildItems(selectedItems),
+          'total_amount': _calculateTotal(),
+          'timestamp': formattedTimestamp,
+        });
+        currentOrder = List.from(selectedItems);
+      });
+      await TablesController.checkAndUpdateTableStatus(widget.tableName);
+      // Gọi hàm reload từ màn hình cha
+      // ignore: unnecessary_null_comparison
+      if (widget.onUpdate != null) {
+        widget.onUpdate(); // Gọi callback
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Đơn hàng đã được gửi tới bếp!')),
+      );
+    } catch (e) {
+      print('Lỗi khi gửi đơn hàng: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi khi gửi đơn hàng.')),
+      );
+    }
+  }
+
+  Future<void> _upgradeBuffet(String tableName) async {
+    try {
+      await OrderFoodController.upgradeBuffet(tableName);
+      // ignore: unnecessary_null_comparison
+      if (widget.onUpdate != null) {
+        widget.onUpdate(); // Gọi callback
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nâng cấp Buffet thành công!')),
+      );
+
+      // Reload giao diện
+      setState(() {});
+    } catch (e) {
+      print('Error in _upgradeBuffet: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không thể nâng cấp Buffet.')),
+      );
+    }
+  }
+
+  Future<void> _transferTable(String oldTableName) async {
+    TextEditingController tableNameController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Chuyển bàn'),
+          content: TextField(
+            controller: tableNameController,
+            decoration: InputDecoration(hintText: 'Nhập tên bàn mới'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                String newTableName = tableNameController.text.trim();
+                if (newTableName.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Tên bàn không được để trống')),
+                  );
+                  return;
+                }
+
+                // Kiểm tra trạng thái bàn mới
+                bool isAvailable =
+                    !(await OrderFoodController.checkTableStatus(newTableName));
+                if (!isAvailable) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Bàn này không khả dụng')),
+                  );
+                  return;
+                }
+
+                // Thực hiện chuyển bàn
+                try {
+                  await OrderFoodController.transferOrders(
+                    oldTableName: oldTableName,
+                    newTableName: newTableName,
+                  );
+                  // ignore: unnecessary_null_comparison
+                  if (widget.onUpdate != null) {
+                    widget.onUpdate(); // Gọi callback
+                  }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Chuyển bàn thành công!')),
+                  );
+
+                  // Quay lại màn table
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(); // Đóng màn Order
+                } catch (e) {
+                  print('Error in transferTable: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Lỗi khi chuyển bàn.')),
+                  );
+                }
+              },
+              child: Text('Xác nhận'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Hủy'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _filterItemsByOption(int option) {
+    setState(() {
+      if (widget.selectedType.contains('Buffet')) {
+        // Lọc món ăn cho Buffet
+        if (option == 0) {
+          filteredItems = menuItems
+              .where((item) => item['item_type'] == 3) // Buffet thường
+              .toList();
+        } else if (option == 1) {
+          filteredItems = menuItems
+              .where((item) => item['item_type'] == 5) // Buffet trẻ em
+              .toList();
+        }
+      } else {
+        // Lọc món ăn cho Gọi món
+        if (option == 0) {
+          filteredItems = menuItems.where((item) {
+            return item['item_type'] >= 1 && item['item_type'] <= 4;
+          }).toList();
+        } else {
+          int selectedType = option;
+          filteredItems = menuItems.where((item) {
+            return item['item_type'] == selectedType;
+          }).toList();
+        }
       }
     });
   }
@@ -88,31 +284,23 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     });
   }
 
-  int _TotalQuantityDish(){
-    return selectedItems.fold(0, (sum, item) {
-      try {
-        int quantity = item['quantity'] ?? 0; // Chỉ lấy tổng số lượng
-        return sum + quantity;
-      } catch (e) {
-        print('Lỗi tính tổng số lượng: $e');
-        return sum;
-      }
-    });
-  }
+  int _calculateTotalItems() {
+    try {
+      return selectedItems.fold(0, (sum, item) {
+        int quantity = item['quantity'] ?? 0;
 
-  void _filterItemsByOption(int option) {
-    setState(() {
-      if (option == 0) {
-        filteredItems = menuItems.where((item) {
-          return item['item_type'] >= 1 && item['item_type'] <= 4;
-        }).toList();
-      } else {
-        int selectedType = option;
-        filteredItems = menuItems.where((item) {
-          return item['item_type'] == selectedType;
-        }).toList();
-      }
-    });
+        // ignore: unnecessary_type_check
+        if (quantity is! int) {
+          print('Lỗi: `quantity` không phải là số nguyên trong $item');
+          return sum;
+        }
+
+        return sum + quantity;
+      });
+    } catch (e) {
+      print('Lỗi khi tính tổng số lượng món: $e');
+      return 0;
+    }
   }
 
   @override
@@ -120,9 +308,39 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
+        elevation: 0,
         title: Text('${widget.tableName}',
             style: TextStyle(color: Colors.black, fontSize: 20)),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () {
+              showMenu(
+                context: context,
+                position: RelativeRect.fromLTRB(100.0, 100.0, 0.0, 0.0),
+                items: [
+                  PopupMenuItem<String>(
+                    value: 'nang_cap',
+                    child: Text('Nâng cấp'),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'chuyen_ban',
+                    child: Text('Chuyển bàn'),
+                  ),
+                ],
+                elevation: 8.0,
+              ).then((value) {
+                if (value == 'nang_cap') {
+                  _upgradeBuffet(widget.tableName);
+                } else if (value == 'chuyen_ban') {
+                  print('Chuyển bàn');
+                  _transferTable(widget.tableName);
+                }
+              });
+            },
+          ),
+        ],
       ),
       backgroundColor: Colors.white,
       body: Stack(
@@ -148,9 +366,12 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                           });
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 8.0, horizontal: 16.0),
                           decoration: BoxDecoration(
-                            color: selectedOption == index ? Color(0xFFF2F2F2) : Colors.white,
+                            color: selectedOption == index
+                                ? Color(0xFFF2F2F2)
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Center(
@@ -159,20 +380,11 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                               style: TextStyle(
                                 fontSize: 13,
                                 color: selectedOption == index
-                                  ? Color(0xFFFF8A00)
-                                  : Color(0xFF929292),
+                                    ? Color(0xFFFF8A00)
+                                    : Color(0xFF929292),
                               ),
-                              ),
-                          ), 
-
-                          // child: Text(
-                          //   options[index],
-                          //   style: TextStyle(
-                          //     color: selectedOption == index
-                          //         ? Color(0xFFFF8A00)
-                          //         : Color(0xFF929292),
-                          //   ),
-                          // ),
+                            ),
+                          ),
                         ),
                       ),
                     );
@@ -195,13 +407,12 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                       child: TextField(
                         controller: searchController,
                         decoration: const InputDecoration(
-                          border: InputBorder.none,
-                          hintText: 'Tìm kiếm món ăn',
-                          hintStyle: TextStyle(
-                            color: Color(0xFF929292),
-                            fontSize: 13,
-                          )
-                        ),
+                            border: InputBorder.none,
+                            hintText: 'Tìm kiếm món ăn',
+                            hintStyle: TextStyle(
+                              color: Color(0xFF929292),
+                              fontSize: 13,
+                            )),
                         onChanged: (value) {
                           setState(() {
                             filteredItems = menuItems
@@ -270,7 +481,8 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
               left: 0,
               right: 0,
               child: SizedBox(
-                height: MediaQuery.of(context).size.height * 1, // Đặt chiều cao rõ ràng
+                height: MediaQuery.of(context).size.height *
+                    1, // Đặt chiều cao rõ ràng
                 child: ListOrderFood(
                   selectedItems: selectedItems,
                   onClose: () {
@@ -297,60 +509,58 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
             ),
         ],
       ),
-
-      // Thanh nút ấn xem danh sách món đã gọi, lưu, chuyển đến form thanh toán
       bottomNavigationBar: Container(
         height: 60,
         color: Colors.white,
         child: Row(
           children: [
             Container(
-              width: 50,
+              width: 60,
               child: Stack(
                 children: [
                   IconButton(
-                    icon: Image.asset('assets/shopping-cart.png',height: 24, width: 24),
+                    icon: Icon(Icons.shopping_cart),
+                    color: Colors.orange,
                     onPressed: () {
                       setState(() {
                         _showOverlay = !_showOverlay; // Hiển thị/Ẩn overlay
                       });
                     },
                   ),
-                  Positioned(
-                    right: 2, // Đặt số về phía góc phải
-                    top: 1,   // Đặt số về phía góc trên
-                    child: _TotalQuantityDish() > 0
-                        ? Container(
-                            height: 18,
-                            width: 18,
-                            padding: EdgeInsets.all(1),
-                            decoration: BoxDecoration(
-                              color: Colors.red, // Màu nền đỏ
-                              shape: BoxShape.circle, // Nền hình tròn
-                            ),
-                            child: Text(
-                              '${_TotalQuantityDish()}', // Hiển thị số
-                              style: TextStyle(
-                                color: Colors.white, // Màu chữ trắng
-                                fontSize: 10, // Kích thước chữ
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center, // Căn giữa chữ trong container
-                            ),
-                          )
-                        : SizedBox.shrink(), // Trả về widget trống khi số lượng = 0
-                  ),
+                  if (_calculateTotalItems() > 0)
+                    Positioned(
+                      right: 18,
+                      top: -1,
+                      child: Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          '${_calculateTotalItems()}',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
             Expanded(
-              child: Container(
-                alignment: Alignment.center,
-                child: Text(
-                  'Lưu',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF929292),
+              child: GestureDetector(
+                onTap: _saveOrderAndSendToKitchen, // Gọi hàm lưu và gửi
+                child: Container(
+                  alignment: Alignment.center,
+                  child: Text(
+                    'Lưu',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
               ),
@@ -361,7 +571,11 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                   // Điều hướng đến màn hình mới
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => PayPrintScreen()), // Thay `NewScreen` bằng tên màn hình bạn muốn chuyển đến
+                    MaterialPageRoute(
+                        builder: (context) => PayPrintScreen(
+                              tableName: widget.tableName,
+                              buffetTotal: widget.buffetTotal,
+                            )), // Thay `NewScreen` bằng tên màn hình bạn muốn chuyển đến
                   );
                 },
                 child: Container(
@@ -378,10 +592,9 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                         ),
                       ),
                       SizedBox(width: 5), // Khoảng cách giữa text và icon
-                      Image.asset(
-                        'assets/angle-small-right.png',
-                        width: 15,
-                        height: 15,
+                      Icon(
+                        Icons.arrow_forward,
+                        color: Colors.white,
                       ),
                     ],
                   ),
@@ -391,7 +604,6 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
           ],
         ),
       ),
-    
     );
   }
 }

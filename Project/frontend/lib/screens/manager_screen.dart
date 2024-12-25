@@ -7,6 +7,7 @@ import 'package:app/screens/list_staff_screen.dart';
 import 'package:app/screens/menu_options.dart';
 import 'package:app/screens/order_screen.dart';
 import 'package:app/screens/report_screen.dart';
+import 'package:app/screens/staff_management_screen.dart';
 import 'package:app/screens/tables_screen.dart';
 import 'package:app/screens/warehouse_screen.dart';
 import 'package:flutter/material.dart';
@@ -24,7 +25,7 @@ class _ManagerScreenState extends State<ManagerScreen> {
   // Danh sách các widget màn hình tương ứng cho từng mục trong BottomNavigationBar
   static final List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
-    ListStaffScreen(),
+    StaffManagementScreen(),
     BillScreen(),
     InventoryScreen(),
     ReportScreen(),

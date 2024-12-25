@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 
 class ApiService {
   final String baseUrl =
-      'https://8c75-2402-800-61cf-d614-509e-532b-7fca-3e7f.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://7944-14-232-55-213.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   // Gửi request đăng nhập
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -123,6 +123,81 @@ class ApiService {
     }
   }
 
+  // Cập nhật trạng thái bàn
+  Future<void> updateTableStatus(String tableName, bool hasOrders) async {
+    final String url = '$baseUrl/tables/update-status/$tableName/';
+
+    try {
+      final response = await http.patch(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'status': hasOrders ? 1 : 0}),
+      );
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Failed to update table status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error in updateTableStatus: $e');
+      throw Exception('Error updating table status for $tableName');
+    }
+  }
+
+  Future<http.Response> patch(String url, Map<String, dynamic> data) async {
+    try {
+      final response = await http.patch(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(data),
+      );
+      return response;
+    } catch (e) {
+      print('Error in ApiService.patch: $e');
+      throw Exception('Failed to send PATCH request to $url');
+    }
+  }
+
+  // Kiểm tra món Buffet
+  Future<bool> checkBuffetStatus(String tableName) async {
+    final String url = '$baseUrl/orders/has-buffet?table_name=$tableName';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['has_buffet'];
+      } else {
+        throw Exception(
+            'Failed to check buffet status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error in ApiService.checkBuffetStatus: $e');
+      throw Exception('Unable to check buffet status for table $tableName');
+    }
+  }
+
+  // Cập nhật tất cả trạng thái bàn
+  Future<void> updateAllTableStatus() async {
+    final String url = '$baseUrl/tables/update-all-status/';
+
+    try {
+      final response = await http.patch(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Failed to update all table statuses: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error in updateAllTableStatus: $e');
+      throw Exception('Error updating all table statuses');
+    }
+  }
+
   //Hàm xóa bàn
   Future<bool> deleteTable(int tableId) async {
     final response = await http.delete(
@@ -164,7 +239,7 @@ class ApiService {
 
   // Hàm thêm món ăn
   Future<bool> addFood(String itemName, double itemPrice, String itemDescribe,
-      int itemType, bool itemStatus, int restaurant) async {
+      int itemType, int itemStatus, int restaurant) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/menu_items/'),
@@ -199,6 +274,7 @@ class ApiService {
     }
   }
 
+  // Hàm lấy danh sách kho
   Future<List<Item>> getItems() async {
     final response = await http.get(
       Uri.parse('$baseUrl/items/'),
@@ -218,6 +294,7 @@ class ApiService {
     }
   }
 
+  // Hàm tạo item mới trong kho
   Future<void> createItem(Item item) async {
     final response = await http.post(
       Uri.parse('$baseUrl/items/'),
@@ -232,6 +309,7 @@ class ApiService {
     }
   }
 
+  // Hàm sửa item trong kho
   Future<void> updateItem(Item item) async {
     final response = await http.put(
       Uri.parse('$baseUrl/items/${item.itemId}/'),
@@ -246,6 +324,7 @@ class ApiService {
     }
   }
 
+  // Hàm xóa item trong kho
   Future<void> deleteItem(int id) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/items/$id/'),
@@ -261,8 +340,7 @@ class ApiService {
 
   // Hàm lấy dữ liệu nhân viên từ API
   Future<List<Map<String, dynamic>>> fetchEmployees() async {
-    final tablesUrl =
-        '$baseUrl/employees/'; // Đường dẫn API lấy danh sách nhân viên
+    final tablesUrl = '$baseUrl/employees/'; // Đường dẫn API lấy danh sách nhân viên
 
     try {
       final response = await http.get(Uri.parse(tablesUrl), headers: {
@@ -271,18 +349,21 @@ class ApiService {
       });
 
       if (response.statusCode == 200) {
+        // Giải mã UTF-8
         final decodedResponse = utf8.decode(response.bodyBytes);
         List<dynamic> data = json.decode(decodedResponse);
         return List<Map<String, dynamic>>.from(data);
       } else {
-        throw Exception('Failed to load tables');
+        print("Error fetching employees: ${response.statusCode} ${response.reasonPhrase}");
+        throw Exception('Failed to load employees');
       }
     } catch (e) {
-      throw Exception('Error fetching tables: $e');
+      print("Error fetching employees: $e");
+      throw Exception('Error fetching employees: $e');
     }
   }
 
-  //Hàm thêm nhân viên
+   //Hàm thêm nhân viên
 
   Future<bool> addEmployee({
     required String fullName,
@@ -412,52 +493,122 @@ class ApiService {
 
   // Hàm gọi API để lấy danh sách lịch làm việc
   Future<List<Map<String, dynamic>>> fetchWorkSchedules() async {
+    final scheduleUrl = '$baseUrl/work_schedule/'; // Đường dẫn API lấy lịch làm việc
+
     try {
-      final response = await http.get(Uri.parse('$baseUrl/work_schedule/'));
+      final response = await http.get(Uri.parse(scheduleUrl), headers: {
+        'Accept': 'application/json; charset=UTF-8', // Đảm bảo yêu cầu JSON
+        "ngrok-skip-browser-warning": "69420",
+      });
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data is List) {
-          // Trả về danh sách các lịch làm
-          return List<Map<String, dynamic>>.from(data);
-        } else {
-          throw Exception("Unexpected response format: not a list");
-        }
+        // Giải mã UTF-8
+        final decodedResponse = utf8.decode(response.bodyBytes);
+        List<dynamic> data = json.decode(decodedResponse);
+        return List<Map<String, dynamic>>.from(data);
       } else {
         print("Error fetching work schedules: ${response.statusCode} ${response.reasonPhrase}");
-        print("Response body: ${response.body}");
-        throw Exception("Failed to load work schedules");
+        throw Exception('Failed to load work schedules');
       }
     } catch (e) {
       print("Error fetching work schedules: $e");
-      throw Exception("Error fetching work schedules");
+      throw Exception('Error fetching work schedules: $e');
     }
   }
 
-  //Hàm gọi API lưu ca làm 
-  Future<void> saveWorkSchedules(List<Map<String, dynamic>> shifts) async {
-    for (var shift in shifts) {
-      try {
-        // Gửi từng đối tượng qua API
-        final response = await http.post(
-          Uri.parse('$baseUrl/work_schedule/'),
-          headers: {
-            "Content-Type": "application/json; charset=UTF-8",
-          },
-          body: jsonEncode(shift), // Chuyển shift thành JSON
-        );
+  // Hàm thêm order_item
+  Future<void> createOrder(Map<String, dynamic> order) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/orders/'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode(order),
+      );
 
-        if (response.statusCode == 201 || response.statusCode == 200) {
-          // In ra thông tin thành công
-          print("Ca làm lưu thành công: ${jsonEncode(shift)}");
-        } else {
-          // In lỗi trả về từ API
-          print("Lỗi khi lưu ca làm: ${response.body}");
-        }
-      } catch (e) {
-        // In lỗi khi không kết nối được với server
-        print("Lỗi kết nối hoặc xử lý: $e");
+      // In thông báo lỗi nếu API trả về mã khác ngoài 201
+      if (response.statusCode != 201) {
+        print('API Response: ${response.body}'); // In chi tiết lỗi từ API
+        throw Exception('Failed to create order');
       }
+    } catch (e) {
+      print('Error creating order: $e');
+      throw Exception('Error creating order: $e');
+    }
+  }
+
+  //Hàm sửa order_item
+  Future<void> updateOrder(int id, Map<String, dynamic> order) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/orders/$id/'),
+      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      body: json.encode(order),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update order');
+    }
+  }
+
+  // Hàm xóa đơn hàng theo ID
+  Future<void> deleteOrder(int id) async {
+    final url = Uri.parse('$baseUrl/orders/$id/');
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
+
+      if (response.statusCode != 204) {
+        // 204: No Content
+        print('API Response: ${response.body}');
+        throw Exception('Failed to delete order');
+      }
+    } catch (e) {
+      print('Error deleting order: $e');
+      throw Exception('Error deleting order: $e');
+    }
+  }
+
+  // Hàm xóa tất cả order theo table_name
+  Future<void> deleteOrdersByTable(String tableName) async {
+    final url = Uri.parse('$baseUrl/orders/clear/?table_name=$tableName');
+    final response = await http.delete(
+      url,
+      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete orders for table $tableName');
+    }
+  }
+
+  // Kiểm tra bàn có món hay không
+  Future<bool> checkTableHasOrders(String tableName) async {
+    final url = Uri.parse('$baseUrl/orders/getcheck/?table_name=$tableName');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['has_orders'];
+    } else {
+      throw Exception('Failed to check table status: ${response.statusCode}');
+    }
+  }
+
+  // Hàm lấy danh order_item theo bàn
+  Future<List<dynamic>> fetchOrdersByTable(String tableName) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/orders/?table_name=$tableName'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final decodedBody = utf8.decode(response.bodyBytes);
+      return jsonDecode(decodedBody);
+    } else {
+      throw Exception('Failed to fetch orders for table $tableName');
     }
   }
 }

@@ -22,40 +22,33 @@ class StaffCheckScreen extends StatefulWidget {
 }
 
 class _StaffCheckScreenState extends State<StaffCheckScreen> {
-  late StaffCheckAppController _controller;
   List<Map<String, dynamic>> employees = [];
   List<bool?> attendanceStatus = [];
+  List<String?> absenceReasons = [];
   String _searchQuery = '';
-  String _selectedShift = 'ca sáng'; // Dropdown giá trị mặc định
+  String _selectedShift = 'ca sáng';
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = StaffCheckAppController();
-
-    // Gọi API để lấy danh sách nhân viên theo ngày hiện tại và ca sáng
     _fetchFilteredEmployees(DateTime.now(), _selectedShift);
   }
 
   Future<void> _fetchFilteredEmployees(DateTime date, String shiftType) async {
     setState(() => _isLoading = true);
     try {
-      // Gọi API qua controller
-      final data = await _controller.fetchFilteredEmployees(
+      final data = await StaffCheckAppController.fetchFilteredEmployees(
         selectedDate: date,
         shiftType: shiftType,
       );
 
-      // Cập nhật danh sách nhân viên và trạng thái điểm danh
       setState(() {
         employees = data;
         attendanceStatus = List.filled(employees.length, null);
+        absenceReasons = List.filled(employees.length, null);
       });
-
-      print("Filtered Employees: $employees");
     } catch (e) {
-      print('Error fetching filtered employees: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lỗi khi tải danh sách nhân viên')),
       );
@@ -64,6 +57,44 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
     }
   }
 
+  void _showAbsenceReasonDialog(int index) {
+    final TextEditingController reasonController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Nhập lý do nghỉ"),
+          content: TextField(
+            controller: reasonController,
+            decoration: const InputDecoration(
+              hintText: "Nhập lý do nghỉ...",
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Hủy"),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  absenceReasons[index] = reasonController.text;
+                  attendanceStatus[index] = null; // Reset trạng thái khác
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Lưu lý do nghỉ thành công!")),
+                );
+              },
+              child: const Text("Lưu"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   void _saveAttendance() {
     List<String> attendanceDetails = [];
@@ -72,23 +103,25 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
           ? "Có"
           : attendanceStatus[i] == false
               ? "Muộn"
-              : "Chưa điểm danh";
+              : absenceReasons[i] != null
+                  ? "Nghỉ: ${absenceReasons[i]}"
+                  : "Chưa điểm danh";
       attendanceDetails.add("${employees[i]['full_name']}: $attendance");
     }
 
-    String resultMessage = attendanceDetails.isNotEmpty
-        ? "Điểm danh đã được lưu thành công!\n\n${attendanceDetails.join('\n')}"
-        : "Không có thay đổi trong điểm danh.";
-
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(resultMessage)),
+      SnackBar(
+        content: Text(
+          "Điểm danh đã được lưu thành công!\n\n${attendanceDetails.join('\n')}",
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    DateTime now = DateTime.now(); // Thời gian hiện tại
-    String formattedDate = "${now.day}/${now.month}/${now.year}"; // Định dạng ngày tháng năm
+    DateTime now = DateTime.now();
+    String formattedDate = "${now.day}/${now.month}/${now.year}";
 
     if (_isLoading) {
       return Scaffold(
@@ -139,7 +172,6 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
                     );
                   }).toList(),
                 ),
-
               ],
             ),
             Text(
@@ -170,10 +202,11 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
           ),
           Expanded(
             child: ListView.separated(
-              itemCount: employees.length,
+              itemCount: filteredEmployees.length,
               separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
-                final employee = employees[index];
+                final employee = filteredEmployees[index];
+                final originalIndex = employees.indexOf(employee);
                 return ListTile(
                   title: Text(employee['full_name']),
                   trailing: Row(
@@ -182,50 +215,79 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
                       GestureDetector(
                         onTap: () {
                           setState(() {
-                            int originalIndex = employees.indexOf(employee);
                             attendanceStatus[originalIndex] =
                                 attendanceStatus[originalIndex] == true
                                     ? null
                                     : true;
                           });
                         },
-                        child: Row(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              attendanceStatus[employees.indexOf(employee)] == true
+                              attendanceStatus[originalIndex] == true
                                   ? Icons.radio_button_checked
                                   : Icons.radio_button_unchecked,
-                              color: attendanceStatus[employees.indexOf(employee)] == true
+                              color: attendanceStatus[originalIndex] == true
                                   ? Colors.orange
                                   : Colors.grey,
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(height: 4),
                             const Text('Có'),
                           ],
                         ),
                       ),
+                      const SizedBox(width: 16),
                       GestureDetector(
                         onTap: () {
                           setState(() {
-                            int originalIndex = employees.indexOf(employee);
                             attendanceStatus[originalIndex] =
                                 attendanceStatus[originalIndex] == false
                                     ? null
                                     : false;
                           });
                         },
-                        child: Row(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              attendanceStatus[employees.indexOf(employee)] == false
+                              attendanceStatus[originalIndex] == false
                                   ? Icons.radio_button_checked
                                   : Icons.radio_button_unchecked,
-                              color: attendanceStatus[employees.indexOf(employee)] == false
+                              color: attendanceStatus[originalIndex] == false
                                   ? Colors.orange
                                   : Colors.grey,
                             ),
-                            const SizedBox(width: 4),
+                            const SizedBox(height: 4),
                             const Text('Muộn'),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            if (absenceReasons[originalIndex] != null) {
+                              absenceReasons[originalIndex] = null;
+                              attendanceStatus[originalIndex] = null;
+                            } else {
+                              _showAbsenceReasonDialog(originalIndex);
+                            }
+                          });
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              absenceReasons[originalIndex] != null
+                                  ? Icons.radio_button_checked
+                                  : Icons.radio_button_unchecked,
+                              color: absenceReasons[originalIndex] != null
+                                  ? Colors.orange
+                                  : Colors.grey,
+                            ),
+                            const SizedBox(height: 4),
+                            const Text('Nghỉ'),
                           ],
                         ),
                       ),
@@ -240,19 +302,14 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SizedBox(
-          height: 45,
-          width: 30,
+          height: 40,
           child: FloatingActionButton.extended(
             onPressed: _saveAttendance,
             label: const Text(
               'Lưu',
               style: TextStyle(fontSize: 14),
             ),
-            icon: const Icon(
-              Icons.save,
-              size: 18,
-            ),
-            backgroundColor: Colors.blue,
+            backgroundColor: Color(0xFFFF8A00),
           ),
         ),
       ),

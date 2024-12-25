@@ -1,60 +1,5 @@
 import 'package:flutter/material.dart';
 
-class BillScreen extends StatelessWidget {
-  const BillScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFFFFFFF),
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black), // Nút quay lại
-          onPressed: () {
-            Navigator.pop(context); // Quay lại màn hình trước
-          },
-        ),
-        title: Stack(
-          children: [
-            Align(
-              alignment: Alignment.center, // Căn giữa tiêu đề
-              child: Text(
-                'Thông tin hóa đơn',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-          ],
-        ),
-        centerTitle: true, // Đảm bảo Stack hoạt động đúng
-        backgroundColor: Colors.white, // Màu nền AppBar
-      ),
-
-      body: ListView.builder(
-        itemCount: invoiceDataList.length,
-        itemBuilder: (context, index) {
-          final item = invoiceDataList[index];
-          return ListTile(
-            leading: Icon(item.icon, color: item.amount.startsWith('+') ? Colors.green : Colors.red),
-            title: Text(item.title),
-            subtitle: Text(item.subtitle, style: const TextStyle(fontSize: 12)),
-            trailing: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(item.amount, style: TextStyle(color: item.amount.startsWith('+') ? Colors.green : Colors.red)),
-                Text(item.dateTime, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
 class InvoiceData {
   final IconData icon;
   final String title;
@@ -144,3 +89,64 @@ final List<InvoiceData> invoiceDataList = [
   ),
   // Add more entries as needed (total 30 entries)
 ];
+
+class InvoiceScreen extends StatelessWidget {
+  const InvoiceScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Color(0xFFFFFFFF),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black), // Nút quay lại
+          onPressed: () {
+            Navigator.pop(context); // Quay lại màn hình trước
+          },
+        ),
+        title: Stack(
+          children: [
+            Align(
+              alignment: Alignment.center, // Căn giữa tiêu đề
+              child: Text(
+                'Thông tin hóa đơn',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true, // Đảm bảo Stack hoạt động đúng
+        backgroundColor: Colors.white, // Màu nền AppBar
+      ),
+
+      body: ListView.builder(
+        itemCount: invoiceDataList.length,
+        itemBuilder: (context, index) {
+          final item = invoiceDataList[index];
+          return ListTile(
+            leading: Icon(item.icon, color: item.amount.startsWith('+') ? Colors.green : Colors.red),
+            title: Text(item.title),
+            subtitle: Text(item.subtitle, style: const TextStyle(fontSize: 12)),
+            trailing: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(item.amount, style: TextStyle(color: item.amount.startsWith('+') ? Colors.green : Colors.red)),
+                Text(item.dateTime, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+void main() {
+  runApp(const MaterialApp(
+    home: InvoiceScreen(),
+  ));
+}
