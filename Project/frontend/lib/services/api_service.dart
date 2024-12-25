@@ -1,5 +1,4 @@
 import 'package:app/models/item.dart';
-import 'package:app/models/order.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -121,6 +120,46 @@ class ApiService {
       return true;
     } else {
       return false;
+    }
+  }
+
+  // Cập nhật trạng thái bàn
+  Future<void> updateTableStatus(String tableName, bool hasOrders) async {
+    final String url = '$baseUrl/tables/update-status/$tableName/';
+
+    try {
+      final response = await http.patch(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'status': hasOrders ? 1 : 0}),
+      );
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Failed to update table status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error in updateTableStatus: $e');
+      throw Exception('Error updating table status for $tableName');
+    }
+  }
+
+  // Cập nhật tất cả trạng thái bàn
+  Future<void> updateAllTableStatus() async {
+    final String url = '$baseUrl/tables/update-all-status/';
+
+    try {
+      final response = await http.patch(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Failed to update all table statuses: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error in updateAllTableStatus: $e');
+      throw Exception('Error updating all table statuses');
     }
   }
 
@@ -411,27 +450,30 @@ class ApiService {
     }
   }
 
-  Future<void> createOrder(Order order) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/orders/'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(order.toJson()),
-    );
+  Future<void> createOrder(Map<String, dynamic> order) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/orders/'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode(order),
+      );
 
-    if (response.statusCode != 201) {
-      throw Exception('Failed to create order');
+      // In thông báo lỗi nếu API trả về mã khác ngoài 201
+      if (response.statusCode != 201) {
+        print('API Response: ${response.body}'); // In chi tiết lỗi từ API
+        throw Exception('Failed to create order');
+      }
+    } catch (e) {
+      print('Error creating order: $e');
+      throw Exception('Error creating order: $e');
     }
   }
 
-  Future<void> updateOrder(int id, Order order) async {
+  Future<void> updateOrder(int id, Map<String, dynamic> order) async {
     final response = await http.put(
       Uri.parse('$baseUrl/orders/$id/'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(order.toJson()),
+      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      body: json.encode(order),
     );
 
     if (response.statusCode != 200) {
@@ -439,16 +481,65 @@ class ApiService {
     }
   }
 
+  // Hàm xóa đơn hàng theo ID
   Future<void> deleteOrder(int id) async {
+    final url = Uri.parse('$baseUrl/orders/$id/');
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+      );
+
+      if (response.statusCode != 204) {
+        // 204: No Content
+        print('API Response: ${response.body}');
+        throw Exception('Failed to delete order');
+      }
+    } catch (e) {
+      print('Error deleting order: $e');
+      throw Exception('Error deleting order: $e');
+    }
+  }
+
+  // Hàm xóa tất cả order theo table_name
+  Future<void> deleteOrdersByTable(String tableName) async {
+    final url = Uri.parse('$baseUrl/orders/clear/?table_name=$tableName');
     final response = await http.delete(
-      Uri.parse('$baseUrl/orders/$id/'),
+      url,
+      headers: {'Content-Type': 'application/json; charset=UTF-8'},
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to delete orders for table $tableName');
+    }
+  }
+
+  // Kiểm tra bàn có món hay không
+  Future<bool> checkTableHasOrders(String tableName) async {
+    final url = Uri.parse('$baseUrl/orders/getcheck/?table_name=$tableName');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['has_orders'];
+    } else {
+      throw Exception('Failed to check table status: ${response.statusCode}');
+    }
+  }
+
+  Future<List<dynamic>> fetchOrdersByTable(String tableName) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/orders/?table_name=$tableName'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
     );
 
-    if (response.statusCode != 204) {
-      throw Exception('Failed to delete order');
+    if (response.statusCode == 200) {
+      final decodedBody = utf8.decode(response.bodyBytes);
+      return jsonDecode(decodedBody);
+    } else {
+      throw Exception('Failed to fetch orders for table $tableName');
     }
   }
 }

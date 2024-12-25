@@ -55,7 +55,7 @@ class TableSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tables
-        fields = ['table_id', 'table_name', 'floor']
+        fields = ['table_id', 'table_name', 'floor', 'status']
 
 class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:

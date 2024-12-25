@@ -21,6 +21,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', LoginView.as_view(), name='login'),
     path('verify_otp/', VerifyOTPView.as_view(), name='verify_otp'),
+    path('tables/update-status/<str:table_name>/', TableViewSet.as_view({'patch': 'update_status'})),
+    path('tables/update-all-status/', TableViewSet.as_view({'patch': 'update_all_status'})),
     path('', include(router.urls)),
-]
+]+ router.urls
 

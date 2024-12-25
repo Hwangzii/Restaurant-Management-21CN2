@@ -1,4 +1,3 @@
-import 'package:app/models/item.dart';
 import 'package:app/models/order.dart';
 import 'package:app/services/api_service.dart';
 
@@ -29,6 +28,31 @@ class OrderFoodController {
     }
   }
 
+  static Future<List<Map<String, dynamic>>> fetchOrdersByTable(
+      String tableName) async {
+    try {
+      final response = await ApiService().fetchOrdersByTable(tableName);
+
+      // ignore: unnecessary_null_comparison
+      if (response != null) {
+        return response
+            .map<Map<String, dynamic>>((order) => {
+                  'id': order['id'],
+                  'item_name': order['item_name'],
+                  'quantity': order['quantity'],
+                  'item_price': order['item_price'],
+                  'timestamp': order['timestamp'], // thời gian món được gọi
+                })
+            .toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching orders by table: $e');
+      throw Exception('Error fetching orders by table: $e');
+    }
+  }
+
   // Hàm thêm món ăn
   static Future<bool> addFoodItem(String itemName, double itemPrice,
       String itemDescribe, int itemType, int itemStatus, int restaurant) async {
@@ -41,13 +65,81 @@ class OrderFoodController {
     }
   }
 
-  static Future<void> addOrder(Order order) async {
+  // Thêm món ăn vào API
+  static Future<void> addOrderItem(Map<String, dynamic> item) async {
     try {
-      // Gọi API để thêm order
-      await ApiService().createOrder(order.toJson() as Order);
+      await ApiService().createOrder(item);
     } catch (e) {
-      print('Error adding order: $e');
-      throw Exception('Error adding order: $e');
+      print('Error adding order item: $e');
+      throw Exception('Error adding order item: $e');
+    }
+  }
+
+  static List<Map<String, dynamic>> buildItems(
+      List<Map<String, dynamic>> selectedItems) {
+    return selectedItems.map((item) {
+      return {
+        'item_name': item['item_name'],
+        'quantity': item['quantity'],
+        'item_price': item['item_price'],
+      };
+    }).toList();
+  }
+
+  // Xây dựng đối tượng `Order` từ thông tin màn hình (sử dụng cho mục đích gửi đơn tổng)
+  static Order buildOrder({
+    required String tableName,
+    required String selectedType,
+    required int guestCount,
+    required int totalAmount,
+  }) {
+    return Order(
+      tableName: tableName,
+      itemName: selectedType,
+      quantity: guestCount,
+      itemPrice: totalAmount,
+      status: 'Pending',
+    );
+  }
+
+  /// Hàm xóa đơn hàng theo ID
+  static Future<void> deleteOrder(int id) async {
+    try {
+      // Gọi API xóa đơn hàng theo ID
+      await ApiService().deleteOrder(id);
+
+      // Nếu thành công
+      print('Order with ID $id deleted successfully.');
+    } catch (e) {
+      // Nếu xảy ra lỗi
+      print('Error in OrderController - deleteOrder: $e');
+      rethrow; // Tiếp tục ném lỗi để xử lý ở màn hình gọi hàm
+    }
+  }
+
+  // Xóa tất cả các bản ghi order của một bàn
+  static Future<void> clearOrdersByTable(String tableName) async {
+    try {
+      await ApiService().deleteOrdersByTable(tableName);
+    } catch (e) {
+      print('Error clearing orders for table $tableName: $e');
+      throw Exception('Error clearing orders for table $tableName');
+    }
+  }
+
+  static Future<void> checkAndUpdateTableStatus(String tableName) async {
+    try {
+      // Tạo một instance của ApiService
+      ApiService apiService = ApiService();
+
+      // Kiểm tra xem bàn có món không
+      bool hasOrders = await apiService.checkTableHasOrders(tableName);
+
+      // Cập nhật trạng thái bàn dựa trên kết quả
+      await ApiService().updateTableStatus(tableName, hasOrders);
+    } catch (e) {
+      print('Error in checkAndUpdateTableStatus: $e');
+      throw Exception('Unable to check and update table status');
     }
   }
 }

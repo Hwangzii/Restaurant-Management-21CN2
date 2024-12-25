@@ -59,6 +59,7 @@ class Floors(models.Model):
 class Tables(models.Model):
     table_id = models.AutoField(primary_key=True)  # Khóa chính
     table_name = models.CharField(max_length=100)  # Tên bàn
+    status = models.BooleanField(default=False, null=True, blank=True)
     floor = models.ForeignKey(Floors, on_delete=models.CASCADE, related_name='tables')  # Liên kết với Floors
 
     class Meta:
@@ -104,13 +105,13 @@ class Inventory(models.Model):
         return self.item_name
     
 class InvoiceFood(models.Model):
-    invoice_food_id = models.IntegerField(primary_key=True)
-    list_item = models.CharField(max_length=1)
+    invoice_food_id = models.AutoField(primary_key=True)
+    list_item = models.TextField()
     total_amount = models.DecimalField(max_digits=10, decimal_places=0)
-    payment_method = models.IntegerField()
+    payment_method = models.CharField(max_length=20)
     invoice_type = models.IntegerField(default=1)
     created_at = models.DateTimeField()
-    sale_price = models.DecimalField(max_digits=10, decimal_places=0)
+    pre_sale_price = models.DecimalField(max_digits=10, decimal_places=0)
     table_name = models.CharField(max_length=20)
 
     class Meta:
@@ -183,6 +184,7 @@ class OrderDetails(models.Model):
     item_price = models.IntegerField()            # Giá mỗi món
     timestamp = models.DateTimeField(auto_now_add=True)  # Thời gian gọi món
     status = models.CharField(max_length=50, default='Pending')  # Trạng thái món
+    buffet_total = models.IntegerField(null=True, blank=True)
 
     class Meta:
         db_table = 'order_details'

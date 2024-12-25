@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 import pyotp
 import secrets
@@ -10,6 +11,8 @@ from .serializers import AccountSerializer, CustomerSerializer, EmployeeSerializ
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
+from django.db.models import Exists, OuterRef
+
 
 
 # Tạo token cho người dùng (JWT)
@@ -118,7 +121,51 @@ class TableViewSet(viewsets.ModelViewSet):
     queryset = Tables.objects.all()
     serializer_class = TableSerializer
     # permission_classes = [IsAuthenticated]
+    
+    @action(detail=False, methods=['patch'], url_path='update-status/(?P<table_name>[^/.]+)')
+    def update_status(self, request, table_name=None):
+        try:
+            # Kiểm tra xem bàn tồn tại không
+            table = get_object_or_404(Tables, table_name=table_name)
 
+            # Kiểm tra trạng thái (bàn có món ăn hay không)
+            has_orders = OrderDetails.objects.filter(table_name=table_name, status="Pending").exists()
+
+            # Cập nhật status (1 nếu có món, 0 nếu không)
+            table.status = has_orders
+            table.save()
+
+            return Response({"message": f"Table '{table_name}' status updated to {table.status}."}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    @action(detail=False, methods=['patch'], url_path='update-all-status')
+    def update_all_status(self, request):
+        try:
+            # Lấy danh sách bàn có món ăn Pending
+            tables_with_orders = Tables.objects.annotate(
+                has_orders=Exists(
+                    OrderDetails.objects.filter(
+                        table_name=OuterRef('table_name'),
+                        status="Pending"
+                    )
+                )
+            )
+
+            # Cập nhật trạng thái bàn
+            updated_tables = []
+            for table in tables_with_orders:
+                if table.status != table.has_orders:  # Chỉ cập nhật khi có thay đổi
+                    table.status = table.has_orders
+                    table.save()
+                    updated_tables.append(table.table_name)
+
+            return Response(
+                {"message": f"Updated tables: {updated_tables}"},
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
@@ -146,7 +193,7 @@ class InvoiceInventoryViewSet(viewsets.ModelViewSet):
 class SalariesViewSet(viewsets.ModelViewSet):
     queryset = Salaries.objects.all()
     serializer_class = SalariesSerializer
-
+    
 class OrderDetailsViewSet(viewsets.ViewSet):
     # Lấy danh sách món theo bàn
     def list(self, request):
@@ -160,12 +207,45 @@ class OrderDetailsViewSet(viewsets.ViewSet):
 
     # Thêm món mới
     def create(self, request):
+        # Kiểm tra dữ liệu đầu vào
+        table_name = request.data.get('table_name')
+        item_name = request.data.get('item_name')
+        quantity = request.data.get('quantity')
+        item_price = request.data.get('item_price')
+
+        if not table_name or not item_name or quantity is None or item_price is None:
+            return Response({"error": "All fields are required (table_name, item_name, quantity, item_price)"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Tạo serializer và lưu món ăn mới
         serializer = OrderDetailsSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # Xóa một đơn hàng theo ID
+    def destroy(self, request, pk=None):
+        try:
+            order = OrderDetails.objects.get(pk=pk)
+            order.delete()
+            return Response({"message": f"Order {pk} deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+        except OrderDetails.DoesNotExist:
+            return Response({"error": "Order not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    # Kiểm tra xem bàn có món không
+    @action(detail=False, methods=['get'], url_path='getcheck')
+    def getcheck(self, request):
+        table_name = request.query_params.get('table_name', None)
+        if not table_name:
+            return Response({"error": "table_name is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            has_orders = OrderDetails.objects.filter(table_name=table_name, status="Pending").exists()
+            return Response({"has_orders": has_orders}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        
     # Xóa tất cả món của một bàn
     @action(detail=False, methods=['delete'], url_path='clear')
     def clear(self, request):
@@ -176,15 +256,15 @@ class OrderDetailsViewSet(viewsets.ViewSet):
         OrderDetails.objects.filter(table_name=table_name).delete()
         return Response({"message": f"Orders cleared for table {table_name}"}, status=status.HTTP_200_OK)
 
-    # Tính tổng tiền của một bàn
-    @action(detail=False, methods=['get'], url_path='total')
-    def total(self, request):
-        table_name = request.query_params.get('table_name', None)
-        if not table_name:
-            return Response({"error": "table_name is required"}, status=status.HTTP_400_BAD_REQUEST)
+    # # Tính tổng tiền của một bàn
+    # @action(detail=False, methods=['get'], url_path='total')
+    # def total(self, request):
+    #     table_name = request.query_params.get('table_name', None)
+    #     if not table_name:
+    #         return Response({"error": "table_name is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        total_amount = OrderDetails.objects.filter(table_name=table_name).aggregate(
-            total=models.Sum(models.F('quantity') * models.F('item_price'))
-        )['total'] or 0
+    #     total_amount = OrderDetails.objects.filter(table_name=table_name).aggregate(
+    #         total=models.Sum(models.F('quantity') * models.F('item_price'))
+    #     )['total'] or 0
         
-        return Response({"table_name": table_name, "total_amount": total_amount})
+    #     return Response({"table_name": table_name, "total_amount": total_amount})

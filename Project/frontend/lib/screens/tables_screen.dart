@@ -31,12 +31,18 @@ class _TablesScreenState extends State<TablesScreen> {
     setState(() {
       isLoading = true;
     });
-
+    await TablesController.updateAllTableStatuses();
     int floorNumber = floorMap[floor] ?? 1;
 
     try {
       List<Map<String, dynamic>> fetchedTables =
           await TablesController.fetchTables(floorNumber);
+      // Sắp xếp danh sách bàn theo tên
+      fetchedTables.sort((a, b) {
+        String nameA = a['table_name']?.toLowerCase() ?? '';
+        String nameB = b['table_name']?.toLowerCase() ?? '';
+        return nameA.compareTo(nameB);
+      });
       setState(() {
         selectedFloor = floor;
         tables = fetchedTables;
@@ -51,8 +57,29 @@ class _TablesScreenState extends State<TablesScreen> {
   }
 
   // Reload tables (wrapper function for _updateTables)
-  void reloadTables() {
-    _updateTables(selectedFloor);
+  // Reload tables (wrapper function for _updateTables)
+  void reloadTables() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      // // Duyệt qua từng bàn và kiểm tra/cập nhật trạng thái
+      // for (var table in tables) {
+      //   String tableName = table['table_name'];
+      //   await OrderFoodController.checkAndUpdateTableStatus(tableName);
+      // }
+
+      // Làm mới danh sách bàn sau khi cập nhật trạng thái
+      _updateTables(selectedFloor);
+    } catch (e) {
+      _showErrorSnackBar(
+          'Không thể cập nhật trạng thái bàn. Vui lòng thử lại.');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   // Show options for table
@@ -246,7 +273,7 @@ class _TablesScreenState extends State<TablesScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10.0),
           ),
-          title: Text('Chọn hành động cho $tableName'),
+          title: Text('Bàn $tableName', textAlign: TextAlign.center),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -305,6 +332,11 @@ class _TablesScreenState extends State<TablesScreen> {
             tableName: tableName,
             selectedType: 'Tất cả', // Hiển thị tất cả các loại món
             guestCount: 0, // Không cần số lượng khách
+            buffetTotal: 0,
+            onUpdate: () {
+              print('Cập nhật từ OrderFoodScreen!');
+              reloadTables(); // Gọi hàm cập nhật danh sách bàn
+            },
           ),
         ),
       );
@@ -341,14 +373,25 @@ class _TablesScreenState extends State<TablesScreen> {
                 if (guestCount > 0) {
                   Navigator.pop(dialogContext); // Đóng dialog
 
-                  // Chuyển sang OrderFoodScreen với số lượng khách
+                  // Giá buffet cho từng loại
+                  int buffetPrice = option == 'Buffet đỏ' ? 200000 : 150000;
+
+                  // Tính tổng giá trị Buffet
+                  int buffetTotal = buffetPrice * guestCount;
+
+                  // Chuyển sang OrderFoodScreen với giá trị Buffet đã tính toán
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => OrderFoodScreen(
                         tableName: tableName,
-                        selectedType: option, // Truyền loại món (Buffet đỏ/đen)
-                        guestCount: guestCount, // Truyền số lượng khách
+                        selectedType: option,
+                        guestCount: guestCount,
+                        buffetTotal: buffetTotal, // Truyền tổng giá trị Buffet
+                        onUpdate: () {
+                          // Gọi hàm cập nhật trạng thái trong `TablesScreen`
+                          reloadTables();
+                        },
                       ),
                     ),
                   );
@@ -426,16 +469,26 @@ class _TablesScreenState extends State<TablesScreen> {
               itemCount: tables.length,
               itemBuilder: (context, index) {
                 String tableName = tables[index]['table_name'] ?? 'Chưa có tên';
+                int status = (tables[index]['status'] is bool)
+                    ? (tables[index]['status']
+                        ? 1
+                        : 0) // Nếu là bool, chuyển thành int
+                    : (tables[index]['status'] ??
+                        0); // Nếu null, gán giá trị mặc định là 0
+
+                Color cardColor = (status == 1) ? Colors.yellow : Colors.white;
+
                 return GestureDetector(
                   onTap: () => _showTableOptions(
                       context, tableName, tables[index]['table_id']),
                   onLongPress: () => _showOptionsMenu(
                       context, tableName, tables[index]['table_id']),
                   child: Card(
+                    color: cardColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.0),
                     ),
-                    elevation: 0.0,
+                    elevation: 2.0,
                     child: Center(
                       child: Text(
                         tableName,

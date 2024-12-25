@@ -1,5 +1,5 @@
 import 'package:app/controllers/oder_food_controller.dart';
-import 'package:app/models/order.dart';
+import 'package:app/controllers/tables_controller.dart';
 import 'package:app/screens/pay_print_screen.dart';
 import 'package:app/widgets/list_order_food.dart';
 import 'package:flutter/material.dart';
@@ -10,13 +10,17 @@ class OrderFoodScreen extends StatefulWidget {
   final String tableName;
   final String selectedType;
   final int guestCount;
+  final int buffetTotal;
+  final VoidCallback onUpdate; // Hàm callback để gọi
 
   const OrderFoodScreen({
-    super.key,
+    Key? key,
     required this.tableName,
     required this.selectedType,
     required this.guestCount,
-  });
+    this.buffetTotal = 0,
+    required this.onUpdate,
+  }) : super(key: key);
 
   @override
   State<OrderFoodScreen> createState() => _OrderFoodScreenState();
@@ -33,7 +37,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
   List<Map<String, dynamic>> currentOrder = []; // Danh sách món hiện tại
   int selectedOption = 0;
 
-  late List<String> options; // Tùy biến options
+  late List<String> options;
 
   @override
   void initState() {
@@ -43,7 +47,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     if (widget.selectedType.contains('Buffet')) {
       options = ['Thường', 'Cho trẻ em'];
     } else {
-      options = ['Tất cả', 'Món chính', 'Đồ uống', 'Buffet đỏ', 'Buffet đen'];
+      options = ['Tất cả', 'Món chính', 'Đồ uống'];
     }
 
     _loadMenuItems();
@@ -79,8 +83,9 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     });
   }
 
-  void _saveOrderAndSendToKitchen() async {
-    if (selectedItems.isEmpty) {
+  // Lưu món ăn và gửi tới API
+  Future<void> _saveOrderAndSendToKitchen() async {
+    if (selectedItems.isEmpty && widget.buffetTotal <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Không có món nào để gửi!')),
       );
@@ -90,52 +95,57 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     String formattedTimestamp =
         DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
 
-    // Tạo danh sách các món ăn từ `selectedItems`
-    List<Map<String, dynamic>> items = selectedItems.map((item) {
-      return {
-        'item_name': item['item_name'],
-        'quantity': item['quantity'],
-        'item_price': item['item_price'],
-      };
-    }).toList();
-
-    // Tạo dữ liệu order
-    final order = Order(
-      tableName: widget.tableName,
-      itemName: widget.selectedType, // Có thể thay bằng dữ liệu phù hợp
-      quantity: widget.guestCount,
-      itemPrice: _calculateTotal(), // Tổng tiền
-      status: 'Pending',
-    );
-
     try {
-      // Gọi API để lưu đơn hàng
-      await OrderFoodController.addOrder(order);
+      // Gửi Buffet lên API
+      if (widget.buffetTotal > 0) {
+        await OrderFoodController.addOrderItem({
+          'table_name': widget.tableName,
+          'item_name': widget.selectedType, // Buffet đỏ / Buffet đen
+          'quantity': widget.guestCount,
+          'item_price': widget.buffetTotal, // Giá mỗi khách~/ widget.guestCount
+          'status': 'Pending',
+        });
+      }
+      // Gửi từng món ăn lên API
+      for (var item in selectedItems) {
+        await OrderFoodController.addOrderItem({
+          'table_name': widget.tableName,
+          'item_name': item['item_name'],
+          'quantity': item['quantity'],
+          'item_price': item['item_price'],
+          'status': 'Pending',
+        });
+      }
+      // Sau khi gửi đơn hàng, xóa các món đã chọn
+      setState(() {
+        selectedItems.clear(); // Xóa danh sách các món đã chọn
+      });
 
-      // Thêm đơn hàng vào danh sách tạm thời
+      // Cập nhật lịch sử đơn hàng tạm thời và giao diện
       setState(() {
         temporaryOrders.add({
           'table_name': widget.tableName,
           'order_type': widget.selectedType,
           'guest_count': widget.guestCount,
-          'items': items,
+          'items': OrderFoodController.buildItems(selectedItems),
           'total_amount': _calculateTotal(),
           'timestamp': formattedTimestamp,
         });
-
-        // Cập nhật danh sách hiện tại và xóa danh sách đã chọn
         currentOrder = List.from(selectedItems);
-        selectedItems.clear();
       });
-
-      // Hiển thị thông báo thành công
+      await TablesController.checkAndUpdateTableStatus(widget.tableName);
+      // Gọi hàm reload từ màn hình cha
+      // ignore: unnecessary_null_comparison
+      if (widget.onUpdate != null) {
+        widget.onUpdate(); // Gọi callback
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Đơn hàng đã được gửi tới bếp!')),
       );
     } catch (e) {
-      // Hiển thị thông báo lỗi
+      print('Lỗi khi gửi đơn hàng: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi gửi đơn hàng: $e')),
+        SnackBar(content: Text('Lỗi khi gửi đơn hàng.')),
       );
     }
   }
@@ -187,6 +197,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
       return selectedItems.fold(0, (sum, item) {
         int quantity = item['quantity'] ?? 0;
 
+        // ignore: unnecessary_type_check
         if (quantity is! int) {
           print('Lỗi: `quantity` không phải là số nguyên trong $item');
           return sum;
@@ -205,6 +216,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     int totalAmount = temporaryOrders.fold(0, (sum, order) {
       // Kiểm tra xem `total_amount` có tồn tại và là số nguyên hay không
       int orderAmount = order['total_amount'] ?? 0; // Mặc định 0 nếu không có
+      // ignore: unnecessary_type_check
       if (orderAmount is! int) {
         print(
             'Lỗi: total_amount không phải là số nguyên trong đơn hàng: $order');
@@ -604,8 +616,10 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) =>
-                            PayPrintScreen()), // Thay `NewScreen` bằng tên màn hình bạn muốn chuyển đến
+                        builder: (context) => PayPrintScreen(
+                              tableName: widget.tableName,
+                              buffetTotal: widget.buffetTotal,
+                            )), // Thay `NewScreen` bằng tên màn hình bạn muốn chuyển đến
                   );
                 },
                 child: Container(
