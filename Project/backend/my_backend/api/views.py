@@ -166,6 +166,7 @@ class TableViewSet(viewsets.ModelViewSet):
             )
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
@@ -255,6 +256,85 @@ class OrderDetailsViewSet(viewsets.ViewSet):
         
         OrderDetails.objects.filter(table_name=table_name).delete()
         return Response({"message": f"Orders cleared for table {table_name}"}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='has-buffet')
+    def has_buffet(self, request):
+        table_name = request.query_params.get('table_name', None)
+        if not table_name:
+            return Response({"error": "table_name is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Kiểm tra xem item_name có chứa từ 'buffet'
+        has_buffet = OrderDetails.objects.filter(table_name=table_name, item_name__icontains="Buffet").exists()
+        
+        return Response({"has_buffet": has_buffet}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['patch'], url_path='upgrade-buffet')
+    def upgrade_buffet(self, request):
+        table_name = request.data.get('table_name', None)
+        
+        if not table_name:
+            return Response({"error": "table_name is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            # Lọc các món "Buffet đỏ"
+            buffet_orders = OrderDetails.objects.filter(table_name=table_name, item_name__icontains="buffet đỏ")
+            
+            # Kiểm tra nếu không có món "Buffet đỏ"
+            if not buffet_orders.exists():
+                return Response(
+                    {"message": f"No 'Buffet đỏ' found for table '{table_name}'. Upgrade not possible."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Cập nhật từng món
+            updated_items = []
+            for order in buffet_orders:
+                order.item_name = "Buffet đen"
+                order.item_price = order.item_price + 50000 * order.quantity
+                order.save()
+                updated_items.append(order.id)
+
+            return Response({
+                "message": "Buffet orders upgraded successfully.",
+                "updated_items": updated_items
+            }, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    @action(detail=False, methods=['patch'], url_path='transfer')
+    def transfer_orders(self, request):
+        old_table_name = request.data.get('old_table_name')
+        new_table_name = request.data.get('new_table_name')
+
+        if not old_table_name or not new_table_name:
+            return Response({"error": "Both old_table_name and new_table_name are required"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Kiểm tra trạng thái bàn mới
+            new_table = get_object_or_404(Tables, table_name=new_table_name)
+            if new_table.status:
+                return Response({"error": "New table is not available"},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            # Cập nhật tất cả các món sang bàn mới
+            OrderDetails.objects.filter(table_name=old_table_name).update(table_name=new_table_name)
+
+            # Cập nhật trạng thái bàn
+            old_table = get_object_or_404(Tables, table_name=old_table_name)
+            old_table.status = False
+            old_table.save()
+
+            new_table.status = True
+            new_table.save()
+
+            return Response({"message": "Orders transferred successfully"},
+                            status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 
     # # Tính tổng tiền của một bàn
     # @action(detail=False, methods=['get'], url_path='total')

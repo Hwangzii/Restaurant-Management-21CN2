@@ -1,6 +1,7 @@
 import 'package:app/services/api_service.dart';
 
 class TablesController {
+  static ApiService apiService = ApiService();
   // Lấy danh sách bàn theo tầng
   static Future<List<Map<String, dynamic>>> fetchTables(int floor) async {
     try {

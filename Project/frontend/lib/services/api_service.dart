@@ -143,6 +143,41 @@ class ApiService {
     }
   }
 
+  Future<http.Response> patch(String url, Map<String, dynamic> data) async {
+    try {
+      final response = await http.patch(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(data),
+      );
+      return response;
+    } catch (e) {
+      print('Error in ApiService.patch: $e');
+      throw Exception('Failed to send PATCH request to $url');
+    }
+  }
+
+  // Kiểm tra món Buffet
+  Future<bool> checkBuffetStatus(String tableName) async {
+    final String url = '$baseUrl/orders/has-buffet?table_name=$tableName';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['has_buffet'];
+      } else {
+        throw Exception(
+            'Failed to check buffet status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error in ApiService.checkBuffetStatus: $e');
+      throw Exception('Unable to check buffet status for table $tableName');
+    }
+  }
+
   // Cập nhật tất cả trạng thái bàn
   Future<void> updateAllTableStatus() async {
     final String url = '$baseUrl/tables/update-all-status/';
@@ -239,6 +274,7 @@ class ApiService {
     }
   }
 
+  // Hàm lấy danh sách kho
   Future<List<Item>> getItems() async {
     final response = await http.get(
       Uri.parse('$baseUrl/items/'),
@@ -258,6 +294,7 @@ class ApiService {
     }
   }
 
+  // Hàm tạo item mới trong kho
   Future<void> createItem(Item item) async {
     final response = await http.post(
       Uri.parse('$baseUrl/items/'),
@@ -272,6 +309,7 @@ class ApiService {
     }
   }
 
+  // Hàm sửa item trong kho
   Future<void> updateItem(Item item) async {
     final response = await http.put(
       Uri.parse('$baseUrl/items/${item.itemId}/'),
@@ -286,6 +324,7 @@ class ApiService {
     }
   }
 
+  // Hàm xóa item trong kho
   Future<void> deleteItem(int id) async {
     final response = await http.delete(
       Uri.parse('$baseUrl/items/$id/'),
@@ -450,6 +489,7 @@ class ApiService {
     }
   }
 
+  // Hàm thêm order_item
   Future<void> createOrder(Map<String, dynamic> order) async {
     try {
       final response = await http.post(
@@ -469,6 +509,7 @@ class ApiService {
     }
   }
 
+  //Hàm sửa order_item
   Future<void> updateOrder(int id, Map<String, dynamic> order) async {
     final response = await http.put(
       Uri.parse('$baseUrl/orders/$id/'),
@@ -527,6 +568,7 @@ class ApiService {
     }
   }
 
+  // Hàm lấy danh order_item theo bàn
   Future<List<dynamic>> fetchOrdersByTable(String tableName) async {
     final response = await http.get(
       Uri.parse('$baseUrl/orders/?table_name=$tableName'),

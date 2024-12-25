@@ -1,3 +1,4 @@
+import 'package:app/controllers/oder_food_controller.dart';
 import 'package:app/screens/order_food_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:app/controllers/tables_controller.dart';
@@ -374,7 +375,7 @@ class _TablesScreenState extends State<TablesScreen> {
                   Navigator.pop(dialogContext); // Đóng dialog
 
                   // Giá buffet cho từng loại
-                  int buffetPrice = option == 'Buffet đỏ' ? 200000 : 150000;
+                  int buffetPrice = option == 'Buffet đỏ' ? 500000 : 550000;
 
                   // Tính tổng giá trị Buffet
                   int buffetTotal = buffetPrice * guestCount;
@@ -476,13 +477,42 @@ class _TablesScreenState extends State<TablesScreen> {
                     : (tables[index]['status'] ??
                         0); // Nếu null, gán giá trị mặc định là 0
 
-                Color cardColor = (status == 1) ? Colors.yellow : Colors.white;
+                Color cardColor = (status == 1) ? Colors.orange : Colors.white;
 
                 return GestureDetector(
-                  onTap: () => _showTableOptions(
-                      context, tableName, tables[index]['table_id']),
+                  onTap: () async {
+                    // Kiểm tra trạng thái của bàn
+                    bool tableStatus = tables[index]['status'] ?? false;
+
+                    if (tableStatus) {
+                      // Kiểm tra trạng thái món Buffet
+                      bool hasBuffet =
+                          await OrderFoodController.hasBuffet(tableName);
+                      // Nếu status là true, điều hướng tới OrderFoodScreen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => OrderFoodScreen(
+                            tableName: tableName,
+                            selectedType: hasBuffet ? "Buffet" : "Tất cả",
+                            guestCount: 0,
+                            buffetTotal: 0,
+                            onUpdate:
+                                reloadTables, // Callback để reload danh sách bàn
+                          ),
+                        ),
+                      );
+                    } else {
+                      // Nếu status là false, hiển thị showTableOptions
+                      _showTableOptions(
+                          context, tableName, tables[index]['table_id']);
+                    }
+                  },
                   onLongPress: () => _showOptionsMenu(
-                      context, tableName, tables[index]['table_id']),
+                    context,
+                    tableName,
+                    tables[index]['table_id'],
+                  ),
                   child: Card(
                     color: cardColor,
                     shape: RoundedRectangleBorder(

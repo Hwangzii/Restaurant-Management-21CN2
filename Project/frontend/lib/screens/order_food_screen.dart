@@ -45,7 +45,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
 
     // Thiết lập options dựa trên loại món
     if (widget.selectedType.contains('Buffet')) {
-      options = ['Thường', 'Cho trẻ em'];
+      options = ['Thường', 'Cho trẻ em', 'Món chính', 'Đồ uống'];
     } else {
       options = ['Tất cả', 'Món chính', 'Đồ uống'];
     }
@@ -150,6 +150,98 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     }
   }
 
+  Future<void> _upgradeBuffet(String tableName) async {
+    try {
+      await OrderFoodController.upgradeBuffet(tableName);
+      // ignore: unnecessary_null_comparison
+      if (widget.onUpdate != null) {
+        widget.onUpdate(); // Gọi callback
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Nâng cấp Buffet thành công!')),
+      );
+
+      // Reload giao diện
+      setState(() {});
+    } catch (e) {
+      print('Error in _upgradeBuffet: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Không thể nâng cấp Buffet.')),
+      );
+    }
+  }
+
+  Future<void> _transferTable(String oldTableName) async {
+    TextEditingController tableNameController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Chuyển bàn'),
+          content: TextField(
+            controller: tableNameController,
+            decoration: InputDecoration(hintText: 'Nhập tên bàn mới'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                String newTableName = tableNameController.text.trim();
+                if (newTableName.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Tên bàn không được để trống')),
+                  );
+                  return;
+                }
+
+                // Kiểm tra trạng thái bàn mới
+                bool isAvailable =
+                    !(await OrderFoodController.checkTableStatus(newTableName));
+                if (!isAvailable) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Bàn này không khả dụng')),
+                  );
+                  return;
+                }
+
+                // Thực hiện chuyển bàn
+                try {
+                  await OrderFoodController.transferOrders(
+                    oldTableName: oldTableName,
+                    newTableName: newTableName,
+                  );
+                  // ignore: unnecessary_null_comparison
+                  if (widget.onUpdate != null) {
+                    widget.onUpdate(); // Gọi callback
+                  }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Chuyển bàn thành công!')),
+                  );
+
+                  // Quay lại màn table
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(); // Đóng màn Order
+                } catch (e) {
+                  print('Error in transferTable: $e');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Lỗi khi chuyển bàn.')),
+                  );
+                }
+              },
+              child: Text('Xác nhận'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Hủy'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _filterItemsByOption(int option) {
     setState(() {
       if (widget.selectedType.contains('Buffet')) {
@@ -211,154 +303,6 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     }
   }
 
-  void _showOrderHistory() {
-    // Tính tổng tiền của tất cả các đơn hàng
-    int totalAmount = temporaryOrders.fold(0, (sum, order) {
-      // Kiểm tra xem `total_amount` có tồn tại và là số nguyên hay không
-      int orderAmount = order['total_amount'] ?? 0; // Mặc định 0 nếu không có
-      // ignore: unnecessary_type_check
-      if (orderAmount is! int) {
-        print(
-            'Lỗi: total_amount không phải là số nguyên trong đơn hàng: $order');
-        orderAmount = 0; // Đặt lại giá trị an toàn
-      }
-      return sum + orderAmount;
-    });
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Container(
-            height: MediaQuery.of(context).size.height * 0.8,
-            padding: EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Text('Lịch sử đơn hàng',
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                SizedBox(height: 16),
-                Expanded(
-                  child: temporaryOrders.isEmpty
-                      ? Center(
-                          child: Text(
-                            'Không có lịch sử đơn hàng.',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: temporaryOrders.length,
-                          itemBuilder: (context, index) {
-                            final order = temporaryOrders[index];
-                            return Card(
-                              margin: EdgeInsets.symmetric(vertical: 8),
-                              elevation: 4,
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Bàn: ${order['table_name']}',
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    Text(
-                                      'Thời gian: ${order['timestamp']}',
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                    SizedBox(height: 8),
-                                    Text(
-                                      'Danh sách món:',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    // Thêm ListView hoặc Column cho danh sách món ăn
-                                    Column(
-                                      children:
-                                          order['items'].map<Widget>((item) {
-                                        return Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 4.0),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Flexible(
-                                                child: Text(
-                                                  '${item['item_name']}',
-                                                  style:
-                                                      TextStyle(fontSize: 14),
-                                                  overflow: TextOverflow
-                                                      .ellipsis, // Xử lý tràn văn bản
-                                                ),
-                                              ),
-                                              Text(
-                                                'x${item['quantity']} - ${item['item_price']} đ',
-                                                style: TextStyle(
-                                                    color: Colors.grey),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }).toList(),
-                                    ),
-                                    Divider(),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          'Tổng tiền đơn:',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        Text(
-                                          '${order['total_amount']} đ',
-                                          style: TextStyle(
-                                              color: Colors.orange,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                ),
-
-                Divider(),
-                // Hiển thị tổng tiền của tất cả các đơn hàng
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Tổng tiền tất cả:',
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold)),
-                      Text('${totalAmount} đ',
-                          style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.orange,
-                              fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -370,9 +314,30 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(Icons.history, color: Colors.orange),
+            icon: Icon(Icons.menu),
             onPressed: () {
-              _showOrderHistory(); // Hiển thị lịch sử đơn hàng
+              showMenu(
+                context: context,
+                position: RelativeRect.fromLTRB(100.0, 100.0, 0.0, 0.0),
+                items: [
+                  PopupMenuItem<String>(
+                    value: 'nang_cap',
+                    child: Text('Nâng cấp'),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'chuyen_ban',
+                    child: Text('Chuyển bàn'),
+                  ),
+                ],
+                elevation: 8.0,
+              ).then((value) {
+                if (value == 'nang_cap') {
+                  _upgradeBuffet(widget.tableName);
+                } else if (value == 'chuyen_ban') {
+                  print('Chuyển bàn');
+                  _transferTable(widget.tableName);
+                }
+              });
             },
           ),
         ],
@@ -420,15 +385,6 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                               ),
                             ),
                           ),
-
-                          // child: Text(
-                          //   options[index],
-                          //   style: TextStyle(
-                          //     color: selectedOption == index
-                          //         ? Color(0xFFFF8A00)
-                          //         : Color(0xFF929292),
-                          //   ),
-                          // ),
                         ),
                       ),
                     );

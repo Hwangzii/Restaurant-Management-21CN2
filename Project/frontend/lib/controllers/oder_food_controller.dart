@@ -3,6 +3,7 @@ import 'package:app/services/api_service.dart';
 
 class OrderFoodController {
   // Lấy danh sách món ăn
+  static ApiService apiService = ApiService();
   static Future<List<Map<String, dynamic>>> fetchMenuItems() async {
     try {
       List<Map<String, dynamic>> data = await ApiService().fetchOrder();
@@ -127,6 +128,52 @@ class OrderFoodController {
     }
   }
 
+  // Kiểm tra xem bàn có món Buffet hay không
+  static Future<bool> hasBuffet(String tableName) async {
+    try {
+      return await ApiService().checkBuffetStatus(tableName);
+    } catch (e) {
+      print('Error in OrderFoodController.hasBuffet: $e');
+      throw Exception('Error checking buffet status for table $tableName');
+    }
+  }
+
+  static Future<void> upgradeBuffet(String tableName) async {
+    final String url = '${apiService.baseUrl}/orders/upgrade-buffet/';
+
+    try {
+      final response = await ApiService().patch(url, {"table_name": tableName});
+      if (response.statusCode != 200) {
+        throw Exception('Failed to upgrade buffet');
+      }
+      print('Buffet upgraded successfully');
+    } catch (e) {
+      print('Error in upgradeBuffet: $e');
+      throw Exception('Unable to upgrade buffet for table $tableName');
+    }
+  }
+
+  static Future<void> transferOrders({
+    required String oldTableName,
+    required String newTableName,
+  }) async {
+    final String url = '${apiService.baseUrl}/orders/transfer/';
+
+    try {
+      final response = await ApiService().patch(url, {
+        "old_table_name": oldTableName,
+        "new_table_name": newTableName,
+      });
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to transfer orders');
+      }
+    } catch (e) {
+      print('Error in transferOrders: $e');
+      throw Exception('Unable to transfer orders');
+    }
+  }
+
   static Future<void> checkAndUpdateTableStatus(String tableName) async {
     try {
       // Tạo một instance của ApiService
@@ -137,6 +184,20 @@ class OrderFoodController {
 
       // Cập nhật trạng thái bàn dựa trên kết quả
       await ApiService().updateTableStatus(tableName, hasOrders);
+    } catch (e) {
+      print('Error in checkAndUpdateTableStatus: $e');
+      throw Exception('Unable to check and update table status');
+    }
+  }
+
+  static Future<bool> checkTableStatus(String tableName) async {
+    try {
+      // Tạo một instance của ApiService
+      ApiService apiService = ApiService();
+
+      // Kiểm tra xem bàn có món không
+      bool hasOrders = await apiService.checkTableHasOrders(tableName);
+      return hasOrders;
     } catch (e) {
       print('Error in checkAndUpdateTableStatus: $e');
       throw Exception('Unable to check and update table status');
