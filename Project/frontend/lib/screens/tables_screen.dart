@@ -178,7 +178,6 @@ class _TablesScreenState extends State<TablesScreen> {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
           ),
@@ -281,8 +280,8 @@ class _TablesScreenState extends State<TablesScreen> {
             children: [
               ListTile(
                 leading: Image.asset(
-                  'assets/steak.png',  // Đường dẫn đến hình ảnh
-                  width: 20,  // Chiều rộng của hình ảnh
+                  'assets/steak.png', // Đường dẫn đến hình ảnh
+                  width: 20, // Chiều rộng của hình ảnh
                   height: 20, // Chiều cao của hình ảnh
                   fit: BoxFit.contain, // Cách căn chỉnh hình ảnh trong widget
                 ),
@@ -294,8 +293,8 @@ class _TablesScreenState extends State<TablesScreen> {
               ),
               ListTile(
                 leading: Image.asset(
-                  'assets/seafood.png',  // Đường dẫn đến hình ảnh
-                  width: 20,  // Chiều rộng của hình ảnh
+                  'assets/seafood.png', // Đường dẫn đến hình ảnh
+                  width: 20, // Chiều rộng của hình ảnh
                   height: 20, // Chiều cao của hình ảnh
                   fit: BoxFit.contain, // Cách căn chỉnh hình ảnh trong widget
                 ),
@@ -307,8 +306,8 @@ class _TablesScreenState extends State<TablesScreen> {
               ),
               ListTile(
                 leading: Image.asset(
-                  'assets/food.png',  // Đường dẫn đến hình ảnh
-                  width: 20,  // Chiều rộng của hình ảnh
+                  'assets/food.png', // Đường dẫn đến hình ảnh
+                  width: 20, // Chiều rộng của hình ảnh
                   height: 20, // Chiều cao của hình ảnh
                   fit: BoxFit.contain, // Cách căn chỉnh hình ảnh trong widget
                 ),
@@ -347,7 +346,7 @@ class _TablesScreenState extends State<TablesScreen> {
         MaterialPageRoute(
           builder: (context) => OrderFoodScreen(
             tableName: tableName,
-            selectedType: 'Tất cả', // Hiển thị tất cả các loại món
+            selectedType: 'Gọi món', // Hiển thị tất cả các loại món
             guestCount: 0, // Không cần số lượng khách
             buffetTotal: 0,
             onUpdate: () {
@@ -387,14 +386,14 @@ class _TablesScreenState extends State<TablesScreen> {
                 String guestCountText = guestCountController.text.trim();
                 int guestCount = int.tryParse(guestCountText) ?? 0;
 
-                if (guestCount > 0) {
+                if (guestCount > 1) {
                   Navigator.pop(dialogContext); // Đóng dialog
 
                   // Giá buffet cho từng loại
                   int buffetPrice = option == 'Buffet đỏ' ? 500000 : 550000;
 
                   // Tính tổng giá trị Buffet
-                  int buffetTotal = buffetPrice * guestCount;
+                  int buffetTotal = buffetPrice;
 
                   // Chuyển sang OrderFoodScreen với giá trị Buffet đã tính toán
                   Navigator.push(
@@ -413,7 +412,7 @@ class _TablesScreenState extends State<TablesScreen> {
                     ),
                   );
                 } else {
-                  _showErrorSnackBar('Số lượng khách phải lớn hơn 0');
+                  _showErrorSnackBar('Số lượng khách phải lớn hơn 1');
                 }
               },
               child: Text('Xác nhận'),
@@ -493,7 +492,8 @@ class _TablesScreenState extends State<TablesScreen> {
                     : (tables[index]['status'] ??
                         0); // Nếu null, gán giá trị mặc định là 0
 
-                Color cardColor = (status == 1) ? Color(0xFFFF8A00) : Color(0xFFF2F2F7);
+                Color cardColor =
+                    (status == 1) ? Color(0xFFFF8A00) : Color(0xFFF2F2F7);
 
                 return GestureDetector(
                   onTap: () async {
@@ -501,16 +501,22 @@ class _TablesScreenState extends State<TablesScreen> {
                     bool tableStatus = tables[index]['status'] ?? false;
 
                     if (tableStatus) {
-                      // Kiểm tra trạng thái món Buffet
-                      bool hasBuffet =
+                      Map<String, dynamic> buffetStatus =
                           await OrderFoodController.hasBuffet(tableName);
+
+                      bool hasBuffet = buffetStatus['has_buffet'];
+                      String buffetName = buffetStatus['buffet_name'];
+                      // Debug thông tin Buffet
+                      print("Buffet Status: $hasBuffet");
+                      print("Buffet Name: $buffetName");
+
                       // Nếu status là true, điều hướng tới OrderFoodScreen
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => OrderFoodScreen(
                             tableName: tableName,
-                            selectedType: hasBuffet ? "Buffet" : "Tất cả",
+                            selectedType: hasBuffet ? buffetName : "Tất cả", //
                             guestCount: 0,
                             buffetTotal: 0,
                             onUpdate:

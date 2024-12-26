@@ -42,6 +42,9 @@ class OrderFoodController {
                   'item_name': order['item_name'],
                   'quantity': order['quantity'],
                   'item_price': order['item_price'],
+                  'type': order['type'],
+                  'status': order['status'],
+                  'describe': order['describe'],
                   'timestamp': order['timestamp'], // thời gian món được gọi
                 })
             .toList();
@@ -93,12 +96,16 @@ class OrderFoodController {
     required String selectedType,
     required int guestCount,
     required int totalAmount,
+    required String type,
+    required String describe,
   }) {
     return Order(
       tableName: tableName,
       itemName: selectedType,
       quantity: guestCount,
       itemPrice: totalAmount,
+      type: type,
+      describe: describe,
       status: 'Pending',
     );
   }
@@ -129,12 +136,23 @@ class OrderFoodController {
   }
 
   // Kiểm tra xem bàn có món Buffet hay không
-  static Future<bool> hasBuffet(String tableName) async {
+  static Future<Map<String, dynamic>> hasBuffet(String tableName) async {
     try {
-      return await ApiService().checkBuffetStatus(tableName);
+      // Gọi API kiểm tra trạng thái buffet
+      final response = await ApiService().checkBuffetStatus(tableName);
+
+      // ignore: unnecessary_null_comparison
+      if (response != null && response.containsKey('has_buffet')) {
+        return {
+          "has_buffet": response['has_buffet'],
+          "buffet_name": response['buffet_name'] ?? "Tất cả",
+        };
+      } else {
+        throw Exception("Invalid response from server");
+      }
     } catch (e) {
       print('Error in OrderFoodController.hasBuffet: $e');
-      throw Exception('Error checking buffet status for table $tableName');
+      return {"has_buffet": false, "buffet_name": "Tất cả"};
     }
   }
 
@@ -201,6 +219,44 @@ class OrderFoodController {
     } catch (e) {
       print('Error in checkAndUpdateTableStatus: $e');
       throw Exception('Unable to check and update table status');
+    }
+  }
+
+  /// Lấy danh sách món theo bàn
+  static Future<List<dynamic>> getOrdersByTable(String tableName) async {
+    try {
+      return await ApiService().fetchOrdersByTable(tableName);
+    } catch (e) {
+      print('Error in getOrdersByTable: $e');
+      throw Exception('Unable to get orders by table.');
+    }
+  }
+
+  /// Gọi API để đánh dấu món ăn là "Served"
+  static Future<void> markOrderAsServed(int orderId) async {
+    try {
+      await ApiService().markOrderAsServed(orderId);
+    } catch (e) {
+      throw Exception('Failed to mark order as served: $e');
+    }
+  }
+
+  // Gửi danh sách tất cả món ăn
+  static Future<void> sendOrderItems({
+    required String tableName,
+    Map<String, dynamic>? buffet,
+    required List<Map<String, dynamic>> items,
+  }) async {
+    try {
+      Map<String, dynamic> data = {
+        'table_name': tableName,
+        'buffet': buffet,
+        'items': items,
+      };
+      await ApiService().addMultipleOrderItems(data);
+    } catch (e) {
+      print('Error in sendOrderItems: $e');
+      throw Exception('Failed to send order items.');
     }
   }
 }

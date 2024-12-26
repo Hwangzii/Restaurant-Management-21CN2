@@ -143,6 +143,7 @@ class ApiService {
     }
   }
 
+  // hàm chung gian
   Future<http.Response> patch(String url, Map<String, dynamic> data) async {
     try {
       final response = await http.patch(
@@ -159,22 +160,30 @@ class ApiService {
     }
   }
 
-  // Kiểm tra món Buffet
-  Future<bool> checkBuffetStatus(String tableName) async {
+  // Kiểm tra trạng thái Buffet
+  Future<Map<String, dynamic>> checkBuffetStatus(String tableName) async {
     final String url = '$baseUrl/orders/has-buffet?table_name=$tableName';
 
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['has_buffet'];
+        // Giải mã dữ liệu phản hồi với utf8
+        final decodedResponse = utf8.decode(response.bodyBytes);
+        final data = jsonDecode(decodedResponse);
+
+        // Trả về Map chứa cả trạng thái và tên Buffet (nếu có)
+        return {
+          "has_buffet": data['has_buffet'] ?? false,
+          "buffet_name": data['buffet_name'] ?? "Tất cả",
+        };
       } else {
         throw Exception(
             'Failed to check buffet status: ${response.statusCode}');
       }
     } catch (e) {
       print('Error in ApiService.checkBuffetStatus: $e');
-      throw Exception('Unable to check buffet status for table $tableName');
+      // Trả về mặc định nếu lỗi xảy ra
+      return {"has_buffet": false, "buffet_name": "Tất cả"};
     }
   }
 
@@ -365,7 +374,6 @@ class ApiService {
   }
 
    //Hàm thêm nhân viên
-
   Future<bool> addEmployee({
     required String fullName,
     required String phoneNumber,
@@ -689,6 +697,45 @@ class ApiService {
     } else {
       // Ném ra ngoại lệ nếu có lỗi
       throw Exception('Failed to load invoice data');
+    }
+  }
+
+  // Gọi API để đánh dấu món ăn là "Served"
+  Future<void> markOrderAsServed(int orderId) async {
+    final String url = '$baseUrl/orders/$orderId/mark-as-served/';
+
+    try {
+      final response = await http.patch(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception(
+            'Failed to mark order as served: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error marking order as served: $e');
+    }
+  }
+
+  // Gửi danh sách tất cả món ăn
+  Future<void> addMultipleOrderItems(Map<String, dynamic> data) async {
+    final String url = '$baseUrl/orders/add-multiple-items/';
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+      if (response.statusCode != 201) {
+        throw Exception('Failed to add multiple items: ${response.body}');
+      }
+    } catch (e) {
+      print('Error in addMultipleOrderItems: $e');
+      throw Exception('Unable to add multiple items.');
     }
   }
   
