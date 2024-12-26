@@ -527,34 +527,6 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
                     ),
                   ),
                 ),
-
-                // Container(
-                //   padding: EdgeInsets.all(16),
-                //   color: Colors.white,
-                //   child: Row(
-                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //     children: [
-                //       // Sử dụng Flexible để giới hạn kích thước của Text
-                //       Flexible(
-                //         child: Text(
-                //           'Tổng tiền: ${_calculateTotal()} đ',
-                //           style: TextStyle(
-                //               fontSize: 18, fontWeight: FontWeight.bold),
-                //           overflow: TextOverflow
-                //               .ellipsis, // Thêm để xử lý tràn văn bản
-                //         ),
-                //       ),
-                //       SizedBox(width: 10), // Khoảng cách giữa Text và Button
-                //       ElevatedButton(
-                //         onPressed: _showPaymentPopup,
-                //         style: ElevatedButton.styleFrom(
-                //           backgroundColor: Colors.orange,
-                //         ),
-                //         child: Text('Thanh toán'),
-                //       ),
-                //     ],
-                //   ),
-                // )
               ],
             ),
 

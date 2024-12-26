@@ -501,16 +501,22 @@ class _TablesScreenState extends State<TablesScreen> {
                     bool tableStatus = tables[index]['status'] ?? false;
 
                     if (tableStatus) {
-                      // Kiểm tra trạng thái món Buffet
-                      bool hasBuffet =
+                      Map<String, dynamic> buffetStatus =
                           await OrderFoodController.hasBuffet(tableName);
+
+                      bool hasBuffet = buffetStatus['has_buffet'];
+                      String buffetName = buffetStatus['buffet_name'];
+                      // Debug thông tin Buffet
+                      print("Buffet Status: $hasBuffet");
+                      print("Buffet Name: $buffetName");
+
                       // Nếu status là true, điều hướng tới OrderFoodScreen
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => OrderFoodScreen(
                             tableName: tableName,
-                            selectedType: hasBuffet ? "Buffet" : "Tất cả", //
+                            selectedType: hasBuffet ? buffetName : "Tất cả", //
                             guestCount: 0,
                             buffetTotal: 0,
                             onUpdate:

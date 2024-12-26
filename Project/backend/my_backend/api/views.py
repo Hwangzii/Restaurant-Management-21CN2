@@ -301,10 +301,15 @@ class OrderDetailsViewSet(viewsets.ViewSet):
         if not table_name:
             return Response({"error": "table_name is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        # Kiểm tra xem item_name có chứa từ 'buffet'
-        has_buffet = OrderDetails.objects.filter(table_name=table_name, item_name__icontains="Buffet").exists()
+        # Tìm item_name chứa 'buffet' liên quan đến table_name
+        buffet_items = OrderDetails.objects.filter(table_name=table_name, item_name__icontains="Buffet")
         
-        return Response({"has_buffet": has_buffet}, status=status.HTTP_200_OK)
+        if buffet_items.exists():
+            # Lấy tên Buffet từ bản ghi đầu tiên tìm thấy
+            buffet_name = buffet_items.first().item_name
+            return Response({"has_buffet": True, "buffet_name": buffet_name}, status=status.HTTP_200_OK)
+        
+        return Response({"has_buffet": False}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['patch'], url_path='upgrade-buffet')
     def upgrade_buffet(self, request):

@@ -95,8 +95,10 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     });
 
     try {
-      // Kiểm tra nếu bàn đã có Buffet
-      bool hasBuffet = await OrderFoodController.hasBuffet(widget.tableName);
+      Map<String, dynamic> buffetStatus =
+          await OrderFoodController.hasBuffet(widget.tableName);
+
+      bool hasBuffet = buffetStatus['has_buffet'];
 
       Map<String, dynamic>? buffet = (!hasBuffet && widget.buffetTotal > 0)
           ? {
@@ -324,7 +326,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Text('${widget.tableName}',
+        title: Text('${widget.tableName}-${widget.selectedType}',
             style: TextStyle(color: Colors.black, fontSize: 20)),
         centerTitle: true,
         actions: [

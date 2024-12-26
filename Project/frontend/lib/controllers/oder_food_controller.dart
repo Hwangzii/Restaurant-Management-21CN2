@@ -136,12 +136,23 @@ class OrderFoodController {
   }
 
   // Kiểm tra xem bàn có món Buffet hay không
-  static Future<bool> hasBuffet(String tableName) async {
+  static Future<Map<String, dynamic>> hasBuffet(String tableName) async {
     try {
-      return await ApiService().checkBuffetStatus(tableName);
+      // Gọi API kiểm tra trạng thái buffet
+      final response = await ApiService().checkBuffetStatus(tableName);
+
+      // ignore: unnecessary_null_comparison
+      if (response != null && response.containsKey('has_buffet')) {
+        return {
+          "has_buffet": response['has_buffet'],
+          "buffet_name": response['buffet_name'] ?? "Tất cả",
+        };
+      } else {
+        throw Exception("Invalid response from server");
+      }
     } catch (e) {
       print('Error in OrderFoodController.hasBuffet: $e');
-      throw Exception('Error checking buffet status for table $tableName');
+      return {"has_buffet": false, "buffet_name": "Tất cả"};
     }
   }
 

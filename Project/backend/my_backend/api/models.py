@@ -157,7 +157,7 @@ class InvoiceInventory(models.Model):
     payment_method = models.CharField(max_length=30)
     invoice_type = models.IntegerField(default=2)
     created_at = models.DateTimeField()
-    item = models.ForeignKey(Inventory, on_delete=models.CASCADE, related_name='item')
+    item_id = models.IntegerField(null = True, blank= True)
 
     class Meta:
         db_table = 'invoice_inventory'
