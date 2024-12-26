@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-&3vq4iioxe%+#%397)cqj=z8lx*s92r5za)7smfej8uwe&q!k!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'fe33-2001-ee0-40c1-7988-c938-1b01-efc2-8141.ngrok-free.app']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'fddc-14-191-36-31.ngrok-free.app']
 
 
 
@@ -87,7 +87,7 @@ DATABASES = {
         'NAME': 'RestaurantDB1',  # Tên cơ sở dữ liệu
         'USER': '',  # Để trống vì bạn dùng Windows Authentication
         'PASSWORD': '',  # Không cần mật khẩu vì dùng Windows Authentication
-        'HOST': 'DESKTOP-K831HUA',  # Server name của SQL Server
+        'HOST': 'DESKTOP-7515C5T',  # Server name của SQL Server
         'PORT': '',  # Cổng mặc định (1433) có thể để trống
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',  # Driver ODBC

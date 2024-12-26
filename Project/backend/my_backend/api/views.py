@@ -1,14 +1,16 @@
+from rest_framework.decorators import action
 import pyotp
 import secrets
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Account, Employee, Floors, Inventory, MenuItem, Tables
-from .serializers import AccountSerializer, EmployeeSerializer, FloorSerializer, InventorySerializer, MenuItemSerializer, TableSerializer
+from .models import Account, Customer, Employee, Floors, Inventory, InvoiceFood, InvoiceInventory, MenuItem, OrderDetails, Salaries, Tables, WorkSchedule
+from .serializers import AccountSerializer, CustomerSerializer, EmployeeSerializer, FloorSerializer, InventorySerializer, InvoiceFooodSerializer, InvoiceInventorySerializer, MenuItemSerializer, OrderDetailsSerializer, SalariesSerializer, TableSerializer, WorkScheduleSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
+
 
 # Tạo token cho người dùng (JWT)
 def get_tokens_for_user(account):
@@ -124,3 +126,65 @@ class EmployeeViewSet(viewsets.ModelViewSet):
 class InventoryViewSet(viewsets.ModelViewSet):
     queryset = Inventory.objects.all()
     serializer_class = InventorySerializer
+
+class InvoiceFoodViewSet(viewsets.ModelViewSet):
+    queryset = InvoiceFood.objects.all()
+    serializer_class = InvoiceFooodSerializer
+
+class WorkScheduleViewSet(viewsets.ModelViewSet):
+    queryset = WorkSchedule.objects.all()
+    serializer_class = WorkScheduleSerializer
+
+class CustomerViewSet(viewsets.ModelViewSet):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
+
+class InvoiceInventoryViewSet(viewsets.ModelViewSet):
+    queryset = InvoiceInventory.objects.all()
+    serializer_class = InvoiceInventorySerializer
+
+class SalariesViewSet(viewsets.ModelViewSet):
+    queryset = Salaries.objects.all()
+    serializer_class = SalariesSerializer
+
+class OrderDetailsViewSet(viewsets.ViewSet):
+    # Lấy danh sách món theo bàn
+    def list(self, request):
+        table_name = request.query_params.get('table_name', None)
+        if not table_name:
+            return Response({"error": "table_name is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        orders = OrderDetails.objects.filter(table_name=table_name)
+        serializer = OrderDetailsSerializer(orders, many=True)
+        return Response(serializer.data)
+
+    # Thêm món mới
+    def create(self, request):
+        serializer = OrderDetailsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # Xóa tất cả món của một bàn
+    @action(detail=False, methods=['delete'], url_path='clear')
+    def clear(self, request):
+        table_name = request.query_params.get('table_name', None)
+        if not table_name:
+            return Response({"error": "table_name is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        OrderDetails.objects.filter(table_name=table_name).delete()
+        return Response({"message": f"Orders cleared for table {table_name}"}, status=status.HTTP_200_OK)
+
+    # Tính tổng tiền của một bàn
+    @action(detail=False, methods=['get'], url_path='total')
+    def total(self, request):
+        table_name = request.query_params.get('table_name', None)
+        if not table_name:
+            return Response({"error": "table_name is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        total_amount = OrderDetails.objects.filter(table_name=table_name).aggregate(
+            total=models.Sum(models.F('quantity') * models.F('item_price'))
+        )['total'] or 0
+        
+        return Response({"table_name": table_name, "total_amount": total_amount})

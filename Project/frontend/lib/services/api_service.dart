@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 
 class ApiService {
   final String baseUrl =
-      'https://fe33-2001-ee0-40c1-7988-c938-1b01-efc2-8141.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://fddc-14-191-36-31.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   // Gửi request đăng nhập
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -261,8 +261,7 @@ class ApiService {
 
   // Hàm lấy dữ liệu nhân viên từ API
   Future<List<Map<String, dynamic>>> fetchEmployees() async {
-    final tablesUrl =
-        '$baseUrl/employees/'; // Đường dẫn API lấy danh sách nhân viên
+    final tablesUrl = '$baseUrl/employees/'; // Đường dẫn API lấy danh sách nhân viên
 
     try {
       final response = await http.get(Uri.parse(tablesUrl), headers: {
@@ -271,16 +270,20 @@ class ApiService {
       });
 
       if (response.statusCode == 200) {
+        // Giải mã UTF-8
         final decodedResponse = utf8.decode(response.bodyBytes);
         List<dynamic> data = json.decode(decodedResponse);
         return List<Map<String, dynamic>>.from(data);
       } else {
-        throw Exception('Failed to load tables');
+        print("Error fetching employees: ${response.statusCode} ${response.reasonPhrase}");
+        throw Exception('Failed to load employees');
       }
     } catch (e) {
-      throw Exception('Error fetching tables: $e');
+      print("Error fetching employees: $e");
+      throw Exception('Error fetching employees: $e');
     }
   }
+
 
   //Hàm thêm nhân viên
 
@@ -409,4 +412,105 @@ class ApiService {
       return false;
     }
   }
+
+  // Hàm gọi API để lấy danh sách lịch làm việc
+  Future<List<Map<String, dynamic>>> fetchWorkSchedules() async {
+    final scheduleUrl = '$baseUrl/work_schedule/'; // Đường dẫn API lấy lịch làm việc
+
+    try {
+      final response = await http.get(Uri.parse(scheduleUrl), headers: {
+        'Accept': 'application/json; charset=UTF-8', // Đảm bảo yêu cầu JSON
+        "ngrok-skip-browser-warning": "69420",
+      });
+
+      if (response.statusCode == 200) {
+        // Giải mã UTF-8
+        final decodedResponse = utf8.decode(response.bodyBytes);
+        List<dynamic> data = json.decode(decodedResponse);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        print("Error fetching work schedules: ${response.statusCode} ${response.reasonPhrase}");
+        throw Exception('Failed to load work schedules');
+      }
+    } catch (e) {
+      print("Error fetching work schedules: $e");
+      throw Exception('Error fetching work schedules: $e');
+    }
+  }
+
+
+
+
+  //Hàm gọi API lưu ca làm 
+  Future<void> saveWorkSchedules(List<Map<String, dynamic>> shifts) async {
+  for (var shift in shifts) {
+    try {
+      // Gửi từng ca làm qua API
+      final response = await http.post(
+        Uri.parse('$baseUrl/work_schedule/'),
+        headers: {
+          "Content-Type": "application/json; charset=UTF-8",
+        },
+        body: jsonEncode(shift),  // Chuyển shift thành JSON
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        // Giả sử bạn có thể lấy trạng thái từ response của API để gán vào status
+        String status = shift['is_on_time'] == true ? 'có' : 'muộn';
+        
+        // Bạn có thể gán giá trị status vào dữ liệu hoặc lưu lại để sử dụng
+        print("Ca làm đã lưu thành công với trạng thái: $status");
+        
+        // Ví dụ nếu shift có lý do nghỉ
+        if (shift['absence_reason'] != null && shift['absence_reason'].isNotEmpty) {
+          status = 'nghỉ có phép';
+        } else if (status.isEmpty) {
+          status = 'nghỉ không phép';
+        }
+
+        // Tiến hành lưu vào hệ thống hoặc cập nhật UI sau khi lưu thành công
+      } else {
+        print("Lỗi khi lưu ca làm: ${response.body}");
+      }
+    } catch (e) {
+      print("Lỗi kết nối hoặc xử lý: $e");
+    }
+  }
+}
+
+  
+
+
+  
+
+  // Hàm lấy danh sách lương
+  Future<List<Map<String, dynamic>>> fetchSalaries() async {
+    final salariesUrl = '$baseUrl/salaries/'; // Đường dẫn API lấy danh sách lương
+
+    try {
+      final response = await http.get(Uri.parse(salariesUrl), headers: {
+        'Accept': 'application/json; charset=UTF-8', // Đảm bảo yêu cầu JSON
+        "ngrok-skip-browser-warning": "69420", // Nếu sử dụng ngrok
+      });
+
+      if (response.statusCode == 200) {
+        // Giải mã UTF-8 để xử lý dữ liệu chứa ký tự đặc biệt
+        final decodedResponse = utf8.decode(response.bodyBytes);
+        List<dynamic> data = json.decode(decodedResponse);
+        return List<Map<String, dynamic>>.from(data); // Chuyển đổi về dạng danh sách Map
+      } else {
+        print(
+            "Error fetching salaries: ${response.statusCode} ${response.reasonPhrase}");
+        throw Exception('Failed to load salaries');
+      }
+    } catch (e) {
+      print("Error fetching salaries: $e");
+      throw Exception('Error fetching salaries: $e');
+    }
+  }
+
+
+
+
+  
 }
