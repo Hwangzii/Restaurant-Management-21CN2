@@ -328,7 +328,7 @@ class OrderDetailsViewSet(viewsets.ViewSet):
             updated_items = []
             for order in buffet_orders:
                 order.item_name = "Buffet đen"
-                order.item_price = order.item_price + 50000 * order.quantity
+                order.item_price = order.item_price + 50000
                 order.save()
                 updated_items.append(order.id)
 

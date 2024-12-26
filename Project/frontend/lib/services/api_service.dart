@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 
 class ApiService {
   final String baseUrl =
-      'https://7944-14-232-55-213.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://3a43-113-23-49-208.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   // Gửi request đăng nhập
   Future<Map<String, dynamic>> login(String username, String password) async {

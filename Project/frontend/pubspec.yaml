@@ -99,6 +99,14 @@ flutter:
     - assets/angle-small-right.png
     - assets/image.png
     - assets/key.png
+    - assets/calender.png
+    - assets/member-list.png
+    - assets/money.png
+    - assets/print.png
+    - assets/dollar.png
+    - assets/steak.png
+    - assets/seafood.png
+    - assets/edit-text.png
 
 
 
@@ -217,6 +225,7 @@ flutter:
     # - assets/food_photo/113.png
     - assets/food_photo/114.png
     - assets/food_photo/115.png
+  
   
   uses-material-design: true
 

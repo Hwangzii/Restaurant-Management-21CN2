@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app/controllers/masterchef_controller.dart';
 import 'package:app/controllers/oder_food_controller.dart';
 import 'package:flutter/material.dart';
@@ -108,68 +110,87 @@ class _MasterchefScreenState extends State<MasterchefScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Món Ăn Đã Gọi'),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Text('Món Ăn Đã Gọi'),
+          ],
+        ),
         centerTitle: true,
         backgroundColor: Colors.orange,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh), // Biểu tượng reload
+            tooltip: 'Tải lại', // Gợi ý khi hover
+            onPressed: () async {
+              await _fetchOrders(); // Gọi hàm tải lại dữ liệu
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Danh sách đã được tải lại!'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : orders.isEmpty
               ? const Center(child: Text("Không có món ăn nào đang chờ xử lý"))
-              : SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      // Header
-                      Container(
-                        color: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 10.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: const [
-                            Expanded(
-                                child: Text("Tên món",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.grey))),
-                            Expanded(
-                                child: Text("Bàn",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.grey))),
-                            Expanded(
-                                child: Text("Số lượng",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.grey))),
-                            Expanded(
-                                child: Text("Loại vé",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.grey))),
-                            Expanded(
-                                child: Text("Thời gian",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.grey))),
-                            Expanded(
-                                child: Text("Ghi chú",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.grey))),
-                            Expanded(
-                                child: Text("Thao tác",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(color: Colors.grey))),
-                          ],
-                        ),
+              : Column(
+                  children: [
+                    // Header cố định
+                    Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: const [
+                          Expanded(
+                              child: Text("Tên món",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.grey))),
+                          Expanded(
+                              child: Text("Bàn",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.grey))),
+                          Expanded(
+                              child: Text("Số lượng",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.grey))),
+                          Expanded(
+                              child: Text("Loại vé",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.grey))),
+                          Expanded(
+                              child: Text("Thời gian",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.grey))),
+                          Expanded(
+                              child: Text("Ghi chú",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.grey))),
+                          Expanded(
+                              child: Text("Thao tác",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.grey))),
+                        ],
                       ),
-                      ListView.separated(
+                    ),
+                    // Danh sách món cuộn
+                    Expanded(
+                      child: ListView.separated(
                         shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: orders.length,
                         separatorBuilder: (context, index) => const Divider(
                           thickness: 1, // Độ dày đường kẻ
                           color: Colors.grey, // Màu đường kẻ
                         ),
+                        itemCount: orders.length,
                         itemBuilder: (context, index) {
                           final order = orders[index];
                           return Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 8.0), // Cách dòng
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
@@ -198,16 +219,6 @@ class _MasterchefScreenState extends State<MasterchefScreen> {
                                     children: [
                                       ElevatedButton(
                                         onPressed: () {
-                                          // Hiển thị thông báo tạm thời khi bấm nút "Hủy"
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              content: Text('Đã bấm nút Hủy'),
-                                              duration: Duration(seconds: 2),
-                                            ),
-                                          );
-
-                                          // Logic xử lý khi nhấn Hủy (tạm thời để trống)
                                           _cancelOrder(order['id']);
                                         },
                                         style: ElevatedButton.styleFrom(
@@ -220,17 +231,6 @@ class _MasterchefScreenState extends State<MasterchefScreen> {
                                       ),
                                       ElevatedButton(
                                         onPressed: () {
-                                          // Hiển thị thông báo tạm thời khi bấm nút "Ra món"
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              content:
-                                                  Text('Đã bấm nút Ra món'),
-                                              duration: Duration(seconds: 2),
-                                            ),
-                                          );
-
-                                          // Logic xử lý khi nhấn Ra món (tạm thời để trống)
                                           _markOrderAsServed(order['id']);
                                         },
                                         style: ElevatedButton.styleFrom(
@@ -249,8 +249,8 @@ class _MasterchefScreenState extends State<MasterchefScreen> {
                           );
                         },
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
     );
   }

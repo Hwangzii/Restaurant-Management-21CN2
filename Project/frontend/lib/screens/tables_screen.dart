@@ -279,7 +279,12 @@ class _TablesScreenState extends State<TablesScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: Icon(Icons.fastfood),
+                leading: Image.asset(
+                  'assets/steak.png', // Đường dẫn đến hình ảnh
+                  width: 20, // Chiều rộng của hình ảnh
+                  height: 20, // Chiều cao của hình ảnh
+                  fit: BoxFit.contain, // Cách căn chỉnh hình ảnh trong widget
+                ),
                 title: Text('Buffet đỏ'),
                 onTap: () {
                   Navigator.pop(dialogContext);
@@ -287,7 +292,12 @@ class _TablesScreenState extends State<TablesScreen> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.fastfood),
+                leading: Image.asset(
+                  'assets/seafood.png', // Đường dẫn đến hình ảnh
+                  width: 20, // Chiều rộng của hình ảnh
+                  height: 20, // Chiều cao của hình ảnh
+                  fit: BoxFit.contain, // Cách căn chỉnh hình ảnh trong widget
+                ),
                 title: Text('Buffet đen'),
                 onTap: () {
                   Navigator.pop(dialogContext);
@@ -295,7 +305,12 @@ class _TablesScreenState extends State<TablesScreen> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.dining),
+                leading: Image.asset(
+                  'assets/food.png', // Đường dẫn đến hình ảnh
+                  width: 20, // Chiều rộng của hình ảnh
+                  height: 20, // Chiều cao của hình ảnh
+                  fit: BoxFit.contain, // Cách căn chỉnh hình ảnh trong widget
+                ),
                 title: Text('Gọi món'),
                 onTap: () {
                   Navigator.pop(dialogContext);
@@ -331,7 +346,7 @@ class _TablesScreenState extends State<TablesScreen> {
         MaterialPageRoute(
           builder: (context) => OrderFoodScreen(
             tableName: tableName,
-            selectedType: 'Tất cả', // Hiển thị tất cả các loại món
+            selectedType: 'Gọi món', // Hiển thị tất cả các loại món
             guestCount: 0, // Không cần số lượng khách
             buffetTotal: 0,
             onUpdate: () {
@@ -378,7 +393,7 @@ class _TablesScreenState extends State<TablesScreen> {
                   int buffetPrice = option == 'Buffet đỏ' ? 500000 : 550000;
 
                   // Tính tổng giá trị Buffet
-                  int buffetTotal = buffetPrice * guestCount;
+                  int buffetTotal = buffetPrice;
 
                   // Chuyển sang OrderFoodScreen với giá trị Buffet đã tính toán
                   Navigator.push(
@@ -477,7 +492,8 @@ class _TablesScreenState extends State<TablesScreen> {
                     : (tables[index]['status'] ??
                         0); // Nếu null, gán giá trị mặc định là 0
 
-                Color cardColor = (status == 1) ? Colors.orange : Colors.white;
+                Color cardColor =
+                    (status == 1) ? Color(0xFFFF8A00) : Color(0xFFF2F2F7);
 
                 return GestureDetector(
                   onTap: () async {
@@ -494,7 +510,7 @@ class _TablesScreenState extends State<TablesScreen> {
                         MaterialPageRoute(
                           builder: (context) => OrderFoodScreen(
                             tableName: tableName,
-                            selectedType: hasBuffet ? "Buffet" : "Gọi món", //
+                            selectedType: hasBuffet ? "Buffet" : "Tất cả", //
                             guestCount: 0,
                             buffetTotal: 0,
                             onUpdate:
@@ -518,7 +534,7 @@ class _TablesScreenState extends State<TablesScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10.0),
                     ),
-                    elevation: 2.0,
+                    elevation: 0.0,
                     child: Center(
                       child: Text(
                         tableName,

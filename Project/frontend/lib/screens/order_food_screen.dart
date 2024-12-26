@@ -4,7 +4,6 @@ import 'package:app/screens/pay_print_screen.dart';
 import 'package:app/widgets/list_order_food.dart';
 import 'package:flutter/material.dart';
 import 'package:app/widgets/food_items.dart';
-import 'package:intl/intl.dart';
 
 class OrderFoodScreen extends StatefulWidget {
   final String tableName;
@@ -70,13 +69,11 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
     String selectedType = widget.selectedType;
     setState(() {
       if (selectedType == 'Buffet đỏ') {
-        filteredItems = menuItems
-            .where((item) => item['item_type'] == 3 || item['item_type'] == 5)
-            .toList();
+        filteredItems =
+            menuItems.where((item) => item['item_type'] == 3).toList();
       } else if (selectedType == 'Buffet đen') {
-        filteredItems = menuItems
-            .where((item) => item['item_type'] == 4 || item['item_type'] == 6)
-            .toList();
+        filteredItems =
+            menuItems.where((item) => item['item_type'] == 4).toList();
       } else {
         filteredItems = menuItems;
       }
@@ -360,7 +357,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
           ),
         ],
       ),
-      backgroundColor: const Color(0xFFF2F3F4),
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           Column(
@@ -568,17 +565,23 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                 ],
               ),
             ),
-            Expanded(
-              child: GestureDetector(
-                onTap: _saveOrderAndSendToKitchen, // Gọi hàm lưu và gửi
-                child: Container(
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Lưu',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.black,
-                    ),
+            SizedBox(
+              width: 150,
+              child: ElevatedButton(
+                onPressed: _saveOrderAndSendToKitchen, // Gọi hàm lưu và gửi
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white, // Màu nền
+                  foregroundColor: Colors.black, // Màu chữ
+                  elevation: 0, // Bỏ đổ bóng
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5), // Bo góc
+                  ),
+                ),
+                child: Text(
+                  'Lưu',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black, // Màu chữ
                   ),
                 ),
               ),
