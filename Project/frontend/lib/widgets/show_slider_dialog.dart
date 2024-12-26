@@ -60,10 +60,6 @@ class __SliderDialogState extends State<_SliderDialog> {
           child: Text("OK"),
         ),
       ],
-      // bo góc 5
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(5))
-      ),
     );
   }
 }

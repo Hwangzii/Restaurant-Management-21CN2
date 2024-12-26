@@ -18,10 +18,6 @@ final List<Map<String, dynamic>> iconsData = [
   {'imagePath': 'assets/clients.png', 'name': 'khách hàng', 'color': commonIconBackgroundColor},
   {'imagePath': 'assets/order.png', 'name': 'Gọi món', 'color': commonIconBackgroundColor, 'route': '/TablesScreen'},
   {'imagePath': 'assets/staff_check.png', 'name': 'Điểm danh', 'color': commonIconBackgroundColor, 'route': '/StaffCheckScreen'},
-  {'imagePath': 'assets/food.png', 'name': 'Khuyến mãi', 'color': commonIconBackgroundColor},
-  {'imagePath': 'assets/food.png', 'name': 'Gọi món', 'color': commonIconBackgroundColor},
-  {'imagePath': 'assets/food.png', 'name': 'Thanh toán', 'color': commonIconBackgroundColor},
-  {'imagePath': 'assets/food.png', 'name': 'Thông báo', 'color': commonIconBackgroundColor},
 ];
        
 
@@ -417,6 +413,61 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
         
             SizedBox(height: 5,), 
+
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween, // Căn giữa và cách đều
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Lịch sử hóa đơn',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  Image.asset(
+                    'assets/reload.png',
+                    height: 20,
+                    width: 20,
+                    color: Color(0xFFFF8A00),
+                  ),
+                ],
+              ),
+            ),
+
+
+            Container(
+              margin: EdgeInsets.all(20), // Khoảng cách với các phần tử khác
+              padding: EdgeInsets.all(10), // Khoảng cách bên trong container
+              decoration: BoxDecoration(
+                color: Colors.blueAccent, // Màu nền của ô
+                borderRadius: BorderRadius.circular(10), // Bo góc
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12, // Màu của bóng
+                    blurRadius: 5, // Độ mờ của bóng
+                    offset: Offset(0, 2), // Độ dịch chuyển bóng
+                  ),
+                ],
+              ),
+              // width: 150, // Chiều rộng của ô vuông
+              height: 150, // Chiều cao của ô vuông
+              child: Center(
+                child: Text(
+                  'Hóa đơn',
+                  style: TextStyle(
+                    fontSize: 18, // Cỡ chữ
+                    color: Colors.white, // Màu chữ
+                    fontWeight: FontWeight.bold, // Độ đậm của chữ
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),

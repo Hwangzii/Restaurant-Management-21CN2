@@ -99,13 +99,17 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
   void _saveAttendance() {
     List<String> attendanceDetails = [];
     for (int i = 0; i < employees.length; i++) {
-      String attendance = attendanceStatus[i] == true
-          ? "Có"
-          : attendanceStatus[i] == false
-              ? "Muộn"
-              : absenceReasons[i] != null
-                  ? "Nghỉ: ${absenceReasons[i]}"
-                  : "Chưa điểm danh";
+      String attendance;
+      if (attendanceStatus[i] == true) {
+        attendance = "có"; // Có mặt
+      } else if (attendanceStatus[i] == false) {
+        attendance = "muộn"; // Đi muộn
+      } else if (absenceReasons[i] != null) {
+        attendance = "nghỉ có phép"; // Nghỉ có phép
+      } else {
+        attendance = "nghỉ không phép"; // Nghỉ không phép
+      }
+
       attendanceDetails.add("${employees[i]['full_name']}: $attendance");
     }
 
@@ -117,6 +121,7 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -302,12 +307,16 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(8.0),
         child: SizedBox(
-          height: 40,
+          height: 45,
           child: FloatingActionButton.extended(
             onPressed: _saveAttendance,
             label: const Text(
               'Lưu',
               style: TextStyle(fontSize: 14),
+            ),
+            icon: const Icon(
+              Icons.save,
+              size: 18,
             ),
             backgroundColor: Color(0xFFFF8A00),
           ),

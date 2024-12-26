@@ -27,4 +27,9 @@ class ShiftRegistrationController {
       throw Exception('Error fetching staff list');
     }
   }
+
+  
+
+
+  
 }

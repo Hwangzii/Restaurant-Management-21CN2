@@ -642,11 +642,11 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
               children: [
                 Expanded(
                   flex: 1,
-                  child: Text("Vé:", style: TextStyle(fontSize: 14, color: Colors.black)),
+                  child: Text("Vé:", style: TextStyle(fontSize: 16, color: Colors.black)),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text("buffet đỏ", style: TextStyle(fontSize: 14, color: Colors.black)),
+                  child: Text("buffet đỏ", style: TextStyle(fontSize: 16, color: Colors.black)),
                 ),
               ],
             ),
@@ -656,11 +656,11 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
               children: [
                 Expanded(
                   flex: 1,
-                  child: Text("SL:", style: TextStyle(fontSize: 14, color: Colors.black)),
+                  child: Text("SL:", style: TextStyle(fontSize: 16, color: Colors.black)),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text("${_totalQuantity()}", style: TextStyle(fontSize: 14, color: Colors.black)),
+                  child: Text("${_totalQuantity()}", style: TextStyle(fontSize: 16, color: Colors.black)),
                 ),
               ],
             ),
@@ -670,13 +670,13 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
               children: [
                 Expanded(
                   flex: 1,
-                  child: Text("KM:", style: TextStyle(fontSize: 14, color: Colors.black)),
+                  child: Text("KM:", style: TextStyle(fontSize: 16, color: Colors.black)),
                 ),
                 Expanded(
                   flex: 2,
                   child: Row(
                     children: [
-                      Text("0%", style: TextStyle(fontSize: 14, color: Colors.black)),
+                      Text("0%", style: TextStyle(fontSize: 16, color: Colors.black)),
                       Spacer(),
                       GestureDetector(
                         onTap: () {
@@ -701,11 +701,11 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
               children: [
                 Expanded(
                   flex: 1,
-                  child: Text("T.Tiền:", style: TextStyle(fontSize: 14, color: Colors.black)),
+                  child: Text("T.Tiền:", style: TextStyle(fontSize: 16, color: Colors.black)),
                 ),
                 Expanded(
                   flex: 2,
-                  child: Text("${_calculateTotal()} đ", style: TextStyle(fontSize: 14, color: Colors.black)),
+                  child: Text("${_calculateTotal()} đ", style: TextStyle(fontSize: 16, color: Colors.black)),
                 ),
               ],
             ),
@@ -789,72 +789,6 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
 
 
 
-Widget _buildButtonColumn() {
-  return Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Button trên màu cam với chiều rộng cố định
-        Container(
-          width: 150,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              print("Button 1 pressed");
-            },
-            label: Text(
-              "Thanh toán",
-              style: TextStyle(color: Colors.white),
-              textAlign: TextAlign.left,
-            ),
-            icon: Image.asset(
-              'assets/dollar.png',
-              width: 16,
-              height: 16,
-            ),
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Colors.orange),
-              foregroundColor: MaterialStateProperty.all(Colors.black),
-              elevation: MaterialStateProperty.all(0),
-              shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5),
-              )),
-              padding: MaterialStateProperty.all(EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
-              minimumSize: MaterialStateProperty.all(Size(200, 50)),  // Chiều rộng và chiều cao tối thiểu của nút
-            ),
-          ),
-        ),
-        SizedBox(height: 10),
-        // Button dưới màu xám với chiều rộng cố định
-        Container(
-          width: 150,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              print("Button 2 pressed");
-            },
-            label: Text(
-              "In hóa đơn",
-              style: TextStyle(color: Colors.black),
-              textAlign: TextAlign.left,
-            ),
-            icon: Image.asset(
-              'assets/print.png',
-              width: 16,
-              height: 16,
-            ),
-            style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Color(0xFFF2F2F2)),
-              foregroundColor: MaterialStateProperty.all(Colors.black),
-              elevation: MaterialStateProperty.all(0),
-              shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5),
-              )),
-              padding: MaterialStateProperty.all(EdgeInsets.symmetric(horizontal: 16, vertical: 12)),
-              minimumSize: MaterialStateProperty.all(Size(200, 50)),  // Chiều rộng và chiều cao tối thiểu của nút
-            ),
-          ),
-        ),
-      ],
-    ),
-  );
-}
+
+
 

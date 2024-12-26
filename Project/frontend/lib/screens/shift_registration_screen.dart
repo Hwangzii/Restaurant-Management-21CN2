@@ -1,4 +1,5 @@
 import 'package:app/controllers/shift_registration_controller.dart';
+import 'package:app/services/api_service.dart';
 import 'package:flutter/material.dart';
 
 
@@ -33,6 +34,10 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
   DateTime? selectedEndDate;
   int? expandedIndex;
 
+
+  // Lưu trữ trạng thái của từng ca làm cho mỗi nhân viên
+  final Map<int, List<String>> selectedStatus = {};
+
   List<Map<String, dynamic>> employeeList = []; // Danh sách nhân viên từ API
   final Map<int, List<bool>> shiftSelections = {}; // Chọn ca làm
 
@@ -57,6 +62,78 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
       print("Error fetching employee list: $e");
     }
   }
+
+  List<Map<String, dynamic>> prepareShiftsToSave(
+    DateTime startDate,
+    Map<int, List<bool>> shiftSelections,
+    List<Map<String, dynamic>> employeeList) {
+
+    List<Map<String, dynamic>> shiftsToSave = [];
+
+    for (int index = 0; index < employeeList.length; index++) {
+      for (int day = 0; day < 7; day++) {
+        // Thêm ca sáng
+        if (shiftSelections[index]![day]) {
+          shiftsToSave.add({
+            "work_date": startDate.add(Duration(days: day)).toIso8601String().split('T')[0],
+            "shift_type": "sáng",
+            "shift_start": "09:00:00", // Giả định thời gian ca sáng
+            "shift_end": "14:00:00",  // Giả định thời gian ca sáng
+            "employee": employeeList[index]['employees_id'],
+            "status": selectedStatus[index]?[day] ?? "vắng", // Mặc định "vắng"
+          });
+        }
+        // Thêm ca tối
+        if (shiftSelections[index]![day + 7]) {
+          shiftsToSave.add({
+            "work_date": startDate.add(Duration(days: day)).toIso8601String().split('T')[0],
+            "shift_type": "tối",
+            "shift_start": "17:00:00", // Giả định thời gian ca tối
+            "shift_end": "22:00:00",  // Giả định thời gian ca tối
+            "employee": employeeList[index]['employees_id'],
+            "status": selectedStatus[index]?[day] ?? "vắng", // Mặc định "vắng"
+          });
+        }
+      }
+    }
+
+    return shiftsToSave;
+  }
+
+  void saveShifts() async {
+    if (selectedStartDate != null) {
+      // Chuẩn bị danh sách ca làm để gửi
+      List<Map<String, dynamic>> shiftsToSave =
+          prepareShiftsToSave(selectedStartDate!, shiftSelections, employeeList);
+
+      try {
+        // Gửi danh sách ca làm lên API
+        ApiService apiService = ApiService();
+        await apiService.saveWorkSchedules(shiftsToSave);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã lưu ca làm thành công!')),
+        );
+      } catch (e) {
+        print("Error saving shifts: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Lỗi khi lưu ca làm!')),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn khoảng ngày hợp lệ!')),
+      );
+    }
+  }
+
+
+
+
+
+
+
+
 
   // Hàm mở DateRangePicker tùy chỉnh
   Future<void> _showCustomDatePicker(BuildContext context) async {
@@ -240,9 +317,9 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
             onPressed: () {
-              print("Ngày đã chọn: $selectedStartDate - $selectedEndDate");
-              print(shiftSelections);
+              saveShifts();
             },
+
             child: const Text(
               'Lưu',
               style: TextStyle(color: Colors.white, fontSize: 18),
