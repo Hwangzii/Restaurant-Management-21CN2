@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 
 class ApiService {
   final String baseUrl =
-      'https://7944-14-232-55-213.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://f0d4-2001-ee0-40c1-d397-a40f-19c6-bad3-7f38.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   // Gửi request đăng nhập
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -162,6 +162,38 @@ class ApiService {
     }
   }
 
+
+
+  // Hàm để lấy dữ liệu invoice_food
+  Future<List<Map<String, dynamic>>> fetchInvoiceData() async {
+    final reportUrl = '$baseUrl/invoice_food/';
+
+    try {
+      final response = await http.get(Uri.parse(reportUrl), headers: {
+        'Accept': 'application/json; charset=UTF-8',
+        "ngrok-skip-browser-warning":
+            "69420", // Nếu bạn sử dụng ngrok cho môi trường phát triển
+      });
+
+      if (response.statusCode == 200) {
+        final decodedResponse = utf8.decode(response.bodyBytes);
+        List<dynamic> data = json.decode(decodedResponse);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        // Nếu mã trạng thái không phải 200, ném lỗi và in thông tin chi tiết
+        throw Exception(
+            'Lỗi khi tải danh sách món ăn. Mã trạng thái: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Xử lý ngoại lệ nếu có lỗi khi lấy dữ liệu
+      throw Exception('Lỗi khi lấy dữ liệu món ăn: $e');
+    }
+    
+  }
+
+
+
+  
   // Hàm thêm món ăn
     Future<bool> addFood(String itemName, double itemPrice, String itemDescribe,
       int itemType, bool itemStatus, int restaurant) async {
@@ -412,4 +444,11 @@ class ApiService {
       return false;
     }
   }
+
+
+  
+
+
+
+   
 }
