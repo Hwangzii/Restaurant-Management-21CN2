@@ -1,113 +1,73 @@
+import 'package:app/controllers/invoice_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-class InvoiceData {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String amount;
-  final String dateTime;
-
-  InvoiceData({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.amount,
-    required this.dateTime,
-  });
+class InvoiceScreen extends StatefulWidget {
+  @override
+  _InvoiceScreenState createState() => _InvoiceScreenState();
 }
 
-final List<InvoiceData> invoiceDataList = [
-  InvoiceData(
-    icon: Icons.arrow_upward,
-    title: "Bán hàng",
-    subtitle: "Mã đơn hàng ABC123",
-    amount: "+2,000,000",
-    dateTime: "24/12/2024 12:05",
-  ),
-  InvoiceData(
-    icon: Icons.arrow_downward,
-    title: "Mua nguyên liệu",
-    subtitle: "Hóa đơn số DEF456",
-    amount: "-1,500,000",
-    dateTime: "23/12/2024 14:20",
-  ),
-  InvoiceData(
-    icon: Icons.arrow_upward,
-    title: "Dịch vụ",
-    subtitle: "Phiếu thu GHI789",
-    amount: "+500,000",
-    dateTime: "22/12/2024 10:15",
-  ),
-  InvoiceData(
-    icon: Icons.arrow_downward,
-    title: "Thanh toán tiền điện",
-    subtitle: "Mã hóa đơn JKL012",
-    amount: "-200,000",
-    dateTime: "21/12/2024 16:30",
-  ),
-  InvoiceData(
-    icon: Icons.arrow_upward,
-    title: "Tiền hoa hồng",
-    subtitle: "Nhân viên A nhận tiền",
-    amount: "+1,000,000",
-    dateTime: "20/12/2024 09:00",
-  ),
-  InvoiceData(
-    icon: Icons.arrow_downward,
-    title: "Thuê nhân công",
-    subtitle: "Nhân viên B làm thêm giờ",
-    amount: "-700,000",
-    dateTime: "19/12/2024 17:45",
-  ),
-  InvoiceData(
-    icon: Icons.arrow_upward,
-    title: "Hoàn tiền khách hàng",
-    subtitle: "Mã đơn hàng MNO345",
-    amount: "+100,000",
-    dateTime: "18/12/2024 11:10",
-  ),
-  InvoiceData(
-    icon: Icons.arrow_downward,
-    title: "Đầu tư cơ sở vật chất",
-    subtitle: "Mua bàn ghế mới",
-    amount: "-3,000,000",
-    dateTime: "17/12/2024 13:25",
-  ),
-  InvoiceData(
-    icon: Icons.arrow_upward,
-    title: "Chi phí vận chuyển",
-    subtitle: "Hóa đơn PQR678",
-    amount: "+400,000",
-    dateTime: "16/12/2024 15:50",
-  ),
-  InvoiceData(
-    icon: Icons.arrow_downward,
-    title: "Quảng cáo",
-    subtitle: "Chiến dịch Google Ads",
-    amount: "-2,500,000",
-    dateTime: "15/12/2024 08:20",
-  ),
-  // Add more entries as needed (total 30 entries)
-];
+class _InvoiceScreenState extends State<InvoiceScreen> {
+  DateTime? selectedDate;
+  bool isLoading = false;
+  TextEditingController searchController =
+      TextEditingController(); // Controller for search
+  bool isSearchVisible = false; // Variable to control the search visibility
+  List<Map<String, dynamic>> invoices = [];
+  final InvoiceController invoiceController = InvoiceController();
 
-class InvoiceScreen extends StatelessWidget {
-  const InvoiceScreen({Key? key}) : super(key: key);
+  @override
+  void initState() {
+    super.initState();
+    _fetchInvoices();
+  }
+
+  Future<void> _fetchInvoices() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      await invoiceController.fetchInvoices();
+      setState(() {
+        invoices = invoiceController.invoices;
+      });
+    } catch (e) {
+      print("Error fetching invoices: $e");
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  String formatCurrency(String amount) {
+    final number = double.tryParse(amount.replaceAll(',', '').replaceAll('đ', '')) ?? 0;
+    final format = NumberFormat.simpleCurrency(locale: 'vi_VN');
+    return format.format(number);
+  }
 
   @override
   Widget build(BuildContext context) {
+    List<Map<String, dynamic>> filteredInvoicesData = invoices
+        .where((item) => item['invoice_food_id']
+            .toString()
+            .toLowerCase()
+            .contains(searchController.text.toLowerCase()))
+        .toList();
+
     return Scaffold(
       backgroundColor: Color(0xFFFFFFFF),
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black), // Nút quay lại
+          icon: Icon(Icons.arrow_back, color: Colors.black), // Back button
           onPressed: () {
-            Navigator.pop(context); // Quay lại màn hình trước
+            Navigator.pop(context); // Go back to previous screen
           },
         ),
         title: Stack(
           children: [
             Align(
-              alignment: Alignment.center, // Căn giữa tiêu đề
+              alignment: Alignment.center, // Center the title
               child: Text(
                 'Thông tin hóa đơn',
                 style: TextStyle(
@@ -118,24 +78,34 @@ class InvoiceScreen extends StatelessWidget {
             ),
           ],
         ),
-        centerTitle: true, // Đảm bảo Stack hoạt động đúng
-        backgroundColor: Colors.white, // Màu nền AppBar
+        centerTitle: true, // Ensure Stack works correctly
+        backgroundColor: Colors.white, // AppBar background color
       ),
 
       body: ListView.builder(
-        itemCount: invoiceDataList.length,
+        itemCount: filteredInvoicesData.length,
         itemBuilder: (context, index) {
-          final item = invoiceDataList[index];
+          final item = filteredInvoicesData[index];
+
+          // Determine amount color based on positive or negative value
+          final isPositiveAmount = item['total_amount'].toString().startsWith('+');
+
           return ListTile(
-            leading: Icon(item.icon, color: item.amount.startsWith('+') ? Colors.green : Colors.red),
-            title: Text(item.title),
-            subtitle: Text(item.subtitle, style: const TextStyle(fontSize: 12)),
+            leading: Icon(
+              isPositiveAmount ? Icons.arrow_upward : Icons.arrow_downward,
+              color: isPositiveAmount ? Colors.green : Colors.red,
+            ),
+            title: Text('${item['invoice_food_id']}'), // invoice_food_id
+            subtitle: Text('${item['sale_percent']}', style: TextStyle(fontSize: 12)), // sale_percent
             trailing: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(item.amount, style: TextStyle(color: item.amount.startsWith('+') ? Colors.green : Colors.red)),
-                Text(item.dateTime, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                Text(
+                  formatCurrency(item['total_amount'].toString()), 
+                  style: TextStyle(color: isPositiveAmount ? Colors.green : Colors.red),
+                ), // total_amount formatted as currency
+                Text('${item['payment_method']}', style: TextStyle(fontSize: 12, color: Colors.grey)), // payment_method
               ],
             ),
           );
@@ -143,10 +113,4 @@ class InvoiceScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-void main() {
-  runApp(const MaterialApp(
-    home: InvoiceScreen(),
-  ));
 }

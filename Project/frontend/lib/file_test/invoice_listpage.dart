@@ -58,7 +58,7 @@ class _InvoiceListPageState extends State<InvoiceListPage> {
 
   // Hàm để lấy dữ liệu từ API
   Future<List<Invoice>> fetchInvoiceData() async {
-    final response = await http.get(Uri.parse('https://7944-14-232-55-213.ngrok-free.app/api/invoice_food'));
+    final response = await http.get(Uri.parse('https://457f-14-232-55-213.ngrok-free.app/api/invoice_food'));
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);

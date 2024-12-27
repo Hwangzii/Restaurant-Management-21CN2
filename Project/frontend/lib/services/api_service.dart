@@ -1,3 +1,4 @@
+import 'package:app/file_test/invoice_listpage.dart';
 import 'package:app/models/item.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -6,7 +7,7 @@ import 'package:intl/intl.dart';
 
 class ApiService {
   final String baseUrl =
-      'https://3a43-113-23-49-208.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://457f-14-232-55-213.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   // Gửi request đăng nhập
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -686,17 +687,30 @@ class ApiService {
   }
 
   // Hàm để lấy dữ liệu invoice_food
-  Future<Map<String, dynamic>> fetchInvoiceData() async {
-    // Tạo đường dẫn đầy đủ từ baseUrl và endpoint
-    final response = await http.get(Uri.parse('$baseUrl/invoice_food'));
+  Future<List<Map<String, dynamic>>> fetchInvoiceData() async {
+    final invoiceUrl =
+        '$baseUrl/invoice_food/'; // Đường dẫn API lấy danh sách lương
 
-    // Kiểm tra mã trạng thái trả về từ API
-    if (response.statusCode == 200) {
-      // Chuyển đổi dữ liệu JSON từ response body thành Map
-      return json.decode(response.body); 
-    } else {
-      // Ném ra ngoại lệ nếu có lỗi
-      throw Exception('Failed to load invoice data');
+    try {
+      final response = await http.get(Uri.parse(invoiceUrl), headers: {
+        'Accept': 'application/json; charset=UTF-8', // Đảm bảo yêu cầu JSON
+        "ngrok-skip-browser-warning": "69420", // Nếu sử dụng ngrok
+      });
+
+      if (response.statusCode == 200) {
+        // Giải mã UTF-8 để xử lý dữ liệu chứa ký tự đặc biệt
+        final decodedResponse = utf8.decode(response.bodyBytes);
+        List<dynamic> data = json.decode(decodedResponse);
+        return List<Map<String, dynamic>>.from(
+            data); // Chuyển đổi về dạng danh sách Map
+      } else {
+        print(
+            "Error fetching invoice: ${response.statusCode} ${response.reasonPhrase}");
+        throw Exception('Failed to load invoice');
+      }
+    } catch (e) {
+      print("Error fetching invoice: $e");
+      throw Exception('Error fetching invoice: $e');
     }
   }
 

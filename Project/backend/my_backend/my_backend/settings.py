@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-&3vq4iioxe%+#%397)cqj=z8lx*s92r5za)7smfej8uwe&q!k!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'd7f0-42-115-238-141.ngrok-free.app']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '7abc-14-160-17-40.ngrok-free.app']
 
 
 
@@ -84,10 +84,10 @@ WSGI_APPLICATION = 'my_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
-        'NAME': 'RestaurantDB',  # Tên cơ sở dữ liệu
+        'NAME': 'RestaurantDB1',  # Tên cơ sở dữ liệu
         'USER': '',  # Để trống vì bạn dùng Windows Authentication
         'PASSWORD': '',  # Không cần mật khẩu vì dùng Windows Authentication
-        'HOST': 'HOANGPHI',  # Server name của SQL Server
+        'HOST': 'DESKTOP-7515C5T',  # Server name của SQL Server
         'PORT': '',  # Cổng mặc định (1433) có thể để trống
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',  # Driver ODBC

@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 
 class FoodController {
- FoodController(this._apiService);
+  FoodController(this._apiService);
 
 final ApiService _apiService;
 
