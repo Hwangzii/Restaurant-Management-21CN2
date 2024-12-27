@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:app/controllers/staff_check_controller.dart';
+import 'package:intl/intl.dart';
 
 class StaffCheckApp extends StatelessWidget {
   const StaffCheckApp({super.key});
@@ -7,9 +9,7 @@ class StaffCheckApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Điểm danh nhân viên',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: ThemeData(primarySwatch: Colors.blue),
       home: const StaffCheckScreen(),
     );
   }
@@ -23,200 +23,471 @@ class StaffCheckScreen extends StatefulWidget {
 }
 
 class _StaffCheckScreenState extends State<StaffCheckScreen> {
-  // Danh sách tên nhân viên
-  List<String> employeeNames = [
-    "Nguyễn Hồng Phi",
-    "Lương Ngọc Sơn",
-    "Dương Nhật Đức Việt",
-    "Nguyễn Đỗ Công",
-    "Nguyễn Hà Thanh",
-    "Nguyễn Hồng Phi",
-    "Ngọc Sơn",
-    "Dương Nhật Đức ",
-    "Nguyễn Đỗ Công",
-    "Hà Thanh",
-    "Nguyễn ồng Phi",
-    "Lương Ngọc Sơn",
-    "Nguyễn Hồng Phi",
-    "Ngọc Sơn",
-    "Dương Nhật Đức ",
-    "Nguyễn Đỗ Công",
-    "Hà Thanh",
-    "Nguyễn ồng Phi",
-    "Lương Ngọc Sơn",
-    "Nguyễn Hồng Phi",
-    "Ngọc Sơn",
-    "Dương Nhật Đức ",
-    "Nguyễn Đỗ Công",
-    "Hà Thanh",
-    "Nguyễn ồng Phi",
-    "Lương Ngọc Sơn",
-  ];
-
-  // Danh sách trạng thái điểm danh: null = chưa chọn, true = Có, false = Muộn
-  late List<bool?> attendanceStatus;
-
-  // Biến lưu giá trị tìm kiếm
-  String _searchQuery = '';
-
-  // Biến kiểm tra cuộn hết danh sách
-  bool _isEndOfList = false;
+  List<Map<String, dynamic>> employees = [];
+  List<bool?> attendanceStatus = [];
+  List<String?> absenceReasons = [];
+  final String _searchQuery = '';
+  String _selectedShift = 'ca sáng';
+  bool _isLoading = false;
+  DateTime? selectedDate = DateTime.now();
+  bool isSaveButtonVisible = true;
 
   @override
   void initState() {
     super.initState();
-    // Khởi tạo danh sách trạng thái điểm danh với số lượng nhân viên hiện tại
-    attendanceStatus = List.filled(employeeNames.length, null);
+    _fetchFilteredEmployees(DateTime.now(), _selectedShift);
+    _dateController.text = 'Chọn ngày'; // Đặt giá trị mặc định cho TextField
   }
 
-  // Hàm xử lý khi bấm nút lưu
-  void _saveAttendance() {
-    for (int i = 0; i < employeeNames.length; i++) {
-      debugPrint(
-          "${employeeNames[i]}: ${attendanceStatus[i] == true ? "Có" : attendanceStatus[i] == false ? "Muộn" : "Chưa điểm danh"}");
+  final TextEditingController _dateController = TextEditingController();
+
+  Future<void> _fetchFilteredEmployees(DateTime date, String shiftType) async {
+    setState(() => _isLoading = true);
+    try {
+      final data = await StaffCheckAppController.fetchFilteredEmployees(
+        selectedDate: date,
+        shiftType: shiftType,
+      );
+
+      setState(() {
+        employees = data;
+        attendanceStatus = List.filled(employees.length, null);
+        absenceReasons = List.filled(employees.length, null);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lỗi khi tải danh sách nhân viên')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Điểm danh đã được lưu thành công!")),
+  }
+
+  void _checkIfToday(DateTime? pickedDate) {
+    if (pickedDate != null) {
+      final today = DateTime.now();
+      final onlyToday = DateTime(today.year, today.month, today.day);
+      final onlyPickedDate =
+          DateTime(pickedDate.year, pickedDate.month, pickedDate.day);
+
+      final isToday = onlyToday == onlyPickedDate;
+      if (isSaveButtonVisible != isToday) {
+        setState(() {
+          isSaveButtonVisible = isToday;
+        });
+      }
+    }
+  }
+
+  void _showAbsenceReasonDialog(int index) {
+    final TextEditingController reasonController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Nhập lý do nghỉ"),
+          content: TextField(
+            controller: reasonController,
+            decoration: const InputDecoration(
+              hintText: "Nhập lý do nghỉ...",
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(
+                    context); // Đóng dialog ngay lập tức nếu nhấn "Hủy"
+              },
+              child: const Text("Hủy"),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Lấy lý do nghỉ
+                final reason = reasonController.text.trim();
+
+                if (reason.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Vui lòng nhập lý do nghỉ."),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                setState(() {
+                  absenceReasons[index] = reason;
+                  attendanceStatus[index] = null; // Reset trạng thái khác
+                });
+
+                // Lấy employeeId và shiftType từ logic đã dùng trong `_saveAttendance`
+                final employeeId = employees[index]['employees_id'];
+                final shiftType = _selectedShift == 'ca sáng' ? 'sáng' : 'tối';
+
+                // Kiểm tra employeeId và shiftType
+                if (employeeId == null || employeeId is! int) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "Lỗi: employeeId không hợp lệ cho nhân viên ${employees[index]['full_name']}",
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                try {
+                  // Gọi API để cập nhật lý do nghỉ
+                  final result = await StaffCheckAppController
+                      .updatereasonStatusByEmployee(
+                    employeeId,
+                    shiftType,
+                    reason,
+                  );
+
+                  if (result['success']) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text("Lý do nghỉ đã được cập nhật thành công!"),
+                      ),
+                    );
+                  } else {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Lỗi: ${result['message']}"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Lỗi khi kết nối API: $e"),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+
+                // Đóng AlertDialog sau khi mọi thứ hoàn tất
+                Navigator.pop(context);
+              },
+              child: const Text("Lưu"),
+            ),
+          ],
+        );
+      },
     );
+  }
+
+  void _saveAttendance() async {
+    List<String> attendanceDetails = [];
+    bool isError = false;
+
+    for (int i = 0; i < employees.length; i++) {
+      String attendance;
+
+      // Xác định trạng thái điểm danh
+      if (attendanceStatus[i] == true) {
+        attendance = "có"; // Có mặt
+      } else if (attendanceStatus[i] == false) {
+        attendance = "muộn"; // Đi muộn
+      } else if (absenceReasons[i] != null) {
+        attendance = "nghỉ có phép"; // Nghỉ có phép
+      } else {
+        attendance = "nghỉ không phép"; // Nghỉ không phép
+      }
+
+      // Lấy `employee_id` và `shiftType`
+      final employeeId = employees[i]['employees_id'];
+      final shiftType = _selectedShift == 'ca sáng' ? 'sáng' : 'tối';
+
+      // Kiểm tra `employee_id` trước khi gọi API
+      if (employeeId == null || employeeId is! int) {
+        isError = true;
+        attendanceDetails.add(
+            "Lỗi kết nối: ${employees[i]['employees_id']} (employee_id không hợp lệ)");
+        continue;
+      }
+
+      // Thêm chi tiết điểm danh
+      attendanceDetails.add("${employees[i]['full_name']}: $attendance");
+
+      // Gọi API qua controller
+      try {
+        final result = await StaffCheckAppController.updateStatusByEmployee(
+          employeeId,
+          shiftType,
+          attendance,
+        );
+
+        if (!result['success']) {
+          print(
+              "Lỗi cập nhật trạng thái cho ${employees[i]['full_name']}: ${result['message']}");
+        }
+      } catch (e) {
+        isError = true;
+        attendanceDetails
+            .add("Lỗi kết nối: ${employees[i]['full_name']} (${e.toString()})");
+      }
+    }
+
+    // Hiển thị thông báo
+    if (!isError) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Điểm danh đã được lưu thành công!\n\n${attendanceDetails.join('\n')}",
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Một số trạng thái không được cập nhật:\n\n${attendanceDetails.join('\n')}",
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Lọc danh sách theo từ khóa tìm kiếm
-    List<String> filteredNames = employeeNames
-        .where((name) => name.toLowerCase().contains(_searchQuery.toLowerCase()))
-        .toList();
+    DateTime dayselect = DateTime.now();
 
-    // Đảm bảo số lượng trạng thái điểm danh phù hợp với danh sách nhân viên lọc
-    List<bool?> filteredAttendanceStatus = attendanceStatus
-        .take(filteredNames.length)
+    // String formattedDate =
+    //     "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}";
+
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Điểm danh nhân viên')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    List<Map<String, dynamic>> filteredEmployees = employees
+        .where((employee) => employee['full_name']
+            .toLowerCase()
+            .contains(_searchQuery.toLowerCase()))
         .toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Điểm danh nhân viên'),
-        centerTitle: true,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56.0),
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              onChanged: (query) {
-                setState(() {
-                  _searchQuery = query;
-                });
-              },
-              decoration: InputDecoration(
-                hintText: 'Tìm kiếm nhân viên...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: const BorderSide(color: Colors.blue),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (ScrollNotification notification) {
-          if (notification is ScrollUpdateNotification) {
-            // Kiểm tra khi đã cuộn đến cuối
-            if (notification.metrics.extentAfter == 0) {
-              setState(() {
-                _isEndOfList = true;
-              });
-            } else {
-              setState(() {
-                _isEndOfList = false;
-              });
-            }
-          }
-          return false;
-        },
-        child: Column(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Hiển thị tổng số nhân viên sau khi lọc
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                "Tổng số nhân viên: ${filteredNames.length}",
-                style: const TextStyle(fontSize: 18),
-              ),
+            const Text(
+              'Điểm danh nhân viên',
+              style: TextStyle(color: Colors.black, fontSize: 20),
             ),
-            // Danh sách nhân viên và trạng thái điểm danh
-            Expanded(
-              child: ListView.separated(
-                itemCount: filteredNames.length,
-                separatorBuilder: (context, index) => const Divider(
-                  color: Color.fromARGB(255, 232, 229, 229),
-                  thickness: 1,
-                  height: 1,
-                ),
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(
-                      filteredNames[index],
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          children: [
-                            Radio<bool>(
-                              value: true,
-                              groupValue: filteredAttendanceStatus[index],
-                              activeColor: Colors.orange,
-                              onChanged: (value) {
-                                setState(() {
-                                  // Cập nhật trạng thái điểm danh trong danh sách gốc
-                                  attendanceStatus[employeeNames.indexOf(filteredNames[index])] = value;
-                                });
-                              },
-                            ),
-                            const Text('Có'),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Radio<bool>(
-                              value: false,
-                              groupValue: filteredAttendanceStatus[index],
-                              activeColor: Colors.grey,
-                              onChanged: (value) {
-                                setState(() {
-                                  // Cập nhật trạng thái điểm danh trong danh sách gốc
-                                  attendanceStatus[employeeNames.indexOf(filteredNames[index])] = value;
-                                });
-                              },
-                            ),
-                            const Text('Muộn'),
-                          ],
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+            Text(
+              "Tổng số nhân viên: ${filteredEmployees.length}",
+              style: const TextStyle(color: Colors.black, fontSize: 16),
             ),
-            // Hiển thị nút "Lưu" chỉ khi đã cuộn hết danh sách
-            if (_isEndOfList)
-              Align(
-                alignment: Alignment.bottomRight, // Đặt nút ở góc dưới bên phải
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: FloatingActionButton.extended(
-                    onPressed: _saveAttendance, // Gọi hàm lưu điểm danh
-                    label: const Text('Lưu'),
-                    icon: const Icon(Icons.save),
-                    backgroundColor: Colors.blue,
-                  ),
-                ),
-              ),
           ],
         ),
       ),
+      body: Column(
+        children: [
+          // Phần chọn ngày và ca làm việc
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: TextField(
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      hintText: selectedDate != null
+                          ? DateFormat('dd/MM/yyyy').format(selectedDate!)
+                          : 'Chọn ngày',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      prefixIcon: const Icon(Icons.calendar_today),
+                    ),
+                  ),
+                ),
+                // Phần chọn ngày
+                IconButton(
+                  icon: const Icon(Icons.date_range),
+                  onPressed: () async {
+                    DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: selectedDate ?? DateTime.now(),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                    );
+
+                    if (pickedDate != null && pickedDate != selectedDate) {
+                      setState(() {
+                        selectedDate = pickedDate;
+                      });
+
+                      // Gọi API để lọc nhân viên theo ngày
+                      _fetchFilteredEmployees(dayselect, _selectedShift);
+                      _checkIfToday(pickedDate);
+                    }
+                  },
+                ),
+
+                // Phần chọn ca làm việc
+                DropdownButton<String>(
+                  value: _selectedShift,
+                  underline: Container(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedShift = newValue!;
+                    });
+
+                    // Gọi API để lọc nhân viên theo ca làm việc
+                    _fetchFilteredEmployees(dayselect, _selectedShift);
+                  },
+                  items: <String>['ca sáng', 'ca tối']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(
+                        value,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+
+          // Danh sách nhân viên
+          Expanded(
+            child: ListView.separated(
+              itemCount: filteredEmployees.length,
+              separatorBuilder: (context, index) => const Divider(),
+              itemBuilder: (context, index) {
+                final employee = filteredEmployees[index];
+                final originalIndex = employees.indexOf(employee);
+                return ListTile(
+                  title: Text(employee['full_name']),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            attendanceStatus[originalIndex] =
+                                attendanceStatus[originalIndex] == true
+                                    ? null
+                                    : true;
+                          });
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              attendanceStatus[originalIndex] == true
+                                  ? Icons.radio_button_checked
+                                  : Icons.radio_button_unchecked,
+                              color: attendanceStatus[originalIndex] == true
+                                  ? Colors.orange
+                                  : Colors.grey,
+                            ),
+                            const SizedBox(height: 4),
+                            const Text('Có'),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            attendanceStatus[originalIndex] =
+                                attendanceStatus[originalIndex] == false
+                                    ? null
+                                    : false;
+                          });
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              attendanceStatus[originalIndex] == false
+                                  ? Icons.radio_button_checked
+                                  : Icons.radio_button_unchecked,
+                              color: attendanceStatus[originalIndex] == false
+                                  ? Colors.orange
+                                  : Colors.grey,
+                            ),
+                            const SizedBox(height: 4),
+                            const Text('Muộn'),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            if (absenceReasons[originalIndex] != null) {
+                              absenceReasons[originalIndex] = null;
+                              attendanceStatus[originalIndex] = null;
+                            } else {
+                              _showAbsenceReasonDialog(originalIndex);
+                            }
+                          });
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              absenceReasons[originalIndex] != null
+                                  ? Icons.radio_button_checked
+                                  : Icons.radio_button_unchecked,
+                              color: absenceReasons[originalIndex] != null
+                                  ? Colors.orange
+                                  : Colors.grey,
+                            ),
+                            const SizedBox(height: 4),
+                            const Text('Nghỉ'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: isSaveButtonVisible
+          ? Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SizedBox(
+                height: 45,
+                child: FloatingActionButton.extended(
+                  onPressed: _saveAttendance,
+                  label: const Text(
+                    'Lưu',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  icon: const Icon(
+                    Icons.save,
+                    size: 18,
+                  ),
+                  backgroundColor: const Color(0xFFFF8A00),
+                ),
+              ),
+            )
+          : null,
     );
   }
 }

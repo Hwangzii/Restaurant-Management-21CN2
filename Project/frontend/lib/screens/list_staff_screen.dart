@@ -53,7 +53,7 @@ class _ListStaffScreenState extends State<ListStaffScreen> {
             children: [
               ListTile(
                 leading: const Icon(Icons.edit, color: Colors.blue),
-                title: const Text("Sửa thông tin"),
+                title: const Text("Xem thông tin"),
                 onTap: () async {
                   Navigator.pop(context);
                   final result = await Navigator.push(

@@ -17,7 +17,6 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _positionController = TextEditingController();
   final TextEditingController _cccdController = TextEditingController();
-  final TextEditingController _restaurantController = TextEditingController();
 
   @override
   void initState() {
@@ -29,8 +28,6 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
       _addressController.text = widget.employee!['employees_address'] ?? '';
       _positionController.text = widget.employee!['position'] ?? '';
       _cccdController.text = widget.employee!['cccd'] ?? '';
-      _restaurantController.text =
-          widget.employee!['restaurant_id'].toString() ?? '';
     }
   }
 
@@ -43,21 +40,6 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
     } catch (e) {
       _showErrorMessage('Ngày sinh không hợp lệ!');
       return; // Stop if dateOfBirth is invalid
-    }
-
-    // Kiểm tra và chuyển đổi restaurant
-    int restaurant;
-    try {
-      restaurant =
-          int.tryParse(_restaurantController.text) ?? -1; // Ensure it's not 0
-    } catch (e) {
-      _showErrorMessage('ID Nhà hàng không hợp lệ!');
-      return; // Stop if restaurant ID is invalid
-    }
-
-    if (restaurant == -1) {
-      _showErrorMessage('ID nhà hàng không hợp lệ!');
-      return; // Stop if restaurant ID is invalid
     }
 
     // Thêm thời gian bắt đầu (time_start)
@@ -76,7 +58,6 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
         cccd: _cccdController.text,
         timeStart: timeStart, // Pass timeStart as formatted string (yyyy-MM-dd)
         statusWork: true,
-        restaurant: restaurant, // Pass restaurant ID as int
       );
     } else {
       // Update employee
@@ -91,7 +72,6 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
         cccd: _cccdController.text,
         timeStart: timeStart, // Pass timeStart as formatted string (yyyy-MM-dd)
         statusWork: true,
-        restaurant: restaurant, // Pass restaurant ID as int
       );
     }
 
@@ -134,7 +114,6 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
             _buildInputField('Địa chỉ', _addressController),
             _buildInputField('Chức vụ', _positionController),
             _buildInputField('CCCD', _cccdController),
-            _buildInputField('ID Nhà hàng', _restaurantController),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _saveStaff,

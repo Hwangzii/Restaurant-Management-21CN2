@@ -13,14 +13,14 @@ class Restaurant(models.Model):
 class Account(models.Model):
     username = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=255)  # Tăng độ dài để lưu trữ mật khẩu băm
-    name = models.CharField(max_length=100)
-    user_phone = models.CharField(max_length=15)
-    email = models.EmailField(max_length=50)  # Sử dụng EmailField để xác thực email
+    name = models.CharField(max_length=100,null=True, blank=True)
+    user_phone = models.CharField(max_length=15,null=True, blank=True)
+    email = models.EmailField(max_length=50, null=True, blank=True)  # Sử dụng EmailField để xác thực email
     key = models.CharField(max_length=50, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     is_2fa_enabled = models.BooleanField(default=False)
-    role = models.IntegerField()
-    restaurant_id = models.IntegerField()
+    role = models.IntegerField(null=True, blank=True)
+    restaurant_id = models.IntegerField(null=True, blank=True)
 
     class Meta:
         db_table = 'accounts'  # Trỏ đến bảng Account_tb trong SQL Server
@@ -80,7 +80,7 @@ class Employee(models.Model):
     time_start = models.DateField()
     status_work = models.BooleanField(default=True)
     cccd = models.CharField(max_length=100)
-    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='employees')
+    restaurant_id = models.IntegerField(default=2, null=2, blank=True)
 
     class Meta:
         db_table = 'employees'
@@ -115,6 +115,7 @@ class InvoiceFood(models.Model):
     created_at = models.DateTimeField()
     pre_sale_price = models.DecimalField(max_digits=10, decimal_places=0)
     table_name = models.CharField(max_length=20)
+    sale_percent = models.IntegerField(null=True, blank=True) 
 
     class Meta:
         db_table = 'invoice_food'
@@ -128,7 +129,7 @@ class WorkSchedule(models.Model):
     work_date = models.DateField()
     shift_type = models.CharField(max_length=50)
     status = models.CharField(max_length=10)
-    describe = models.CharField(max_length=50)
+    describe = models.CharField(max_length=50, null= True, blank= True)
 
     class Meta:
         db_table = 'work_schedule'
@@ -167,12 +168,20 @@ class InvoiceInventory(models.Model):
 class Salaries(models.Model):
     salary_id = models.AutoField(primary_key=True)
     month = models.CharField(max_length=30)
-    salary = models.DecimalField(max_digits=10, decimal_places=0)
-    bonus = models.DecimalField(max_digits=10, decimal_places=0)
-    penalty = models.DecimalField(max_digits=10, decimal_places=0)
-    deduction = models.DecimalField(max_digits=10, decimal_places=0)
+    salary = models.IntegerField() 
+    final_salary = models.IntegerField() 
+    penalty = models.IntegerField() 
+    deduction = models.IntegerField() 
     payment_date = models.DateTimeField()
+    total_timework = models.IntegerField(null=True, blank=True)
+    total_timegolate = models.IntegerField(null=True, blank=True)
+    employee_name = models.CharField(max_length=255)
     employees = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='Salaries')
+    total_late = models.IntegerField()
+    total_absent = models.IntegerField()
+    total_Permitted_leave = models.IntegerField()
+    salary_month = models.IntegerField()
+    salary_year = models.IntegerField()
 
     class Meta:
         db_table = 'Salaries'

@@ -22,6 +22,7 @@ class ListStaffController {
           'status_work': employee['status_work'],
           'cccd': employee['cccd'],
           'restaurant': employee['restaurant'],
+          'status_check': employee['status_check']
         };
       }).toList();
     } catch (e) {
@@ -40,7 +41,6 @@ class ListStaffController {
     required String cccd,
     required DateTime timeStart,
     bool statusWork = true, // Thêm trường statusWork với giá trị mặc định
-    required int restaurant,
   }) async {
     try {
       return await ApiService().addEmployee(
@@ -51,7 +51,6 @@ class ListStaffController {
         position: position,
         timeStart: timeStart,
         cccd: cccd,
-        restaurant: restaurant,
       );
     } catch (e) {
       print('Error adding staff: $e');
@@ -70,7 +69,6 @@ class ListStaffController {
     required String cccd,
     required DateTime timeStart,
     required bool statusWork,
-    required int restaurant,
   }) async {
     try {
       // Tạo map chứa dữ liệu đã cập nhật với các giá trị không thể null
@@ -83,7 +81,6 @@ class ListStaffController {
         'cccd': cccd,
         'time_start': DateFormat('yyyy-MM-dd').format(timeStart),
         'status_work': statusWork,
-        'restaurant': restaurant,
       };
 
       // Có thể thêm các kiểm tra bổ sung ở đây nếu cần

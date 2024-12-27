@@ -112,6 +112,7 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
       String tableName,
       double totalAmount,
       double totalAmount1,
+      double selectedPercentage,
       List<Map<String, dynamic>> orderItems) async {
     String selectedPaymentMethod = 'Tiền mặt'; // Default payment method
     List<String> paymentMethods = ['Tiền mặt', 'Chuyển khoản'];
@@ -164,6 +165,17 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
+                    'Giảm giá:',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  Text("${selectedPercentage.round()}%",
+                      style: TextStyle(fontSize: 14, color: Colors.black)),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
                     'Tổng tiền:',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
@@ -202,6 +214,7 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
                     "invoice_type": 1, // Loại hóa đơn (1 = trực tiếp)
                     "table_name": tableName,
                     "pre_sale_price": totalAmount1.round(),
+                    "sale_percent": selectedPercentage.round(),
                     "created_at": DateTime.now().toIso8601String(),
                   });
 
@@ -677,7 +690,7 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
                 double totalAmount = _calculateTotal();
                 double totalAmount1 = _calculateSubtotal();
                 showPaymentForm(context, widget.tableName, totalAmount,
-                    totalAmount1, orderItems);
+                    totalAmount1, selectedPercentage, orderItems);
                 print("Button 1 pressed");
               },
               label: Text(

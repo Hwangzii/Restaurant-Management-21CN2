@@ -112,9 +112,7 @@ class _MasterchefScreenState extends State<MasterchefScreen> {
       appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Text('Món Ăn Đã Gọi'),
-          ],
+          children: const [Text('Món Ăn Đã Gọi')],
         ),
         centerTitle: true,
         backgroundColor: Colors.orange,
@@ -143,13 +141,13 @@ class _MasterchefScreenState extends State<MasterchefScreen> {
                     // Header cố định
                     Container(
                       color: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 10.0),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 22, vertical: 5),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: const [
                           Expanded(
                               child: Text("Tên món",
-                                  textAlign: TextAlign.center,
                                   style: TextStyle(color: Colors.grey))),
                           Expanded(
                               child: Text("Bàn",
@@ -169,7 +167,6 @@ class _MasterchefScreenState extends State<MasterchefScreen> {
                                   style: TextStyle(color: Colors.grey))),
                           Expanded(
                               child: Text("Ghi chú",
-                                  textAlign: TextAlign.center,
                                   style: TextStyle(color: Colors.grey))),
                           Expanded(
                               child: Text("Thao tác",
@@ -180,74 +177,94 @@ class _MasterchefScreenState extends State<MasterchefScreen> {
                     ),
                     // Danh sách món cuộn
                     Expanded(
-                      child: ListView.separated(
-                        shrinkWrap: true,
-                        separatorBuilder: (context, index) => const Divider(
-                          thickness: 1, // Độ dày đường kẻ
-                          color: Colors.grey, // Màu đường kẻ
-                        ),
-                        itemCount: orders.length,
-                        itemBuilder: (context, index) {
-                          final order = orders[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Expanded(
-                                    child: Text(order['item_name'],
-                                        textAlign: TextAlign.center)),
-                                Expanded(
-                                    child: Text(order['table_name'],
-                                        textAlign: TextAlign.center)),
-                                Expanded(
-                                    child: Text(order['quantity'].toString(),
-                                        textAlign: TextAlign.center)),
-                                Expanded(
-                                    child: Text(order['type'] ?? '',
-                                        textAlign: TextAlign.center)),
-                                Expanded(
-                                    child: Text(formatTime(order['timestamp']),
-                                        textAlign: TextAlign.center)),
-                                Expanded(
-                                    child: Text(order['describe'] ?? '',
-                                        textAlign: TextAlign.center)),
-                                Expanded(
-                                  child: Row(
+                      child: Container(
+                        color: Colors.white,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 22, vertical: 5),
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: orders.length,
+                          itemBuilder: (context, index) {
+                            final order = orders[index];
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Column(
+                                children: [
+                                  Divider(
+                                    color: Colors
+                                        .grey[300], // Màu sắc của đường kẻ
+                                    thickness: 1, // Độ dày của đường kẻ
+                                    indent: 4, // Khoảng cách từ bên trái
+                                    endIndent: 4, // Khoảng cách từ bên phải
+                                  ),
+                                  Row(
                                     mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
+                                        MainAxisAlignment.spaceAround,
                                     children: [
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          _cancelOrder(order['id']);
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.red,
-                                        ),
-                                        child: const Text(
-                                          'Hủy',
-                                          style: TextStyle(color: Colors.white),
-                                        ),
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          _markOrderAsServed(order['id']);
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.green,
-                                        ),
-                                        child: const Text(
-                                          'Ra món',
-                                          style: TextStyle(color: Colors.white),
+                                      Expanded(
+                                          child: Text(
+                                        order['item_name'],
+                                      )),
+                                      Expanded(
+                                          child: Text(order['table_name'],
+                                              textAlign: TextAlign.center)),
+                                      Expanded(
+                                          child: Text(
+                                              order['quantity'].toString(),
+                                              textAlign: TextAlign.center)),
+                                      Expanded(
+                                          child: Text(order['type'] ?? '',
+                                              textAlign: TextAlign.center)),
+                                      Expanded(
+                                          child: Text(
+                                              formatTime(order['timestamp']),
+                                              textAlign: TextAlign.center)),
+                                      Expanded(
+                                          child: Text(
+                                        order['describe'] ?? '',
+                                      )),
+                                      Expanded(
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                _cancelOrder(order['id']);
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.red,
+                                              ),
+                                              child: const Text(
+                                                'Hủy',
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                              ),
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                _markOrderAsServed(order['id']);
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.green,
+                                              ),
+                                              child: const Text(
+                                                'Ra món',
+                                                style: TextStyle(
+                                                    color: Colors.white),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ],

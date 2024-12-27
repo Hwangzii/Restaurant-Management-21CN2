@@ -1,7 +1,8 @@
+import datetime
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
 import pyotp
-import secrets
+from django.utils.timezone import now
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -11,7 +12,10 @@ from .serializers import AccountSerializer, CustomerSerializer, EmployeeSerializ
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, Count, Q
+from datetime import datetime
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 
@@ -86,7 +90,9 @@ class VerifyOTPView(APIView):
                 return Response({
                     'message': 'OTP verified successfully',
                     'restaurant_id': account.restaurant_id,
-                    'role': account.role
+                    'role': account.role,
+                    'password': account.password,
+                    'name': account.name
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
@@ -95,7 +101,7 @@ class VerifyOTPView(APIView):
             return Response({'error': 'Account not found'}, status=status.HTTP_404_NOT_FOUND)
 
 # View để quản lý tài khoản người dùng
-class AccountViewSet(ReadOnlyModelViewSet):
+class AccountViewSet(viewsets.ModelViewSet):
     queryset = Account.objects.all()
     serializer_class = AccountSerializer
     # permission_classes = [IsAuthenticated]
@@ -178,6 +184,120 @@ class InvoiceFoodViewSet(viewsets.ModelViewSet):
 class WorkScheduleViewSet(viewsets.ModelViewSet):
     queryset = WorkSchedule.objects.all()
     serializer_class = WorkScheduleSerializer
+
+# Cập nhật trạng thái bằng employee_id và shift_type
+    @action(detail=False, methods=['post'], url_path='update-status-by-employee', url_name='update_status_by_employee')
+    def update_status_by_employee(self, request):
+        try:
+            # Lấy thông tin từ request
+            employee_id = request.data.get('employee_id', None)
+            shift_type = request.data.get('shift_type', None)
+            new_status = request.data.get('status', None)
+
+            # Kiểm tra các trường bắt buộc
+            if not employee_id or not shift_type or not new_status:
+                return Response({"error": "Fields 'employee_id', 'shift_type', and 'status' are required."},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            # Tìm WorkSchedule phù hợp
+            schedule = WorkSchedule.objects.filter(employee_id=employee_id, shift_type=shift_type).first()
+
+            if not schedule:
+                return Response({"error": "WorkSchedule not found for the given employee_id and shift_type."},
+                                status=status.HTTP_404_NOT_FOUND)
+
+            # Cập nhật trạng thái
+            schedule.status = new_status
+            schedule.save()
+
+            return Response({"message": "Status updated successfully."}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Cập nhật lý do nghỉ bằng employee_id và shift_type
+    @action(detail=False, methods=['post'], url_path='update-reason-by-employee', url_name='update_reason_by_employee')
+    def update_reason_by_employee(self, request):
+        try:
+            # Lấy thông tin từ request
+            employee_id = request.data.get('employee_id', None)
+            shift_type = request.data.get('shift_type', None)
+            reason = request.data.get('reason', None)
+
+            # Kiểm tra các trường bắt buộc
+            if not employee_id or not shift_type or not reason:
+                return Response(
+                    {"error": "Fields 'employee_id', 'shift_type', and 'reason' are required."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Tìm WorkSchedule phù hợp
+            schedule = WorkSchedule.objects.filter(employee_id=employee_id, shift_type=shift_type).first()
+
+            if not schedule:
+                return Response(
+                    {"error": "WorkSchedule not found for the given employee_id and shift_type."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            # Cập nhật lý do nghỉ
+            schedule.describe = reason
+            schedule.save()
+
+            return Response({"message": "Reason updated successfully."}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    # @receiver(post_save, sender=WorkSchedule)
+    # def calculate_salary(sender, instance, **kwargs):
+    #     try:
+    #         # Lấy tháng hiện tại từ bản ghi mới
+    #         work_date = instance.work_date
+    #         start_date = datetime(work_date.year, work_date.month, 1)
+    #         if work_date.month < 12:
+    #             end_date = datetime(work_date.year, work_date.month + 1, 1)
+    #         else:
+    #             end_date = datetime(work_date.year + 1, 1, 1)
+
+    #         # Lấy danh sách nhân viên và thống kê số ca làm việc trong tháng
+    #         employees = WorkSchedule.objects.filter(
+    #             work_date__gte=start_date, work_date__lt=end_date
+    #         ).values('employee_id').annotate(
+    #             total_present=Count('status', filter=Q(status="có")),
+    #             total_late=Count('status', filter=Q(status="muộn")),
+    #             total_absent=Count('status', filter=Q(status="nghỉ không phép"))
+    #         )
+
+    #         # Tính lương cho từng nhân viên
+    #         for employee in employees:
+    #             employee_id = employee['employee_id']
+    #             total_present = employee['total_present']
+    #             total_late = employee['total_late']
+    #             total_absent = employee['total_absent']
+
+    #             # Công thức tính lương
+    #             base_salary = 1000000  # Lương cơ bản
+    #             bonus = total_present * 50000  # Thưởng mỗi ca có mặt
+    #             penalty = total_late * 20000  # Phạt mỗi ca muộn
+    #             deduction = total_absent * 100000  # Trừ mỗi ca vắng không phép
+    #             total_salary = base_salary + bonus - penalty - deduction
+
+    #             # Lưu hoặc cập nhật lương trong bảng `salaries`
+    #             Salaries.objects.update_or_create(
+    #                 employees_id=employee_id,
+    #                 month=start_date,
+    #                 defaults={
+    #                     'salary': total_salary,
+    #                     'bonus': bonus,
+    #                     'penalty': penalty,
+    #                     'deduction': deduction,
+    #                     'payment_date': now(),
+    #                 }
+    #             )
+    #     except Exception as e:
+    #         print(f"Error calculating salary: {e}")
+
 
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
