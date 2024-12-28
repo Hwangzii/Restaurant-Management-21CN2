@@ -87,12 +87,16 @@ class VerifyOTPView(APIView):
 
             # Xác minh OTP
             if verify_otp(account.key, otp, window=1):
+                tokens = get_tokens_for_user(account)
+                account.is_2fa_enabled = True
+                account.save()
                 return Response({
                     'message': 'OTP verified successfully',
                     'restaurant_id': account.restaurant_id,
                     'role': account.role,
                     'password': account.password,
-                    'name': account.name
+                    'name': account.name,
+                    'tokens': tokens
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)

@@ -18,7 +18,7 @@ class LoginController {
       final loginResult = await ApiService().login(username, password);
 
       if (loginResult['success']) {
-        if (loginResult['qrCodeUrl'] != null) {
+        if (loginResult['qrCodeUrl']) {
           // Nếu có QR code (người dùng chưa bật 2FA)
           Navigator.push(
             context,
