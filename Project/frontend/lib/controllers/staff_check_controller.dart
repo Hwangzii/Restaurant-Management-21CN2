@@ -18,7 +18,7 @@ class StaffCheckAppController {
         print("No schedule data available from API");
         return [];
       }
-      print("Schedule Response: $scheduleResponse");
+      // print("Schedule Response: $scheduleResponse");
 
       // Lọc danh sách employee_id theo ngày và ca làm việc
       final selectedDateStr = DateFormat('yyyy-MM-dd').format(selectedDate);
@@ -27,12 +27,12 @@ class StaffCheckAppController {
         selectedDateStr,
         shiftType == 'ca sáng' ? 'sáng' : 'tối',
       );
-      print(
-          "Filtered Employee IDs for $selectedDateStr ($shiftType): $employeeIds");
+      // print(
+      //     "Filtered Employee IDs for $selectedDateStr ($shiftType): $employeeIds");
 
       // Nếu không có employee_id nào khớp, trả về danh sách trống
       if (employeeIds.isEmpty) {
-        print("No employee IDs found for the selected date and shift");
+        // print("No employee IDs found for the selected date and shift");
         return [];
       }
 
@@ -42,11 +42,11 @@ class StaffCheckAppController {
         print("No employee data available from API");
         return [];
       }
-      print("Employee Response: $employeeResponse");
+      // print("Employee Response: $employeeResponse");
 
       // Lọc danh sách nhân viên dựa trên danh sách employee_id đã lọc
       final filteredEmployees = _filterEmployees(employeeResponse, employeeIds);
-      print("Filtered Employees: $filteredEmployees");
+      // print("Filtered Employees: $filteredEmployees");
 
       return filteredEmployees;
     } catch (e) {

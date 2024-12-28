@@ -1,10 +1,17 @@
+import 'package:app/models/user.dart';
 import 'package:app/screens/menu_options.dart';
 import 'package:app/screens/order_food_screen.dart';
 import 'package:app/screens/tables_screen.dart';
+import 'package:app/services/api_service.dart';
 import 'package:flutter/material.dart';
-import 'package:app/controllers/notification_controller.dart'; // Import controller
+import 'package:app/controllers/notification_controller.dart';
+import 'package:intl/intl.dart'; // Import controller
 
 class HomeScreen extends StatefulWidget {
+  final User user;
+
+  const HomeScreen({Key? key, required this.user}) : super(key: key);
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -12,41 +19,224 @@ class HomeScreen extends StatefulWidget {
 // Biến màu chung
 const Color commonIconBackgroundColor = Color(0xFFF5F5F5);
 
+// hàm xử lý số liệu
+String formatNumberShort(double value) {
+  // Thêm dấu + đằng trước giá trị
+  String sign = value >= 0 ? '+' : ''; // Nếu giá trị lớn hơn 0 thì thêm dấu '+'
+
+  if (value >= 1e9) {
+    // Trường hợp lớn hơn hoặc bằng 1 tỉ
+    return '$sign${(value / 1e9).toStringAsFixed(1)} tỉ';
+  } else if (value >= 1e6) {
+    // Trường hợp lớn hơn hoặc bằng 1 triệu
+    return '$sign${(value / 1e6).toStringAsFixed(1)} tr';
+  } else {
+    // Trường hợp nhỏ hơn 1 triệu (nếu cần xử lý)
+    return '$sign${value.toStringAsFixed(0)}';
+  }
+}
+
+// hàm xử lý số liệu
+String formatNumberShort1(double value) {
+  // Thêm dấu + đằng trước giá trị
+  String sign = value >= 0 ? '-' : ''; // Nếu giá trị lớn hơn 0 thì thêm dấu '+'
+
+  if (value >= 1e9) {
+    // Trường hợp lớn hơn hoặc bằng 1 tỉ
+    return '$sign${(value / 1e9).toStringAsFixed(1)} tỉ';
+  } else if (value >= 1e6) {
+    // Trường hợp lớn hơn hoặc bằng 1 triệu
+    return '$sign${(value / 1e6).toStringAsFixed(1)} tr';
+  } else {
+    // Trường hợp nhỏ hơn 1 triệu (nếu cần xử lý)
+    return '$sign${value.toStringAsFixed(0)}';
+  }
+}
+
 // Danh sách dữ liệu icon
 final List<Map<String, dynamic>> iconsData = [
-  {'imagePath': 'assets/food.png', 'name': 'Món ăn', 'color': commonIconBackgroundColor, 'route': '/FoodScreen'},
-  {'imagePath': 'assets/clients.png', 'name': 'khách hàng', 'color': commonIconBackgroundColor},
-  {'imagePath': 'assets/order.png', 'name': 'Gọi món', 'color': commonIconBackgroundColor, 'route': '/TablesScreen'},
-  {'imagePath': 'assets/staff_check.png', 'name': 'Điểm danh', 'color': commonIconBackgroundColor, 'route': '/StaffCheckScreen'},
+  {
+    'imagePath': 'assets/food.png',
+    'name': 'Món ăn',
+    'color': commonIconBackgroundColor,
+    'route': '/FoodScreen'
+  },
+  {
+    'imagePath': 'assets/clients.png',
+    'name': 'khách hàng',
+    'color': commonIconBackgroundColor
+  },
+  {
+    'imagePath': 'assets/order.png',
+    'name': 'Gọi món',
+    'color': commonIconBackgroundColor,
+    'route': '/TablesScreen'
+  },
+  {
+    'imagePath': 'assets/staff_check.png',
+    'name': 'Điểm danh',
+    'color': commonIconBackgroundColor,
+    'route': '/StaffCheckScreen'
+  },
 ];
-       
+
+String _getCurrentDate() {
+  final now = DateTime.now();
+  final weekDays = [
+    'Chủ nhật',
+    'Thứ hai',
+    'Thứ ba',
+    'Thứ tư',
+    'Thứ năm',
+    'Thứ sáu',
+    'Thứ bảy'
+  ];
+  final currentWeekDay = weekDays[now.weekday % 7];
+  return '$currentWeekDay, ${now.day}/${now.month}/${now.year}';
+}
 
 class _HomeScreenState extends State<HomeScreen> {
   final NotificationController _notificationController =
       NotificationController(); // Khởi tạo controller
 
+  final ApiService _apiService = ApiService();
+
+  double totalRevenue = 0.0;
+  double totalRevenue1 = 0.0;
+  double totalRevenue2 = 0.0;
+  double totalRevenue3 = 0.0;
+  int totalRevenue4 = 0;
+  int totalRevenue5 = 0;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchTotalRevenue();
+    fetchTotalRevenue1(); // Gọi hàm để lấy dữ liệu tổng doanh thu
+    fetchTotalRevenue2();
+    fetchTotalRevenue3();
+    fetchTotalRevenue4();
+    fetchTotalRevenue5();
+  }
+
+  void fetchTotalRevenue() async {
+    try {
+      double revenue = await _apiService.fetchTotalRevenue();
+      setState(() {
+        totalRevenue = revenue;
+        isLoading = false; // Kết thúc loading
+      });
+    } catch (e) {
+      print('Error fetching total revenue: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  void fetchTotalRevenue1() async {
+    try {
+      double revenue = await _apiService.fetchFinancialSummary();
+      setState(() {
+        totalRevenue1 = revenue;
+        isLoading = false; // Kết thúc loading
+      });
+    } catch (e) {
+      print('Error fetching total revenue: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  void fetchTotalRevenue2() async {
+    try {
+      double revenue = await _apiService.fetchTotalCost();
+      setState(() {
+        totalRevenue2 = revenue;
+        isLoading = false; // Kết thúc loading
+      });
+    } catch (e) {
+      print('Error fetching total revenue: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  void fetchTotalRevenue3() async {
+    try {
+      double revenue = await _apiService.fetchIncomeGrowthPercentage();
+      setState(() {
+        totalRevenue3 = revenue;
+        isLoading = false; // Kết thúc loading
+      });
+    } catch (e) {
+      print('Error fetching total revenue: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  void fetchTotalRevenue4() async {
+    try {
+      int revenue = await _apiService.countType1Records();
+      setState(() {
+        totalRevenue4 = revenue;
+        isLoading = false; // Kết thúc loading
+      });
+    } catch (e) {
+      print('Error fetching total revenue: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  void fetchTotalRevenue5() async {
+    try {
+      int revenue = await _apiService.countActiveTables();
+      setState(() {
+        totalRevenue5 = revenue;
+        isLoading = false; // Kết thúc loading
+      });
+    } catch (e) {
+      print('Error fetching total revenue: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Lấy chiều rộng màn hình
     double screenWidth = MediaQuery.of(context).size.width;
-    
+
     // Chiều rộng của container đầu tiên sẽ bằng với chiều rộng của 4 ô vuông trong GridView
-    double containerWidth = (screenWidth - 3 * 10) / 4; // Trừ đi khoảng cách giữa các ô vuông
+    double containerWidth =
+        (screenWidth - 3 * 10) / 4; // Trừ đi khoảng cách giữa các ô vuông
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        automaticallyImplyLeading: false, // ẩn nút back
         backgroundColor: Colors.white,
         elevation: 0,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             // Avatar với sự kiện chuyển form
             GestureDetector(
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MenuOptions()),
+                  MaterialPageRoute(
+                      builder: (context) => MenuOptions(
+                            user: widget.user,
+                          )),
                 );
               },
               child: CircleAvatar(
@@ -55,69 +245,29 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Thanh tìm kiếm
-            Expanded(
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 20),
-                height: 40,
-                child: TextField(
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(vertical: 0),
-                    hintText: 'Tìm kiếm...',
-                    hintStyle: TextStyle(color: Color(0xFFABB2B9)),
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: Color(0xFFF2F2F2),
-                  ),
-                ),
-              ),
-            ),
-
-            // Icon thông báo với sự kiện click
-            Stack(
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _notificationController.incrementNotification(); // Gọi hàm tăng số thông báo
-                    });
-                  },
-                  icon: Image.asset(
-                    'assets/bell.png',
-                    width: 24,
-                    height: 24,
+                Text(
+                  '${widget.user.name}', // Hiển thị username từ API
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 16,
                   ),
                 ),
-                if (_notificationController.getNotificationCount() > 0)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Container(
-                      padding: EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        '${_notificationController.getNotificationCount()}',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                Text(
+                  _getCurrentDate(),
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
                   ),
+                ),
               ],
             ),
           ],
         ),
       ),
-
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -133,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
-                        'tổng doanh thu (VNĐ)',
+                        'Tổng doanh thu (VNĐ)',
                         style: TextStyle(
                           fontSize: 14,
                           color: Color(0xFF929292),
@@ -151,32 +301,39 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text(
-                        '100.000.000,0',
-                        style: TextStyle(
-                          fontSize: 28,
-                        ),
-                      ),
+                      isLoading
+                          ? CircularProgressIndicator() // Hiển thị khi đang tải
+                          : Text(
+                              NumberFormat.currency(locale: 'vi_VN', symbol: '')
+                                  .format(totalRevenue),
+                              style: TextStyle(
+                                fontSize: 36,
+                              ),
+                            ),
                       Spacer(),
                       Container(
-                        padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                        padding:
+                            EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                         decoration: BoxDecoration(
                           color: Color(0xFFF2F2F2),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
                           children: [
+                            // Kiểm tra giá trị và hiển thị icon tương ứng
                             Image.asset(
-                              'assets/triangle.png',
+                              (totalRevenue3) < 0
+                                  ? 'assets/triangle1.png' // Đường dẫn tới icon mũi tên xuống
+                                  : 'assets/triangle.png', // Đường dẫn tới icon mũi tên lên
                               width: 10,
                               height: 10,
+                              color: (totalRevenue3) < 0
+                                  ? Colors.red
+                                  : Colors.green, // Đổi màu icon
                             ),
                             SizedBox(width: 10),
                             Text(
-                              '8,2%',
-                              style: TextStyle(
-                                color: Colors.black,
-                              ),
+                              '${(totalRevenue3.abs() * 100)}%', // Giá trị luôn dương
                             ),
                           ],
                         ),
@@ -186,9 +343,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-        
-            SizedBox(height: 5,),
-        
+
+            SizedBox(
+              height: 5,
+            ),
+
             // Đường kẻ thẳng ngăn cách
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -197,13 +356,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 thickness: 1,
               ),
             ),
-        
-            SizedBox(height: 5,),  
-        
-            
+
+            SizedBox(
+              height: 5,
+            ),
+
             // Hàng thứ hai: hiển thị 4 icon chia đều ở đây
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 20), // khoảng cách lề cho Container
+              padding: EdgeInsets.symmetric(
+                  horizontal: 20), // khoảng cách lề cho Container
               color: Colors.white,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -218,16 +379,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Color(0xFF929292),
                         ),
                       ),
-                      SizedBox(height: 5,),
+                      SizedBox(
+                        height: 5,
+                      ),
                       Text(
-                        '472',
+                        '${totalRevenue4}',
                         style: TextStyle(
                           fontSize: 20,
                         ),
                       ),
                     ],
                   ),
-        
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -238,16 +400,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Color(0xFF929292),
                         ),
                       ),
-                      SizedBox(height: 5,),
+                      SizedBox(
+                        height: 5,
+                      ),
                       Text(
-                        '+180.0 tr',
+                        formatNumberShort(totalRevenue1),
                         style: TextStyle(
                           fontSize: 20,
                         ),
                       ),
                     ],
                   ),
-        
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -258,22 +421,25 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Color(0xFF929292),
                         ),
                       ),
-                      SizedBox(height: 5,),
+                      SizedBox(
+                        height: 5,
+                      ),
                       Text(
-                        '-80.0 tr',
+                        formatNumberShort1(totalRevenue2),
                         style: TextStyle(
                           fontSize: 20,
                         ),
                       ),
                     ],
                   )
-                  
                 ],
               ),
             ),
-        
-            SizedBox(height: 5,),
-        
+
+            SizedBox(
+              height: 5,
+            ),
+
             // Đường kẻ thẳng ngăn cách
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -282,9 +448,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 thickness: 1,
               ),
             ),
-        
-            SizedBox(height: 5,),
-        
+
+            SizedBox(
+              height: 5,
+            ),
+
             // Hàng thứ 3
             Container(
               color: Colors.white,
@@ -303,15 +471,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       Text(
-                        '15',
+                        '${totalRevenue5}',
                         style: TextStyle(
                           color: Color(0xFFFF8A00),
                           fontSize: 13,
                         ),
                       ),
                     ],
-                  ), 
-        
+                  ),
+
                   // "Xem chi tiết" + icon mũi tên
                   Row(
                     children: [
@@ -332,9 +500,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-        
-            SizedBox(height: 20,),
-        
+
+            SizedBox(
+              height: 20,
+            ),
+
             Container(
               color: Colors.white,
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -342,8 +512,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   // Danh sách các icon và text
                   GridView.builder(
-                    shrinkWrap: true, // Để GridView không chiếm toàn bộ không gian
-                    physics: NeverScrollableScrollPhysics(), // Vô hiệu cuộn trong GridView
+                    shrinkWrap:
+                        true, // Để GridView không chiếm toàn bộ không gian
+                    physics:
+                        NeverScrollableScrollPhysics(), // Vô hiệu cuộn trong GridView
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 4, // 4 mục trên mỗi hàng
                       crossAxisSpacing: 0,
@@ -353,7 +525,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemBuilder: (context, index) {
                       final item = iconsData[index];
                       return GestureDetector(
-                        onTap: (){
+                        onTap: () {
                           // Nếu có route, điều hướng đến màn hình tương ứng
                           if (item['route'] != null) {
                             Navigator.pushNamed(context, item['route']);
@@ -388,7 +560,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               SizedBox(height: 5),
                               Text(
                                 item['name'],
-                                style: TextStyle(fontSize: 13, color: Colors.black),
+                                style: TextStyle(
+                                    fontSize: 13, color: Colors.black),
                                 textAlign: TextAlign.center,
                               ),
                             ],
@@ -401,8 +574,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            SizedBox(height: 5,),
-        
+            SizedBox(
+              height: 5,
+            ),
+
             // Đường kẻ thẳng ngăn cách
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -411,13 +586,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 thickness: 1,
               ),
             ),
-        
-            SizedBox(height: 5,), 
+
+            SizedBox(
+              height: 5,
+            ),
 
             Container(
               margin: EdgeInsets.symmetric(horizontal: 20),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, // Căn giữa và cách đều
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween, // Căn giữa và cách đều
                 children: [
                   Align(
                     alignment: Alignment.centerLeft,
@@ -439,7 +617,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-
 
             Container(
               margin: EdgeInsets.all(20), // Khoảng cách với các phần tử khác

@@ -16,6 +16,10 @@ class _PayrollScreenState extends State<PayrollScreen> {
       false; // Biến để điều khiển việc hiển thị thanh tìm kiếm
   List<Map<String, dynamic>> salaries = [];
   final SalariesController salariesController = SalariesController();
+  int selectedMonth = DateTime.now().month; // Tháng mặc định
+  final TextEditingController yearController =
+      TextEditingController(); // Controller cho TextField nhập năm
+  List<Map<String, dynamic>> salaryRecords = [];
 
   @override
   void initState() {
@@ -41,6 +45,23 @@ class _PayrollScreenState extends State<PayrollScreen> {
     }
   }
 
+  Future<void> filterSalariesByMonthAndYear() async {
+    int year = int.tryParse(yearController.text) ?? DateTime.now().year;
+    setState(() => isLoading = true);
+    try {
+      final filteredSalaries =
+          await salariesController.getSalariesByMonth(selectedMonth, year);
+      setState(() {
+        salaries = filteredSalaries;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Lỗi lọc dữ liệu: $e')));
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
   // Thanh toán tất cả các bản ghi lương
   Future<void> _payAllSalaries() async {
     setState(() {
@@ -55,7 +76,7 @@ class _PayrollScreenState extends State<PayrollScreen> {
       _fetchSalaries(); // Cập nhật lại danh sách sau khi thanh toán
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Lỗi khi thanh toán lương: $e')),
+        SnackBar(content: Text('Không có nhân viên nào cần thanh toán')),
       );
     } finally {
       setState(() {
@@ -120,45 +141,53 @@ class _PayrollScreenState extends State<PayrollScreen> {
 
           // Phần chọn ngày
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(16.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                // Dropdown chọn tháng
                 Expanded(
-                  child: TextField(
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      hintText: selectedDate != null
-                          ? DateFormat('dd/MM/yyyy').format(selectedDate!)
-                          : 'Chọn ngày',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      prefixIcon: const Icon(Icons.calendar_today),
-                    ),
+                  flex: 2,
+                  child: DropdownButton<int>(
+                    isExpanded: true,
+                    value: selectedMonth,
+                    items: List.generate(12, (index) {
+                      return DropdownMenuItem(
+                        value: index + 1,
+                        child: Text('Tháng ${index + 1}'),
+                      );
+                    }),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedMonth = value!;
+                      });
+                      filterSalariesByMonthAndYear(); // Gọi API sau khi chọn tháng
+                    },
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.date_range),
-                  onPressed: () async {
-                    DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: selectedDate ?? DateTime.now(),
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2100),
-                    );
-
-                    if (pickedDate != null) {
-                      setState(() {
-                        selectedDate = pickedDate;
-                      });
-                    }
-                  },
+                const SizedBox(width: 16),
+                // TextField nhập năm
+                Expanded(
+                  flex: 1,
+                  child: TextField(
+                    controller: yearController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      hintText: 'Năm',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      // Gọi API khi thay đổi năm
+                      filterSalariesByMonthAndYear();
+                    },
+                    onSubmitted: (value) {
+                      // Gọi API khi nhấn Enter
+                      filterSalariesByMonthAndYear();
+                    },
+                  ),
                 ),
               ],
             ),
           ),
-
           // Phần danh sách bảng lương
           Expanded(
             child: ListView.builder(

@@ -1,8 +1,14 @@
+import 'package:app/models/user.dart';
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
-import 'change_password_screen.dart';  // Đảm bảo bạn đã import trang ChangePasswordScreen
+import 'change_password_screen.dart';
+import 'account_screen.dart'; // Đảm bảo import trang AccountScreen
 
 class MenuOptions extends StatelessWidget {
+  final User user;
+
+  const MenuOptions({Key? key, required this.user}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     // Lấy kích thước màn hình
@@ -27,7 +33,7 @@ class MenuOptions extends StatelessWidget {
             ),
             SizedBox(width: 10), // Khoảng cách giữa icon và tên
             Text(
-              'Nguyen Hoang Phi', // Tên tài khoản cố định
+              '${user.name}', // Tên tài khoản cố định
               style: TextStyle(
                 fontSize: 18,
                 color: Colors.black,
@@ -54,7 +60,10 @@ class MenuOptions extends StatelessWidget {
                 // Chuyển tới màn hình ChangePasswordScreen khi ấn vào "Thay đổi mật khẩu"
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ChangePasswordScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => ChangePasswordScreen(
+                            user: user,
+                          )),
                 );
               },
               child: Row(
@@ -77,7 +86,42 @@ class MenuOptions extends StatelessWidget {
               ),
             ),
 
-            SizedBox(height: screenHeight * 0.04), // Khoảng cách xuống nút đăng xuất
+            SizedBox(
+                height: screenHeight * 0.03), // Khoảng cách xuống mục tiếp theo
+
+            // Icon người dùng và text "Quản lý người dùng"
+            GestureDetector(
+              onTap: () {
+                // Chuyển tới màn hình AccountScreen khi ấn vào "Quản lý người dùng"
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          AccountScreen()), // Đảm bảo bạn đã tạo AccountScreen
+                );
+              },
+              child: Row(
+                children: [
+                  Image.asset(
+                    'assets/clients.png', // Đường dẫn tới ảnh của bạn
+                    width: 16, // Kích thước ảnh
+                    height: 16,
+                  ),
+                  SizedBox(width: 15), // Khoảng cách giữa icon và text
+                  Text(
+                    'Cài đặt thông tin cá nhân', // Văn bản
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            SizedBox(
+                height: screenHeight * 0.04), // Khoảng cách xuống nút đăng xuất
 
             // Nút Đăng xuất
             Container(

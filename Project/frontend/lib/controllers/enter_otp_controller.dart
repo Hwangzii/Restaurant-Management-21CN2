@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:app/screens/manager_screen.dart';
 import 'package:app/screens/tables_screen.dart';
 import 'package:app/services/api_service.dart';
+import 'package:app/models/user.dart';
 
 class EnterOtpController {
   /// Hàm kiểm tra OTP và xử lý điều hướng
@@ -26,17 +27,25 @@ class EnterOtpController {
           result['success'] &&
           result.containsKey('role')) {
         // Lấy role từ kết quả trả về
+        final accountInfo = await ApiService().getAccountInfo(username);
         int? role = int.tryParse(result['role'].toString());
         print('Role received from API: $role');
         int restaurantId = result['restaurant_id'];
         await AuthService.saveRestaurantId(restaurantId);
 
         if (role == 1) {
-          // Role 1: Chuyển đến ManagerScreen
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const ManagerScreen()),
-          );
+          if (accountInfo != null && accountInfo['success']) {
+            // Chuyển đổi dữ liệu từ API thành đối tượng User
+            User user = User.fromMap(accountInfo['data']);
+
+            // Chuyển sang ManagerScreen và truyền đối tượng user
+            // Role 1: Chuyển đến ManagerScreen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ManagerScreen(user: user)),
+            );
+          }
         } else if (role == 2) {
           // Role 2: Chuyển đến TableScreen
           Navigator.pushReplacement(

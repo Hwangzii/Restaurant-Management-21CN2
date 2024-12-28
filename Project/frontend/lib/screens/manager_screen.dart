@@ -1,8 +1,10 @@
 // import 'package:app/file_test/test_home.dart';
+import 'package:app/models/user.dart';
 import 'package:app/screens/bill_screen.dart';
 import 'package:app/screens/history_screen.dart';
 import 'package:app/screens/home_screen.dart';
 import 'package:app/screens/invenory_screen.dart';
+import 'package:app/screens/invoice_screen.dart';
 import 'package:app/screens/list_staff_screen.dart';
 import 'package:app/screens/menu_options.dart';
 import 'package:app/screens/order_screen.dart';
@@ -13,7 +15,9 @@ import 'package:app/screens/warehouse_screen.dart';
 import 'package:flutter/material.dart';
 
 class ManagerScreen extends StatefulWidget {
-  const ManagerScreen({Key? key}) : super(key: key);
+  final User user;
+
+  const ManagerScreen({Key? key, required this.user}) : super(key: key);
 
   @override
   _ManagerScreenState createState() => _ManagerScreenState();
@@ -23,13 +27,22 @@ class _ManagerScreenState extends State<ManagerScreen> {
   int _selectedIndex = 0;
 
   // Danh sách các widget màn hình tương ứng cho từng mục trong BottomNavigationBar
-  static final List<Widget> _widgetOptions = <Widget>[
-    HomeScreen(),
-    StaffManagementScreen(),
-    BillScreen(),
-    InventoryScreen(),
-    ReportScreen(),
-  ];
+  late final List<Widget> _widgetOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    // Khởi tạo danh sách màn hình và truyền name vào HomeScreen
+    _widgetOptions = <Widget>[
+      HomeScreen(
+        user: widget.user,
+      ), // Truyền name vào HomeScreen
+      StaffManagementScreen(),
+      InvoiceScreen(),
+      InventoryScreen(),
+      ReportScreen(),
+    ];
+  }
 
   // Hàm cập nhật chỉ số khi người dùng nhấn vào mục trong BottomNavigationBar
   void _onItemTapped(int index) {

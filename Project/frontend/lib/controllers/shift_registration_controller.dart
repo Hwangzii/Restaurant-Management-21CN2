@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:app/services/api_service.dart'; // Import ApiService từ thư mục services
-import 'package:http/http.dart' as http;
 
 class ShiftRegistrationController {
   // Hàm lấy dữ liệu nhân viên từ API
@@ -21,15 +19,9 @@ class ShiftRegistrationController {
           'full_name': employee['full_name'],
         };
       }).toList();
-
     } catch (e) {
       print('Error fetching staff list: $e');
       throw Exception('Error fetching staff list');
     }
   }
-
-  
-
-
-  
 }

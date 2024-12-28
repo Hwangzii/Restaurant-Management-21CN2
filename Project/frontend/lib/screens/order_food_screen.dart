@@ -159,7 +159,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
         SnackBar(content: Text('Lỗi khi gửi đơn hàng.')),
       );
     } finally {
-      Future.delayed(const Duration(seconds: 2), () {
+      Future.delayed(const Duration(seconds: 5), () {
         setState(() {
           isButtonDisabled = false; // Kích hoạt lại nút
         });

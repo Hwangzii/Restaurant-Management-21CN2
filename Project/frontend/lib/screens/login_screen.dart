@@ -15,118 +15,154 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center, // Căn giữa toàn bộ nội dung
-          children: [
-            // Logo và tiêu đề
-            Image.asset('assets/chef_logo.png', height: 100, width: 100),
-            const SizedBox(height: 20),
-
-            // Dòng chữ KOREAN FOOD
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Text(
-                  'KOREAN',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                SizedBox(width: 10),
-                Text(
-                  'FOOD',
-                  style: TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.orange,
-                  ),
-                )
-              ],
+      resizeToAvoidBottomInset:
+          true, // Giúp màn hình điều chỉnh khi bàn phím xuất hiện
+      backgroundColor: Colors.white,
+      body: Center(
+        child: SingleChildScrollView(
+          child: Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: Colors.white,
             ),
-            const SizedBox(height: 30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment:
+                  MainAxisAlignment.center, // Căn giữa toàn bộ nội dung
+              children: [
+                // Logo và tiêu đề
+                Image.asset('assets/logo.png', height: 100, width: 100),
+                const SizedBox(height: 20),
 
-            // Form đăng nhập
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: MediaQuery.of(context).size.width > 700
-                    ? (MediaQuery.of(context).size.width - 700) / 2
-                    : 16, // Thêm khoảng cách cho các thiết bị nhỏ
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, // Căn lề trái cho nội dung
-                children: <Widget>[
-                  // Phần nhập tài khoản
-                  _buildInputField(
-                    context,
-                    controller: _usernameController,
-                    hintText: "Tài khoản",
-                    iconPath: 'assets/user_icon.png',
-                    obscureText: false,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Phần nhập mật khẩu
-                  _buildInputField(
-                    context,
-                    controller: _passwordController,
-                    hintText: "Mật khẩu",
-                    iconPath: 'assets/lock_icon.png',
-                    obscureText: !_isPasswordVisible,
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _isPasswordVisible = !_isPasswordVisible;
-                        });
-                      },
-                      icon: Image.asset(
-                        _isPasswordVisible
-                            ? 'assets/eye_closed.png'
-                            : 'assets/eye_show.png',
-                        width: 24,
-                        height: 24,
+                // Dòng chữ KOREAN FOOD
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Text(
+                      'BUFFET',
+                      style: TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 40),
+                    SizedBox(width: 10),
+                    Text(
+                      'BBQ',
+                      style: TextStyle(
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFEF4D2D),
+                      ),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 30),
 
-                  // Nút Đăng nhập
-                  Container(
-                    height: 50,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(30),
-                      color: Colors.orange,
-                    ),
-                    child: InkWell(
-                      onTap: () {
-                        LoginController.handleLogin(
-                          context,
-                          _usernameController.text,
-                          _passwordController.text,
-                        );
-                      },
-                      child: const Center(
-                        child: Text(
-                          "Đăng nhập",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
+                // Form đăng nhập
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width > 700
+                        ? (MediaQuery.of(context).size.width - 700) / 2
+                        : 16, // Thêm khoảng cách cho các thiết bị nhỏ
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    // Căn lề trái cho nội dung
+
+                    children: <Widget>[
+                      Text(
+                        'Tài khoản',
+                        style: TextStyle(
+                          color: Color(0xFFABB2B9),
+                        ),
+                      ),
+
+                      SizedBox(height: 5),
+                      // Phần nhập tài khoản
+                      _buildInputField(
+                        context,
+                        controller: _usernameController,
+                        hintText: "user@gmail.com",
+                        iconPath: 'assets/user_icon.png',
+                        obscureText: false,
+                      ),
+                      SizedBox(height: 20),
+
+                      Text(
+                        'Tài khoản',
+                        style: TextStyle(
+                          color: Color(0xFFABB2B9),
+                        ),
+                      ),
+
+                      const SizedBox(height: 5),
+
+                      // Phần nhập mật khẩu
+                      _buildInputField(
+                        context,
+                        controller: _passwordController,
+                        hintText: "******",
+                        iconPath: 'assets/lock_icon.png',
+                        obscureText: !_isPasswordVisible,
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                          icon: Image.asset(
+                            _isPasswordVisible
+                                ? 'assets/eye_closed.png'
+                                : 'assets/eye_show.png',
+                            width: 22,
+                            height: 22,
                           ),
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 30),
+
+                      // Nút Đăng nhập
+                      Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          color: Color(0xFFEF4D2D),
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                            LoginController.handleLogin(
+                              context,
+                              _usernameController.text,
+                              _passwordController.text,
+                            );
+                          },
+                          child: const Center(
+                            child: Text(
+                              "Đăng nhập",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      SizedBox(
+                        height: 20,
+                      ),
+
+                      Text(
+                        'Liên hệ đến số điện thoại 0961-531-103 để được tư vấn và hỗ trợ thêm dịch vụ.',
+                        style: TextStyle(color: Color(0xFF808B96)),
+                      )
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -152,8 +188,8 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Row(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Image.asset(iconPath, height: 24, width: 24),
+            padding: const EdgeInsets.all(5.0),
+            child: Image.asset(iconPath, height: 22, width: 22),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -163,8 +199,8 @@ class _LoginScreenState extends State<LoginScreen> {
               decoration: InputDecoration(
                 hintText: hintText,
                 hintStyle: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey[500]!,
+                  fontSize: 14,
+                  color: Color(0xFFABB2B9),
                 ),
                 border: InputBorder.none,
               ),

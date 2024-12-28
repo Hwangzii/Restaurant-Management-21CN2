@@ -34,4 +34,14 @@ class SalariesController with ChangeNotifier {
       throw Exception("Failed to pay all salaries");
     }
   }
+
+  /// Lấy danh sách lương theo tháng và năm
+  Future<List<Map<String, dynamic>>> getSalariesByMonth(
+      int month, int year) async {
+    try {
+      return await _apiService.fetchSalariesWithMonth(month, year);
+    } catch (e) {
+      throw Exception('Lỗi khi lấy danh sách lương: $e');
+    }
+  }
 }

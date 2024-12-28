@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Account, Customer, Employee, Floors, Inventory, Invoice, InvoiceFood, InvoiceInventory, InvoiceSalaries, MenuItem, OrderDetails, Salaries, Tables, WorkSchedule
-from .serializers import AccountSerializer, CustomerSerializer, EmployeeSerializer, FloorSerializer, InventorySerializer, InvoiceFooodSerializer, InvoiceInventorySerializer, InvoiceSalariesSerializer, MenuItemSerializer, OrderDetailsSerializer, SalariesSerializer, TableSerializer, WorkScheduleSerializer
+from .serializers import AccountSerializer, CustomerSerializer, EmployeeSerializer, FloorSerializer, InventorySerializer, InvoiceFooodSerializer, InvoiceInventorySerializer, InvoiceSalariesSerializer, InvoiceSerializer, MenuItemSerializer, OrderDetailsSerializer, SalariesSerializer, TableSerializer, WorkScheduleSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
@@ -248,55 +248,6 @@ class WorkScheduleViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-    # @receiver(post_save, sender=WorkSchedule)
-    # def calculate_salary(sender, instance, **kwargs):
-    #     try:
-    #         # Lấy tháng hiện tại từ bản ghi mới
-    #         work_date = instance.work_date
-    #         start_date = datetime(work_date.year, work_date.month, 1)
-    #         if work_date.month < 12:
-    #             end_date = datetime(work_date.year, work_date.month + 1, 1)
-    #         else:
-    #             end_date = datetime(work_date.year + 1, 1, 1)
-
-    #         # Lấy danh sách nhân viên và thống kê số ca làm việc trong tháng
-    #         employees = WorkSchedule.objects.filter(
-    #             work_date__gte=start_date, work_date__lt=end_date
-    #         ).values('employee_id').annotate(
-    #             total_present=Count('status', filter=Q(status="có")),
-    #             total_late=Count('status', filter=Q(status="muộn")),
-    #             total_absent=Count('status', filter=Q(status="nghỉ không phép"))
-    #         )
-
-    #         # Tính lương cho từng nhân viên
-    #         for employee in employees:
-    #             employee_id = employee['employee_id']
-    #             total_present = employee['total_present']
-    #             total_late = employee['total_late']
-    #             total_absent = employee['total_absent']
-
-    #             # Công thức tính lương
-    #             base_salary = 1000000  # Lương cơ bản
-    #             bonus = total_present * 50000  # Thưởng mỗi ca có mặt
-    #             penalty = total_late * 20000  # Phạt mỗi ca muộn
-    #             deduction = total_absent * 100000  # Trừ mỗi ca vắng không phép
-    #             total_salary = base_salary + bonus - penalty - deduction
-
-    #             # Lưu hoặc cập nhật lương trong bảng `salaries`
-    #             Salaries.objects.update_or_create(
-    #                 employees_id=employee_id,
-    #                 month=start_date,
-    #                 defaults={
-    #                     'salary': total_salary,
-    #                     'bonus': bonus,
-    #                     'penalty': penalty,
-    #                     'deduction': deduction,
-    #                     'payment_date': now(),
-    #                 }
-    #             )
-    #     except Exception as e:
-    #         print(f"Error calculating salary: {e}")
 
 
 class CustomerViewSet(viewsets.ModelViewSet):
@@ -343,6 +294,22 @@ class SalariesViewSet(viewsets.ModelViewSet):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def get_queryset(self):
+
+        queryset = super().get_queryset()
+
+        # Lấy tham số từ query params
+        salary_month = self.request.query_params.get('salary_month')
+        salary_year = self.request.query_params.get('salary_year')
+
+        # Thực hiện lọc
+        if salary_month:
+            queryset = queryset.filter(salary_month=salary_month)
+        if salary_year:
+            queryset = queryset.filter(salary_year=salary_year)
+
+        return queryset
 
 class InvoiceSalariesViewSet(viewsets.ModelViewSet):
     queryset = InvoiceSalaries.objects.all()
@@ -350,7 +317,7 @@ class InvoiceSalariesViewSet(viewsets.ModelViewSet):
 
 class InvoiceViewSet(viewsets.ModelViewSet):
     queryset = Invoice.objects.all()
-    serializer_class = SalariesSerializer
+    serializer_class = InvoiceSerializer
     
 class OrderDetailsViewSet(viewsets.ViewSet):
     # Lấy danh sách món theo bàn

@@ -624,6 +624,24 @@ class ApiService {
     }
   }
 
+  Future<List<Map<String, dynamic>>> fetchSalariesWithMonth(
+      int month, int year) async {
+    final url =
+        Uri.parse('$baseUrl/salaries/?salary_month=$month&salary_year=$year');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      // Decode dữ liệu UTF-8
+      final utf8DecodedBody = utf8.decode(response.bodyBytes);
+      final data = jsonDecode(utf8DecodedBody);
+
+      return List<Map<String, dynamic>>.from(data);
+    } else {
+      throw Exception('Lỗi khi gọi API: ${response.statusCode}');
+    }
+  }
+
   // Hàm thêm order_item
   Future<void> createOrder(Map<String, dynamic> order) async {
     try {
@@ -804,6 +822,337 @@ class ApiService {
       return jsonDecode(response.body); // Trả về danh sách hóa đơn
     } else {
       throw Exception('Failed to create invoices: ${response.body}');
+    }
+  }
+
+  // Hàm thay đổi mật khẩu
+  Future<bool> changePassword(
+      int userId, String oldPassword, String newPassword) async {
+    final String userUrl =
+        '$baseUrl/accounts/$userId/'; // URL để lấy thông tin người dùng
+    final String updateUrl =
+        '$baseUrl/accounts/$userId/'; // URL để cập nhật thông tin
+
+    try {
+      // 1. Lấy thông tin người dùng hiện tại
+      final userResponse = await http.get(
+        Uri.parse(userUrl),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      );
+
+      if (userResponse.statusCode == 200) {
+        final userData = json.decode(userResponse.body);
+
+        // 2. Chuẩn bị dữ liệu cho yêu cầu PUT
+        final Map<String, dynamic> requestBody = {
+          "username": userData["username"],
+          "password": newPassword, // Thay đổi mật khẩu
+          // "name": userData["name"],
+          // "user_phone": userData["user_phone"],
+          // "email": userData["email"],
+          // "role": userData["role"],
+          // "restaurant_id": userData["restaurant_id"],
+        };
+
+        // 3. Gửi yêu cầu PUT để cập nhật mật khẩu
+        final updateResponse = await http.put(
+          Uri.parse(updateUrl),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: json.encode(requestBody),
+        );
+
+        if (updateResponse.statusCode == 200) {
+          print('Mật khẩu đã được thay đổi thành công');
+          return true;
+        } else {
+          print(
+              'Lỗi khi thay đổi mật khẩu: ${updateResponse.statusCode} - ${updateResponse.body}');
+          return false;
+        }
+      } else {
+        print(
+            'Lỗi khi lấy thông tin người dùng: ${userResponse.statusCode} - ${userResponse.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Lỗi: $e');
+      return false;
+    }
+  }
+
+  // Hàm để lấy dữ liệu invoice_food
+  Future<List<Map<String, dynamic>>> fetchInvoiceData() async {
+    final invoiceUrl =
+        '$baseUrl/invoice_food/'; // Đường dẫn API lấy danh sách hóa đơn bán hàng
+    try {
+      final response = await http.get(Uri.parse(invoiceUrl), headers: {
+        'Accept': 'application/json; charset=UTF-8', // Đảm bảo yêu cầu JSON
+        "ngrok-skip-browser-warning": "69420", // Nếu sử dụng ngrok
+      });
+
+      if (response.statusCode == 200) {
+        // Giải mã UTF-8 để xử lý dữ liệu chứa ký tự đặc biệt
+        final decodedResponse = utf8.decode(response.bodyBytes);
+        List<dynamic> data = json.decode(decodedResponse);
+        return List<Map<String, dynamic>>.from(
+            data); // Chuyển đổi về dạng danh sách Map
+      } else {
+        print(
+            "Error fetching invoice: ${response.statusCode} ${response.reasonPhrase}");
+        throw Exception('Failed to load invoice');
+      }
+    } catch (e) {
+      print("Error fetching invoice: $e");
+      throw Exception('Error fetching invoice: $e');
+    }
+  }
+
+  // Hàm để lấy dữ liệu invoice_food
+  Future<List<Map<String, dynamic>>> fetchAllInvoiceData() async {
+    final invoiceUrl =
+        '$baseUrl/invoice/'; // Đường dẫn API lấy danh sách hóa đơn bán hàng
+    try {
+      final response = await http.get(Uri.parse(invoiceUrl), headers: {
+        'Accept': 'application/json; charset=UTF-8', // Đảm bảo yêu cầu JSON
+        "ngrok-skip-browser-warning": "69420", // Nếu sử dụng ngrok
+      });
+
+      if (response.statusCode == 200) {
+        // Giải mã UTF-8 để xử lý dữ liệu chứa ký tự đặc biệt
+        final decodedResponse = utf8.decode(response.bodyBytes);
+        List<dynamic> data = json.decode(decodedResponse);
+        return List<Map<String, dynamic>>.from(
+            data); // Chuyển đổi về dạng danh sách Map
+      } else {
+        print(
+            "Error fetching invoice: ${response.statusCode} ${response.reasonPhrase}");
+        throw Exception('Failed to load invoice');
+      }
+    } catch (e) {
+      print("Error fetching invoice: $e");
+      throw Exception('Error fetching invoice: $e');
+    }
+  }
+
+  // hàm tính tổng doanh thu
+  Future<double> fetchTotalRevenue() async {
+    final List<Map<String, dynamic>> invoices = await fetchInvoiceData();
+    double totalRevenue = 0;
+
+    for (var invoice in invoices) {
+      totalRevenue += double.tryParse(invoice['money'] ?? '0') ?? 0;
+    }
+
+    return totalRevenue;
+  }
+
+  Future<double> fetchFinancialSummary() async {
+    try {
+      // Lấy danh sách tất cả hóa đơn từ API
+      final List<Map<String, dynamic>> invoices = await fetchAllInvoiceData();
+
+      double totalRevenue = 0; // Tổng doanh thu (type = 1)
+      double totalCost = 0; // Tổng chi phí (type = 2 và type = 3)
+
+      for (var invoice in invoices) {
+        int invoiceType = invoice['invoice_type'] ?? 0; // Lấy loại hóa đơn
+        double money = double.tryParse(invoice['money'].toString()) ?? 0;
+
+        if (invoiceType == 1) {
+          // Cộng vào tổng doanh thu
+          totalRevenue += money;
+        } else if (invoiceType == 2 || invoiceType == 3) {
+          // Cộng vào tổng chi phí
+          totalCost += money;
+        }
+      }
+
+      // Tính tổng thu chi (doanh thu - chi phí)
+      return totalRevenue - totalCost;
+    } catch (e) {
+      print('Error fetching financial summary: $e');
+      throw Exception('Failed to fetch financial summary');
+    }
+  }
+
+  Future<double> fetchIncomeGrowthPercentage() async {
+    try {
+      // Lấy danh sách tất cả hóa đơn từ API
+      final List<Map<String, dynamic>> invoices = await fetchAllInvoiceData();
+
+      // Lấy ngày hôm nay và hôm qua
+      final DateTime today = DateTime.now();
+      final DateTime yesterday = today.subtract(const Duration(days: 1));
+
+      double todayIncome = 0; // Thu nhập hôm nay
+      double yesterdayIncome = 0; // Thu nhập hôm qua
+
+      for (var invoice in invoices) {
+        int invoiceType = invoice['invoice_type'] ?? 0; // Loại hóa đơn
+        double money = double.tryParse(invoice['money'].toString()) ?? 0;
+
+        // Lấy ngày giao dịch từ hóa đơn
+        String invoiceDateStr =
+            invoice['created_at'] ?? ''; // Định dạng ngày từ API (yyyy-MM-dd)
+        DateTime? invoiceDate = DateTime.tryParse(invoiceDateStr);
+
+        if (invoiceDate != null) {
+          if (isSameDay(invoiceDate, today)) {
+            // Hôm nay
+            if (invoiceType == 1) {
+              todayIncome += money; // Doanh thu
+            } else if (invoiceType == 2 || invoiceType == 3) {
+              todayIncome -= money; // Trừ chi phí
+            }
+          } else if (isSameDay(invoiceDate, yesterday)) {
+            // Hôm qua
+            if (invoiceType == 1) {
+              yesterdayIncome += money; // Doanh thu
+            } else if (invoiceType == 2 || invoiceType == 3) {
+              yesterdayIncome -= money; // Trừ chi phí
+            }
+          }
+        }
+      }
+
+      // Tính tăng trưởng phần trăm
+      if (yesterdayIncome == 0) {
+        // Tránh chia cho 0
+        return todayIncome > 0 ? 100.0 : 0.0;
+      }
+
+      return ((todayIncome - yesterdayIncome) / yesterdayIncome) * 100;
+    } catch (e) {
+      throw Exception('Lỗi khi tính tăng trưởng thu nhập: $e');
+    }
+  }
+
+// Hàm kiểm tra xem hai ngày có giống nhau không
+  bool isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
+
+  Future<int> countType1Records() async {
+    try {
+      // Lấy danh sách tất cả hóa đơn từ API
+      final List<Map<String, dynamic>> invoices = await fetchAllInvoiceData();
+
+      // Sử dụng hàm đếm
+      int count =
+          invoices.where((invoice) => invoice['invoice_type'] == 1).length;
+
+      return count; // Trả về số lượng bản ghi type = 1
+    } catch (e) {
+      throw Exception('Lỗi khi đếm số lượng bản ghi type = 1: $e');
+    }
+  }
+
+  Future<int> countActiveTables() async {
+    try {
+      // Lấy danh sách tất cả các bàn từ API
+      final List<Map<String, dynamic>> tables = await fetchTables();
+
+      // Sử dụng hàm đếm
+      int count = tables.where((table) => table['status'] == true).length;
+
+      return count; // Trả về số lượng bàn có status = 1
+    } catch (e) {
+      throw Exception('Lỗi khi đếm số bàn có status = 1: $e');
+    }
+  }
+
+  Future<double> fetchTotalCost() async {
+    try {
+      // Lấy danh sách tất cả hóa đơn từ API
+      final List<Map<String, dynamic>> invoices = await fetchAllInvoiceData();
+
+      double totalCost = 0; // Tổng chi phí (type = 2 và type = 3)
+
+      for (var invoice in invoices) {
+        int invoiceType = invoice['invoice_type'] ?? 0; // Lấy loại hóa đơn
+        double money = double.tryParse(invoice['money'].toString()) ?? 0;
+
+        if (invoiceType == 2 || invoiceType == 3) {
+          // Cộng vào tổng chi phí
+          totalCost += money;
+        }
+      }
+
+      print('Total Cost: $totalCost'); // In ra tổng chi phí cuối cùng
+      return totalCost; // Trả về tổng chi phí
+    } catch (e) {
+      print('Error fetching total cost: $e');
+      throw Exception('Failed to fetch total cost');
+    }
+  }
+
+  // Hàm lấy thông tin tài khoản dựa trên username
+  Future<Map<String, dynamic>?> getAccountInfo(String username) async {
+    final accountInfoUrl = '$baseUrl/accounts/';
+
+    try {
+      final response = await http.get(Uri.parse(accountInfoUrl));
+
+      if (response.statusCode == 200) {
+        // Giải mã dữ liệu JSON đảm bảo UTF-8
+        final List<dynamic> accounts =
+            jsonDecode(utf8.decode(response.bodyBytes));
+        // Tìm tài khoản dựa trên username
+        final account = accounts.firstWhere(
+          (acc) => acc['username'] == username,
+          orElse: () => null,
+        );
+
+        if (account != null) {
+          // Trả về thông tin tài khoản với tên tiếng Việt
+          return {
+            'success': true,
+            'data': {
+              'id': account['id'],
+              'username': account['username'],
+              'password': account['password'],
+              'name': account['name'],
+              'phone': account['user_phone'],
+              'email': account['email'],
+              'createdAt': account['created_at'],
+            },
+          };
+        } else {
+          return {
+            'success': false,
+            'message': 'Người dùng không tìm thấy',
+          };
+        }
+      } else {
+        return {
+          'success': false,
+          'message': 'Không thể lấy thông tin tài khoản',
+        };
+      }
+    } catch (e) {
+      print('Error fetching account info: $e');
+      return null;
+    }
+  }
+
+  /// Lấy danh sách WorkSchedule
+  Future<List<dynamic>> getWorkSchedules() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/work_schedule/'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception(
+            "Failed to fetch work schedules: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error fetching work schedules: $e");
     }
   }
 }

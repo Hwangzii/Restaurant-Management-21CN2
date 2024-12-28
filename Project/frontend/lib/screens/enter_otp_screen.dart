@@ -25,43 +25,28 @@ class EnterOtpScreen extends StatelessWidget {
         color: Colors.black,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Color(0xFFF2F3F4),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.transparent),
       ),
     );
 
     return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: false, //
+        title: Text(
+          'Xác minh OTP',
+          style: TextStyle(fontSize: 28, color: Color(0xFFEF4D2D)),
+        ),
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
         child: Container(
-          margin: const EdgeInsets.only(top: 40),
           width: double.infinity,
           child: Column(
             children: [
-              qrCodeUrl.isNotEmpty
-                  ? Column(
-                      children: [
-                        QrImageView(
-                          data: qrCodeUrl,
-                          version: QrVersions.auto,
-                          size: 300.0,
-                        ),
-                        const SizedBox(height: 20),
-                        const Text(
-                            'Quét mã QR trong ứng dụng Google Authenticator'),
-                      ],
-                    )
-                  : Container(),
-              const SizedBox(height: 20),
-              const Text(
-                "Xác minh",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
               Container(
                 margin: const EdgeInsets.symmetric(vertical: 20),
                 child: const Text(
@@ -72,12 +57,15 @@ class EnterOtpScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              SizedBox(
+                height: 10,
+              ),
               Pinput(
                 length: 6,
                 defaultPinTheme: defaultPinTheme,
                 focusedPinTheme: defaultPinTheme.copyWith(
                   decoration: defaultPinTheme.decoration!.copyWith(
-                    border: Border.all(color: Colors.orange),
+                    border: Border.all(color: Color(0xFFEF4D2D)),
                   ),
                 ),
                 onCompleted: (pin) {
@@ -87,6 +75,20 @@ class EnterOtpScreen extends StatelessWidget {
                   _controller.verifyOtp(context, username, pin);
                 },
               ),
+              const SizedBox(height: 10),
+              const Text('Quét mã QR trong ứng dụng Google Authenticator'),
+              const SizedBox(height: 10),
+              qrCodeUrl.isNotEmpty
+                  ? Column(
+                      children: [
+                        QrImageView(
+                          data: qrCodeUrl,
+                          version: QrVersions.auto,
+                          size: 200.0,
+                        ),
+                      ],
+                    )
+                  : Container(),
             ],
           ),
         ),

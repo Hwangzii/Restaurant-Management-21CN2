@@ -189,6 +189,8 @@ class Invoice(models.Model):
     invoice_type = models.IntegerField()
     describe = models.TextField(null=True, blank=True)
     money = models.IntegerField()
+    invoice_name = models.CharField(max_length=255)
+    created_at = models.DateTimeField()
 
     class Meta:
         db_table = 'invoice'

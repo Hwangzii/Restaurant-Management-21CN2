@@ -90,6 +90,7 @@ flutter:
     - assets/bill_2.png
     - assets/bell.png
     - assets/triangle.png
+    - assets/triangle1.png
     - assets/staff_check.png
     - assets/clients.png
     - assets/food.png
@@ -107,6 +108,8 @@ flutter:
     - assets/steak.png
     - assets/seafood.png
     - assets/edit-text.png
+    - assets/reload.png
+    - assets/logo.png
 
 
 
@@ -225,7 +228,6 @@ flutter:
     # - assets/food_photo/113.png
     - assets/food_photo/114.png
     - assets/food_photo/115.png
-  
   
   uses-material-design: true
 

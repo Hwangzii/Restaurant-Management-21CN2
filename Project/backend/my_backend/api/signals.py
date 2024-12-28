@@ -5,9 +5,20 @@ from datetime import datetime
 from django.utils.timezone import now
 from .models import Inventory, InvoiceInventory, WorkSchedule, Salaries, Employee
 
+from datetime import datetime
+from django.utils.timezone import now
+from django.db.models import Count, Q
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
 @receiver(post_save, sender=WorkSchedule)
 def calculate_salary(sender, instance, **kwargs):
     try:
+        # Lấy tháng và năm hiện tại
+        today = now()
+        current_month = today.month
+        current_year = today.year
+
         # Lấy danh sách các tháng và năm có dữ liệu trong bảng WorkSchedule
         months_data = WorkSchedule.objects.values('work_date__year', 'work_date__month').distinct()
 
@@ -15,6 +26,11 @@ def calculate_salary(sender, instance, **kwargs):
             year = month_data['work_date__year']
             month = month_data['work_date__month']
 
+            # Bỏ qua các tháng trong tương lai
+            if year > current_year or (year == current_year and month > current_month):
+                continue
+
+            # Xác định ngày bắt đầu và ngày kết thúc của tháng
             start_date = datetime(year, month, 1)
             if month < 12:
                 end_date = datetime(year, month + 1, 1)
@@ -82,10 +98,11 @@ def calculate_salary(sender, instance, **kwargs):
                     }
                 )
 
-        print("Salary calculation completed for all available months.")
+        print("Salary calculation completed for past and current months only.")
 
     except Exception as e:
         print(f"Error calculating salary: {e}")
+
 
 @receiver(post_save, sender=Inventory)
 def create_invoice_from_inventory(sender, instance, created, **kwargs):

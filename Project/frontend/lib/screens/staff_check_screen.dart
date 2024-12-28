@@ -24,8 +24,8 @@ class StaffCheckScreen extends StatefulWidget {
 
 class _StaffCheckScreenState extends State<StaffCheckScreen> {
   List<Map<String, dynamic>> employees = [];
-  List<bool?> attendanceStatus = [];
-  List<String?> absenceReasons = [];
+  Map<int, bool?> attendanceStatus = {}; // Trạng thái có/muộn/null
+  Map<int, String?> absenceReasons = {}; // Lý do nghỉ/null
   final String _searchQuery = '';
   String _selectedShift = 'ca sáng';
   bool _isLoading = false;
@@ -42,24 +42,23 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
   final TextEditingController _dateController = TextEditingController();
 
   Future<void> _fetchFilteredEmployees(DateTime date, String shiftType) async {
-    setState(() => _isLoading = true);
+    setState(() => _isLoading = true); // Bắt đầu tải dữ liệu
     try {
       final data = await StaffCheckAppController.fetchFilteredEmployees(
         selectedDate: date,
         shiftType: shiftType,
       );
-
       setState(() {
-        employees = data;
-        attendanceStatus = List.filled(employees.length, null);
-        absenceReasons = List.filled(employees.length, null);
+        employees = data; // Cập nhật danh sách nhân viên
+        // attendanceStatus.clear(); // Làm sạch trạng thái cũ
+        absenceReasons.clear();
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lỗi khi tải danh sách nhân viên')),
       );
     } finally {
-      setState(() => _isLoading = false);
+      setState(() => _isLoading = false); // Kết thúc tải dữ liệu
     }
   }
 
@@ -286,7 +285,7 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Điểm danh nhân viên',
+              'Điểm danh',
               style: TextStyle(color: Colors.black, fontSize: 20),
             ),
             Text(
