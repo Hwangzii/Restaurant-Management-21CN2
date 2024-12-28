@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:app/controllers/pay_controller.dart';
 import 'package:app/controllers/tables_controller.dart';
+import 'package:app/models/user.dart';
+import 'package:app/screens/payment_successful_screen.dart';
 import 'package:app/screens/tables_screen.dart';
 import 'package:app/widgets/show_slider_dialog.dart';
 import 'package:flutter/material.dart';
@@ -11,11 +13,13 @@ import 'package:intl/intl.dart';
 class PayPrintScreen extends StatefulWidget {
   final String tableName;
   final int buffetTotal;
+  final User user;
 
   const PayPrintScreen({
     Key? key,
     required this.tableName,
     this.buffetTotal = 0,
+    required this.user,
   }) : super(key: key);
 
   @override
@@ -113,7 +117,8 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
       double totalAmount,
       double totalAmount1,
       double selectedPercentage,
-      List<Map<String, dynamic>> orderItems) async {
+      List<Map<String, dynamic>> orderItems,
+      User user) async {
     String selectedPaymentMethod = 'Tiền mặt'; // Default payment method
     List<String> paymentMethods = ['Tiền mặt', 'Chuyển khoản'];
 
@@ -225,11 +230,13 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
 
                     Navigator.pop(dialogContext); // Đóng dialog
                     Navigator.push(
-                      context,
-                      MaterialPageRoute(
+                        context,
+                        MaterialPageRoute(
                           builder: (context) =>
-                              TablesScreen()), // Thay `NewScreen` bằng tên màn hình bạn muốn chuyển đến
-                    );
+                              PaymentSuccessfulScreen(user: user),
+                        ) // Thay `NewScreen` bằng tên màn hình bạn muốn chuyển đến
+                        );
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Thanh toán thành công!')),
                     );
@@ -317,8 +324,9 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) =>
-                          TablesScreen()), // Thay `NewScreen` bằng tên màn hình bạn muốn chuyển đến
+                      builder: (context) => TablesScreen(
+                            user: widget.user,
+                          )), // Thay `NewScreen` bằng tên màn hình bạn muốn chuyển đến
                 );
               }
             },
@@ -690,7 +698,7 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
                 double totalAmount = _calculateTotal();
                 double totalAmount1 = _calculateSubtotal();
                 showPaymentForm(context, widget.tableName, totalAmount,
-                    totalAmount1, selectedPercentage, orderItems);
+                    totalAmount1, selectedPercentage, orderItems, widget.user);
                 print("Button 1 pressed");
               },
               label: Text(

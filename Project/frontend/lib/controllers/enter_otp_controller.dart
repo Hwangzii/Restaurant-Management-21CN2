@@ -47,11 +47,14 @@ class EnterOtpController {
             );
           }
         } else if (role == 2) {
-          // Role 2: Chuyển đến TableScreen
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const TablesScreen()),
-          );
+          if (accountInfo != null && accountInfo['success']) {
+            User user = User.fromMap(accountInfo['data']);
+            // Role 2: Chuyển đến TableScreen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => TablesScreen(user: user)),
+            );
+          }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

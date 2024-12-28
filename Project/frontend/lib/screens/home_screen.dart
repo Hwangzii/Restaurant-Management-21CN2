@@ -283,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
-                        'Tổng doanh thu (VNĐ)',
+                        'Số dư (VNĐ)',
                         style: TextStyle(
                           fontSize: 14,
                           color: Color(0xFF929292),
@@ -305,7 +305,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? CircularProgressIndicator() // Hiển thị khi đang tải
                           : Text(
                               NumberFormat.currency(locale: 'vi_VN', symbol: '')
-                                  .format(totalRevenue),
+                                  .format(totalRevenue1),
                               style: TextStyle(
                                 fontSize: 36,
                               ),
@@ -404,7 +404,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 5,
                       ),
                       Text(
-                        formatNumberShort(totalRevenue1),
+                        formatNumberShort(totalRevenue),
                         style: TextStyle(
                           fontSize: 20,
                         ),

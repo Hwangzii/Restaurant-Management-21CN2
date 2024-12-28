@@ -1,4 +1,5 @@
 import 'package:app/models/item.dart';
+import 'package:app/models/user.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -944,7 +945,7 @@ class ApiService {
     double totalRevenue = 0;
 
     for (var invoice in invoices) {
-      totalRevenue += double.tryParse(invoice['money'] ?? '0') ?? 0;
+      totalRevenue += double.tryParse(invoice['total_amount'] ?? '0') ?? 0;
     }
 
     return totalRevenue;
@@ -1153,6 +1154,59 @@ class ApiService {
       }
     } catch (e) {
       throw Exception("Error fetching work schedules: $e");
+    }
+  }
+
+  // Hàm lấy thông tin hóa đơn theo invoice_food_id
+  Future<Map<String, dynamic>> getLatestInvoice() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/invoice_food/'),
+      headers: {'Accept-Charset': 'UTF-8'}, // Đảm bảo encoding là UTF-8
+    );
+
+    if (response.statusCode == 200) {
+      // Ép kiểu UTF-8 nếu cần thiết
+      String responseBody = utf8.decode(response.bodyBytes);
+      List<dynamic> data = json.decode(responseBody);
+
+      if (data.isNotEmpty) {
+        // Sắp xếp theo invoice_food_id để lấy hóa đơn mới nhất
+        data.sort(
+          (a, b) => b['invoice_food_id'].compareTo(a['invoice_food_id']),
+        );
+        return data[0]; // Trả về hóa đơn mới nhất
+      } else {
+        throw Exception('Không có dữ liệu hóa đơn');
+      }
+    } else {
+      throw Exception('Lỗi khi tải dữ liệu');
+    }
+  }
+
+  Future<User> fetchUserData() async {
+    try {
+      final url = Uri.parse('$baseUrl/accounts/');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        // Decode dữ liệu từ bytes sang UTF-8
+        final utf8DecodedBody = utf8.decode(response.bodyBytes);
+
+        // Parse JSON từ dữ liệu đã decode
+        final List<dynamic> data = json.decode(utf8DecodedBody);
+
+        // Kiểm tra danh sách dữ liệu và trả về người dùng đầu tiên
+        if (data.isNotEmpty) {
+          return User.fromMap(data[0]);
+        } else {
+          throw Exception('Không có dữ liệu người dùng.');
+        }
+      } else {
+        throw Exception(
+            'Lỗi khi tải dữ liệu người dùng: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Lỗi khi tải dữ liệu người dùng: $e');
     }
   }
 }

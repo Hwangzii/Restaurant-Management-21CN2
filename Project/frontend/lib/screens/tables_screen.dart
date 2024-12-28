@@ -1,10 +1,13 @@
 import 'package:app/controllers/oder_food_controller.dart';
+import 'package:app/models/user.dart';
+import 'package:app/screens/manager_screen.dart';
 import 'package:app/screens/order_food_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:app/controllers/tables_controller.dart';
 
 class TablesScreen extends StatefulWidget {
-  const TablesScreen({Key? key}) : super(key: key);
+  final User user;
+  const TablesScreen({Key? key, required this.user}) : super(key: key);
 
   @override
   _TablesScreenState createState() => _TablesScreenState();
@@ -345,6 +348,7 @@ class _TablesScreenState extends State<TablesScreen> {
         context,
         MaterialPageRoute(
           builder: (context) => OrderFoodScreen(
+            user: widget.user,
             tableName: tableName,
             selectedType: 'Gọi món', // Hiển thị tất cả các loại món
             guestCount: 0, // Không cần số lượng khách
@@ -400,6 +404,7 @@ class _TablesScreenState extends State<TablesScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => OrderFoodScreen(
+                        user: widget.user,
                         tableName: tableName,
                         selectedType: option,
                         guestCount: guestCount,
@@ -427,6 +432,15 @@ class _TablesScreenState extends State<TablesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () {
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => ManagerScreen(user: widget.user)));
+          },
+          icon: Icon(Icons.arrow_back_ios),
+        ),
         title: DropdownButton<String>(
           value: selectedFloor,
           onChanged: (String? newValue) {
@@ -515,6 +529,7 @@ class _TablesScreenState extends State<TablesScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => OrderFoodScreen(
+                            user: widget.user,
                             tableName: tableName,
                             selectedType: hasBuffet ? buffetName : "Tất cả", //
                             guestCount: 0,

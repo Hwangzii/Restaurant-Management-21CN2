@@ -1,5 +1,6 @@
 import 'package:app/controllers/oder_food_controller.dart';
 import 'package:app/controllers/tables_controller.dart';
+import 'package:app/models/user.dart';
 import 'package:app/screens/pay_print_screen.dart';
 import 'package:app/widgets/list_order_food.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ class OrderFoodScreen extends StatefulWidget {
   final int guestCount;
   final int buffetTotal;
   final VoidCallback onUpdate; // Hàm callback để gọi
+  final User user;
 
   const OrderFoodScreen({
     Key? key,
@@ -19,6 +21,7 @@ class OrderFoodScreen extends StatefulWidget {
     required this.guestCount,
     this.buffetTotal = 0,
     required this.onUpdate,
+    required this.user,
   }) : super(key: key);
 
   @override
@@ -598,6 +601,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                         builder: (context) => PayPrintScreen(
                               tableName: widget.tableName,
                               buffetTotal: widget.buffetTotal,
+                              user: widget.user,
                             )), // Thay `NewScreen` bằng tên màn hình bạn muốn chuyển đến
                   );
                 },
