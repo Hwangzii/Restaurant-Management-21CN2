@@ -7,6 +7,7 @@ class Item {
   final bool inventoryStatus;
   final int price;
   final String unit;
+  final String paymentmethod;
   final int restaurant; // Thêm trường này
 
   Item({
@@ -18,6 +19,7 @@ class Item {
     required this.inventoryStatus,
     required this.price,
     required this.unit,
+    required this.paymentmethod,
     required this.restaurant,
   });
 
@@ -31,6 +33,7 @@ class Item {
       inventoryStatus: json['inventory_status'],
       price: json['price'],
       unit: json['unit'],
+      paymentmethod: json['payment_method'] ?? 'Tiền mặt',
       restaurant: json['restaurant'],
     );
   }
@@ -48,6 +51,7 @@ class Item {
       'inventory_status': inventoryStatus,
       'price': price,
       'unit': unit,
+      'payment_method': paymentmethod,
       'restaurant': 2, // Set cứng giá trị này
     };
   }

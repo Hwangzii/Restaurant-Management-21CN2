@@ -3,7 +3,7 @@ from django.dispatch import receiver
 from django.db.models import Count, Q
 from datetime import datetime
 from django.utils.timezone import now
-from .models import WorkSchedule, Salaries, Employee
+from .models import Inventory, InvoiceInventory, WorkSchedule, Salaries, Employee
 
 @receiver(post_save, sender=WorkSchedule)
 def calculate_salary(sender, instance, **kwargs):
@@ -86,3 +86,21 @@ def calculate_salary(sender, instance, **kwargs):
 
     except Exception as e:
         print(f"Error calculating salary: {e}")
+
+@receiver(post_save, sender=Inventory)
+def create_invoice_from_inventory(sender, instance, created, **kwargs):
+    if created:  # Chỉ xử lý khi bản ghi mới được tạo
+        try:
+            InvoiceInventory.objects.create(
+                item_id=instance.item_id,
+                item_name=instance.item_name,
+                total_amount=instance.price * instance.quantity,  # Tổng giá trị
+                payment_method=instance.payment_method,
+                invoice_type=2,  # Giá trị mặc định
+                created_at=instance.created_at,
+                quality=instance.quantity,
+                unit=instance.unit
+            )
+            print(f"Invoice created for item {instance.item_id}")
+        except Exception as e:
+            print(f"Error creating invoice: {e}")

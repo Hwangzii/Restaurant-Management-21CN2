@@ -15,6 +15,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   final _itemTypeController = TextEditingController();
   final _quantityController = TextEditingController();
   final _expItemController = TextEditingController();
+  final _paymentmethodController = TextEditingController();
   final _inventoryStatusController = TextEditingController();
   final _priceController = TextEditingController();
   final _unitController = TextEditingController();
@@ -46,6 +47,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       _quantityController.text = item.quantity.toString();
       _priceController.text = item.price.toString();
       _unitController.text = item.unit.toString();
+      _paymentmethodController.text = item.paymentmethod.toString();
       _expItemController.text =
           "${item.expItem.year}-${item.expItem.month.toString().padLeft(2, '0')}-${item.expItem.day.toString().padLeft(2, '0')}";
       _inventoryStatusController.text =
@@ -57,6 +59,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
       _quantityController.clear();
       _expItemController.clear();
       _priceController.clear();
+      _paymentmethodController.clear();
+      _itemTypeController.clear();
       _inventoryStatusController.text = 'Còn hàng';
       _selectedItem = null;
     }
@@ -97,6 +101,25 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 _buildTextField(_priceController, 'Giá tiền', isNumber: true),
                 SizedBox(height: 12), // Khoảng cách
                 _buildTextField(_unitController, 'Đơn vị', isNumber: true),
+                SizedBox(height: 12), // Khoảng cách
+                DropdownButtonFormField<String>(
+                  value: _paymentmethodController.text.isNotEmpty
+                      ? _paymentmethodController.text
+                      : 'Tiền mặt', // Giá trị mặc định
+                  items: [
+                    DropdownMenuItem(
+                        value: 'Tiền mặt', child: Text('Tiền mặt')),
+                    DropdownMenuItem(
+                        value: 'Chuyển khoản', child: Text('Chuyển khoản')),
+                  ],
+                  onChanged: (value) {
+                    _paymentmethodController.text = value!;
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Phương thức thanh toán',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
                 SizedBox(height: 12), // Khoảng cách
                 _buildDateField(),
                 SizedBox(height: 12), // Khoảng cách
@@ -175,7 +198,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
         child: TextFormField(
           controller: _expItemController,
           decoration: InputDecoration(
-            labelText: 'Hạn sử dụng',
+            labelText: 'Ngày nhập',
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(color: Colors.white, width: 2.0),
             ),
@@ -261,12 +284,15 @@ class _InventoryScreenState extends State<InventoryScreen> {
       final item = Item(
         itemId: _selectedItem?.itemId ?? 0,
         itemName: _itemNameController.text,
-        itemType: int.parse(_itemTypeController.text),
+        itemType: int.tryParse(_itemTypeController.text) ?? 1,
         quantity: int.parse(_quantityController.text),
         expItem: parsedDate,
         inventoryStatus: status,
         price: int.parse(_priceController.text),
         unit: _unitController.text,
+        paymentmethod: _paymentmethodController.text.isNotEmpty
+            ? _paymentmethodController.text
+            : 'Tiền mặt', // Giá trị mặc định nếu paymentmethod rỗng
         restaurant: 2,
       );
 
@@ -411,7 +437,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                     Text('Giá tiền: ${item.price}'),
                                     Text('Đơn vị: ${item.unit}'),
                                     Text(
-                                        'Hạn sử dụng: ${item.expItem.year}-${item.expItem.month.toString().padLeft(2, '0')}-${item.expItem.day.toString().padLeft(2, '0')}'),
+                                        'Ngày nhập: ${item.expItem.year}-${item.expItem.month.toString().padLeft(2, '0')}-${item.expItem.day.toString().padLeft(2, '0')}'),
                                     Text(
                                         'Trạng thái: ${item.inventoryStatus ? 'Còn hàng' : 'Hết hàng'}'),
                                   ],

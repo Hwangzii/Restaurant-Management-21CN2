@@ -789,4 +789,21 @@ class ApiService {
       throw Exception('Failed to load sản phẩm');
     }
   }
+
+  // API: Thanh toán tất cả các bản ghi lương
+  Future<List<dynamic>> createAllInvoices(
+      {String paymentMethod = 'Tiền mặt'}) async {
+    final url = Uri.parse('$baseUrl/salaries/create-all-invoices/');
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'payment_method': paymentMethod}),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body); // Trả về danh sách hóa đơn
+    } else {
+      throw Exception('Failed to create invoices: ${response.body}');
+    }
+  }
 }

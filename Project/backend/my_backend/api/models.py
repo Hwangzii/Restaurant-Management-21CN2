@@ -99,6 +99,8 @@ class Inventory(models.Model):
     price = models.IntegerField()
     unit = models.CharField(max_length=50)
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='items')
+    payment_method = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'inventory'  
@@ -159,11 +161,39 @@ class InvoiceInventory(models.Model):
     invoice_type = models.IntegerField(default=2)
     created_at = models.DateTimeField()
     item_id = models.IntegerField(null = True, blank= True)
+    quality = models.IntegerField()
+    item_name = models.CharField(max_length=255)
+    unit = models.CharField(max_length=255)
 
     class Meta:
         db_table = 'invoice_inventory'
     def __str__(self):
         return self.invoice_inventory_id
+    
+class InvoiceSalaries(models.Model):
+    invoice_salaries_id = models.AutoField(primary_key=True)
+    employee_name = models.CharField(max_length=255)
+    salaries = models.IntegerField()
+    created_at = models.DateTimeField()
+    payment_method = models.CharField(max_length=50)
+    salary = models.ForeignKey('Salaries', on_delete=models.CASCADE, related_name='invoices')  # Liên kết đến bảng Salaries
+
+    class Meta:
+        db_table = 'invoice_salaries'
+    def __str__(self):
+        return self.invoice_salaries_id
+    
+class Invoice(models.Model):
+    invoice_id = models.AutoField(primary_key=True)
+    id = models.IntegerField()
+    invoice_type = models.IntegerField()
+    describe = models.TextField(null=True, blank=True)
+    money = models.IntegerField()
+
+    class Meta:
+        db_table = 'invoice'
+    def __str__(self):
+        return self.invoice_id
     
 class Salaries(models.Model):
     salary_id = models.AutoField(primary_key=True)
@@ -182,6 +212,7 @@ class Salaries(models.Model):
     total_Permitted_leave = models.IntegerField()
     salary_month = models.IntegerField()
     salary_year = models.IntegerField()
+    is_paid = models.BooleanField(default=False)  # Thêm trường trạng thái thanh toán
 
     class Meta:
         db_table = 'Salaries'
@@ -202,4 +233,6 @@ class OrderDetails(models.Model):
         db_table = 'order_details'
     def __str__(self):
         return f"{self.table_name} - {self.item_name}"
+    
+    
 

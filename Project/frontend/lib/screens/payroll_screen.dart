@@ -41,6 +41,29 @@ class _PayrollScreenState extends State<PayrollScreen> {
     }
   }
 
+  // Thanh toán tất cả các bản ghi lương
+  Future<void> _payAllSalaries() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final invoices = await salariesController.payAllSalaries();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Đã thanh toán ${invoices.length} bản ghi lương!')),
+      );
+      _fetchSalaries(); // Cập nhật lại danh sách sau khi thanh toán
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi khi thanh toán lương: $e')),
+      );
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Dữ liệu bảng lương đã được lọc theo truy vấn tìm kiếm
@@ -236,7 +259,7 @@ class _PayrollScreenState extends State<PayrollScreen> {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: _payAllSalaries,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(

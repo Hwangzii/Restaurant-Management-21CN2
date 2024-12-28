@@ -7,8 +7,8 @@ from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Account, Customer, Employee, Floors, Inventory, InvoiceFood, InvoiceInventory, MenuItem, OrderDetails, Salaries, Tables, WorkSchedule
-from .serializers import AccountSerializer, CustomerSerializer, EmployeeSerializer, FloorSerializer, InventorySerializer, InvoiceFooodSerializer, InvoiceInventorySerializer, MenuItemSerializer, OrderDetailsSerializer, SalariesSerializer, TableSerializer, WorkScheduleSerializer
+from .models import Account, Customer, Employee, Floors, Inventory, Invoice, InvoiceFood, InvoiceInventory, InvoiceSalaries, MenuItem, OrderDetails, Salaries, Tables, WorkSchedule
+from .serializers import AccountSerializer, CustomerSerializer, EmployeeSerializer, FloorSerializer, InventorySerializer, InvoiceFooodSerializer, InvoiceInventorySerializer, InvoiceSalariesSerializer, MenuItemSerializer, OrderDetailsSerializer, SalariesSerializer, TableSerializer, WorkScheduleSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.viewsets import ReadOnlyModelViewSet, ModelViewSet
@@ -309,6 +309,47 @@ class InvoiceInventoryViewSet(viewsets.ModelViewSet):
 
 class SalariesViewSet(viewsets.ModelViewSet):
     queryset = Salaries.objects.all()
+    serializer_class = SalariesSerializer
+
+    @action(detail=False, methods=['post'], url_path='create-all-invoices')
+    def create_all_invoices(self, request):
+        try:
+            # Lấy tất cả bản ghi lương chưa thanh toán
+            salaries = Salaries.objects.filter(is_paid=False)
+
+            if not salaries.exists():
+                return Response({"error": "Không có bản ghi lương nào để thanh toán"}, status=status.HTTP_404_NOT_FOUND)
+
+            invoices = []
+            for salary in salaries:
+                # Tạo hóa đơn cho từng bản ghi lương
+                invoice = InvoiceSalaries.objects.create(
+                    employee_name=salary.employee_name,
+                    salaries=salary.final_salary,
+                    created_at=salary.payment_date,
+                    payment_method=request.data.get('payment_method', 'Tiền mặt'),  # Giá trị mặc định
+                    salary=salary
+                )
+
+                # Đánh dấu bản ghi lương đã thanh toán
+                salary.is_paid = True
+                salary.save()
+
+                invoices.append(invoice)
+
+            # Trả về danh sách hóa đơn đã tạo
+            serializer = InvoiceSalariesSerializer(invoices, many=True)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class InvoiceSalariesViewSet(viewsets.ModelViewSet):
+    queryset = InvoiceSalaries.objects.all()
+    serializer_class = InvoiceSalariesSerializer
+
+class InvoiceViewSet(viewsets.ModelViewSet):
+    queryset = Invoice.objects.all()
     serializer_class = SalariesSerializer
     
 class OrderDetailsViewSet(viewsets.ViewSet):

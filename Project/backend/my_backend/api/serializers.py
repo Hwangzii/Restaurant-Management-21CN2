@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Account, Customer, Employee, Inventory, InvoiceFood, InvoiceInventory, MenuItem, Floors, OrderDetails, Restaurant, Salaries, Tables, WorkSchedule
+from .models import Account, Customer, Employee, Inventory, Invoice, InvoiceFood, InvoiceInventory, InvoiceSalaries, MenuItem, Floors, OrderDetails, Restaurant, Salaries, Tables, WorkSchedule
 
 class RestaurantSerializer(serializers.ModelSerializer):
     class Meta:
@@ -85,6 +85,16 @@ class CustomerSerializer(serializers.ModelSerializer):
 class InvoiceInventorySerializer(serializers.ModelSerializer):
     class Meta:
         model = InvoiceInventory
+        fields = '__all__'
+
+class InvoiceSalariesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InvoiceSalaries
+        fields = '__all__'
+
+class InvoiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invoice
         fields = '__all__'
 
 class SalariesSerializer(serializers.ModelSerializer):

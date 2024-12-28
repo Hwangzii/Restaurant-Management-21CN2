@@ -21,4 +21,17 @@ class SalariesController with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // Thanh toán tất cả các bản ghi lương
+  Future<List<dynamic>> payAllSalaries(
+      {String paymentMethod = 'Tiền mặt'}) async {
+    try {
+      final invoices =
+          await _apiService.createAllInvoices(paymentMethod: paymentMethod);
+      return invoices; // Trả về danh sách hóa đơn đã tạo
+    } catch (e) {
+      print("Error paying all salaries: $e");
+      throw Exception("Failed to pay all salaries");
+    }
+  }
 }
