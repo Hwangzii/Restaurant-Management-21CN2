@@ -287,6 +287,7 @@ class _TablesScreenState extends State<TablesScreen> {
                   width: 20, // Chiều rộng của hình ảnh
                   height: 20, // Chiều cao của hình ảnh
                   fit: BoxFit.contain, // Cách căn chỉnh hình ảnh trong widget
+                  color: Color(0xFFEF4D2D),
                 ),
                 title: Text('Buffet đỏ'),
                 onTap: () {
@@ -299,7 +300,9 @@ class _TablesScreenState extends State<TablesScreen> {
                   'assets/seafood.png', // Đường dẫn đến hình ảnh
                   width: 20, // Chiều rộng của hình ảnh
                   height: 20, // Chiều cao của hình ảnh
-                  fit: BoxFit.contain, // Cách căn chỉnh hình ảnh trong widget
+                  fit: BoxFit.contain,
+                  color:
+                      Color(0xFFEF4D2D), // Cách căn chỉnh hình ảnh trong widget
                 ),
                 title: Text('Buffet đen'),
                 onTap: () {
@@ -507,7 +510,7 @@ class _TablesScreenState extends State<TablesScreen> {
                         0); // Nếu null, gán giá trị mặc định là 0
 
                 Color cardColor =
-                    (status == 1) ? Color(0xFFFF8A00) : Color(0xFFF2F2F7);
+                    (status == 1) ? Color(0xFFEF4D2D) : Color(0xFFF2F2F7);
 
                 return GestureDetector(
                   onTap: () async {

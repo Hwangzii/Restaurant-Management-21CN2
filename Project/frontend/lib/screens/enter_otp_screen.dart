@@ -35,7 +35,7 @@ class EnterOtpScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        automaticallyImplyLeading: false, //
+        // automaticallyImplyLeading: false, //
         title: Text(
           'Xác minh OTP',
           style: TextStyle(fontSize: 28, color: Color(0xFFEF4D2D)),

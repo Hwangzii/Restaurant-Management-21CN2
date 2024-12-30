@@ -97,10 +97,32 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
     );
   }
 
+  // Hàm chọn ngày sinh
+  void _selectBirthDate(BuildContext context) async {
+    DateTime? selectedDate = await showDialog<DateTime>(
+      context: context,
+      builder: (BuildContext context) {
+        return DatePickerDialog(
+          initialDate: DateTime.now(),
+          firstDate: DateTime(1900),
+          lastDate: DateTime(2100),
+        );
+      },
+    );
+
+    if (selectedDate != null) {
+      setState(() {
+        _birthController.text = "${selectedDate.toLocal()}"
+            .split(' ')[0]; // Format date to yyyy-MM-dd
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+          centerTitle: true,
           title: Text(widget.employee == null
               ? 'Thêm nhân viên mới'
               : 'Sửa thông tin nhân viên')),
@@ -110,22 +132,25 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
           children: [
             _buildInputField('Họ và tên', _nameController),
             _buildInputField('Số điện thoại', _phoneController),
-            _buildInputField('Ngày sinh', _birthController),
+            _buildDateInputField('Ngày sinh',
+                _birthController), // Use the new method for birthdate
             _buildInputField('Địa chỉ', _addressController),
             _buildInputField('Chức vụ', _positionController),
             _buildInputField('CCCD', _cccdController),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _saveStaff,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-              child: Text(
-                widget.employee == null
-                    ? 'Thêm nhân viên'
-                    : 'Cập nhật thông tin',
-                style: const TextStyle(fontSize: 16, color: Colors.white),
+            SizedBox(
+              width: double.infinity, // Chiều rộng tối đa
+              child: ElevatedButton(
+                onPressed: _saveStaff,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFF45211),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: Text(
+                  widget.employee == null
+                      ? 'Thêm nhân viên'
+                      : 'Cập nhật thông tin',
+                  style: const TextStyle(fontSize: 16, color: Colors.white),
+                ),
               ),
             ),
           ],
@@ -139,6 +164,29 @@ class _AddStaffScreenState extends State<AddStaffScreen> {
       padding: const EdgeInsets.only(bottom: 12.0),
       child: TextField(
         controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: Colors.grey[200],
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide.none,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Hàm để xử lý nhập ngày sinh
+  Widget _buildDateInputField(String label, TextEditingController controller) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: TextField(
+        controller: controller,
+        readOnly: true, // Prevent typing in the field
+        onTap: () {
+          _selectBirthDate(context); // Open the date picker
+        },
         decoration: InputDecoration(
           labelText: label,
           filled: true,

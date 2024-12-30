@@ -111,6 +111,7 @@ class _ListStaffScreenState extends State<ListStaffScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: const Text("Danh sách nhân sự"),
         actions: [
           IconButton(
@@ -135,7 +136,10 @@ class _ListStaffScreenState extends State<ListStaffScreen> {
               controller: searchController,
               onChanged: filterSearchResults,
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: Colors.black, // Chỉnh màu icon search
+                ),
                 suffixIcon: searchController.text.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
@@ -146,10 +150,22 @@ class _ListStaffScreenState extends State<ListStaffScreen> {
                       )
                     : null,
                 hintText: "Tìm kiếm",
+                hintStyle:
+                    TextStyle(color: Color(0xFF808B96)), // Chỉnh màu hintText
                 filled: true,
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                fillColor:
+                    Color(0xFFF4F3F8), // Màu nền của TextField (tuỳ chỉnh)
+                border: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(15), // Bo góc cho TextField
+                  borderSide: BorderSide.none, // Không có viền
+                ), // Bỏ viền
+                contentPadding: EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16), // Điều chỉnh padding cho TextField
               ),
+              style: TextStyle(
+                  color: Colors.black), // Chỉnh màu chữ trong TextField
             ),
           ),
           Expanded(
@@ -165,24 +181,64 @@ class _ListStaffScreenState extends State<ListStaffScreen> {
                   itemCount: filteredEmployees.length,
                   itemBuilder: (context, index) {
                     final employee = filteredEmployees[index];
-                    return ListTile(
-                      onLongPress: () => _showOptionsDialog(employee),
-                      leading: CircleAvatar(
-                        backgroundColor: employee['status_work'] == true
-                            ? Colors.green
-                            : Colors.red,
-                        child: const Icon(Icons.person, color: Colors.white),
+                    return Dismissible(
+                      key: Key(employee['employees_id'].toString()),
+                      direction:
+                          DismissDirection.endToStart, // Vuốt sang phải để xóa
+                      background: Container(
+                        color: Colors.red, // Màu nền khi vuốt
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Image.asset(
+                          'assets/delete.png', // Đường dẫn đến hình ảnh
+                          height: 24,
+                          width: 24,
+                          color: Colors.white, // Tùy chọn chỉnh màu nếu cần
+                        ),
                       ),
-                      title: Text(employee['full_name']),
-                      subtitle: Text("Id: ${employee['employees_id']}"),
-                      trailing: Text(
-                        employee['status_work'] == true
-                            ? "Đang làm việc"
-                            : "Vắng",
-                        style: TextStyle(
-                          color: employee['status_work'] == true
-                              ? Colors.green
-                              : Colors.red,
+                      onDismissed: (direction) async {
+                        bool success = await ListStaffController.deleteStaff(
+                            employee['employees_id']);
+                        if (success) {
+                          setState(() {
+                            filteredEmployees
+                                .removeAt(index); // Xóa item khỏi danh sách
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(
+                                    "${employee['full_name']} đã được xóa")),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("Xóa không thành công")),
+                          );
+                        }
+                      },
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor:
+                              Color(0xFFE3E4E8), // Màu nền của CircleAvatar
+                          child: const Icon(
+                            Icons.person,
+                            color: Color(0xFF6F7376), // Màu icon
+                          ),
+                        ),
+                        title: Text(employee['full_name']),
+                        subtitle: Text("Id: ${employee['employees_id']}"),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.edit),
+                          color: Color(0xFFEF4D2D), // Màu của biểu tượng
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    AddStaffScreen(employee: employee),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     );

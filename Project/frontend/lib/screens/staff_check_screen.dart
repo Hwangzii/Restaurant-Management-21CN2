@@ -282,16 +282,13 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
         backgroundColor: Colors.white,
         elevation: 1,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            const Spacer(), // Đẩy nội dung vào giữa
             const Text(
               'Điểm danh',
               style: TextStyle(color: Colors.black, fontSize: 20),
             ),
-            Text(
-              "Tổng số nhân viên: ${filteredEmployees.length}",
-              style: const TextStyle(color: Colors.black, fontSize: 16),
-            ),
+            const Spacer(), // Cân bằng bên trái và phải
           ],
         ),
       ),
@@ -300,68 +297,97 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
           // Phần chọn ngày và ca làm việc
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: TextField(
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      hintText: selectedDate != null
-                          ? DateFormat('dd/MM/yyyy').format(selectedDate!)
-                          : 'Chọn ngày',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                // Dòng chọn ngày và ca làm việc
+                Row(
+                  children: [
+                    // Phần chọn ngày
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0, vertical: 4.0),
+                        decoration: BoxDecoration(
+                          color: Color(0xFFF4F3F8), // Màu nền của hộp
+                          borderRadius: BorderRadius.circular(12.0), // Bo góc
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                readOnly: true,
+                                decoration: InputDecoration(
+                                  hintText: selectedDate != null
+                                      ? DateFormat('dd/MM/yyyy')
+                                          .format(selectedDate!)
+                                      : 'Chọn ngày',
+                                  border: InputBorder
+                                      .none, // Loại bỏ viền của TextField
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.date_range,
+                                color: Color(0xFFEF4D2D),
+                              ),
+                              onPressed: () async {
+                                DateTime? pickedDate = await showDatePicker(
+                                  context: context,
+                                  initialDate: selectedDate ?? DateTime.now(),
+                                  firstDate: DateTime(2000),
+                                  lastDate: DateTime(2100),
+                                );
+
+                                if (pickedDate != null &&
+                                    pickedDate != selectedDate) {
+                                  setState(() {
+                                    selectedDate = pickedDate;
+                                  });
+
+                                  // Gọi API để lọc nhân viên theo ngày
+                                  _fetchFilteredEmployees(
+                                      dayselect, _selectedShift);
+                                  _checkIfToday(pickedDate);
+                                }
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                      prefixIcon: const Icon(Icons.calendar_today),
                     ),
-                  ),
-                ),
-                // Phần chọn ngày
-                IconButton(
-                  icon: const Icon(Icons.date_range),
-                  onPressed: () async {
-                    DateTime? pickedDate = await showDatePicker(
-                      context: context,
-                      initialDate: selectedDate ?? DateTime.now(),
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2100),
-                    );
+                    const SizedBox(width: 16), // Khoảng cách giữa 2 thành phần
+                    // Phần chọn ca làm việc
+                    Expanded(
+                      flex: 1,
+                      child: DropdownButton<String>(
+                        value: _selectedShift,
+                        underline: Container(),
+                        isExpanded:
+                            true, // Đảm bảo DropdownButton chiếm toàn bộ chiều ngang
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedShift = newValue!;
+                          });
 
-                    if (pickedDate != null && pickedDate != selectedDate) {
-                      setState(() {
-                        selectedDate = pickedDate;
-                      });
-
-                      // Gọi API để lọc nhân viên theo ngày
-                      _fetchFilteredEmployees(dayselect, _selectedShift);
-                      _checkIfToday(pickedDate);
-                    }
-                  },
-                ),
-
-                // Phần chọn ca làm việc
-                DropdownButton<String>(
-                  value: _selectedShift,
-                  underline: Container(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedShift = newValue!;
-                    });
-
-                    // Gọi API để lọc nhân viên theo ca làm việc
-                    _fetchFilteredEmployees(dayselect, _selectedShift);
-                  },
-                  items: <String>['ca sáng', 'ca tối']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(
-                        value,
-                        style: const TextStyle(fontSize: 16),
+                          // Gọi API để lọc nhân viên theo ca làm việc
+                          _fetchFilteredEmployees(dayselect, _selectedShift);
+                        },
+                        items: <String>['ca sáng', 'ca tối']
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          );
+                        }).toList(),
                       ),
-                    );
-                  }).toList(),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -397,7 +423,7 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
                                   ? Icons.radio_button_checked
                                   : Icons.radio_button_unchecked,
                               color: attendanceStatus[originalIndex] == true
-                                  ? Colors.orange
+                                  ? Color(0xFFEF4D2D)
                                   : Colors.grey,
                             ),
                             const SizedBox(height: 4),
@@ -423,7 +449,7 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
                                   ? Icons.radio_button_checked
                                   : Icons.radio_button_unchecked,
                               color: attendanceStatus[originalIndex] == false
-                                  ? Colors.orange
+                                  ? Color(0xFFEF4D2D)
                                   : Colors.grey,
                             ),
                             const SizedBox(height: 4),
@@ -467,26 +493,46 @@ class _StaffCheckScreenState extends State<StaffCheckScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: isSaveButtonVisible
-          ? Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SizedBox(
-                height: 45,
-                child: FloatingActionButton.extended(
-                  onPressed: _saveAttendance,
-                  label: const Text(
-                    'Lưu',
-                    style: TextStyle(fontSize: 14),
-                  ),
-                  icon: const Icon(
-                    Icons.save,
-                    size: 18,
-                  ),
-                  backgroundColor: const Color(0xFFFF8A00),
-                ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start, // Căn trái
+          children: [
+            // Hiển thị tổng số nhân viên
+            Align(
+              alignment: Alignment.centerLeft, // Căn trái hoàn toàn
+              child: Text(
+                "Tổng số nhân viên: ${filteredEmployees.length}",
+                style: const TextStyle(color: Colors.black, fontSize: 16),
               ),
-            )
-          : null,
+            ),
+            const SizedBox(height: 8), // Khoảng cách giữa Text và nút
+            // Nút lưu hoặc nút không thể điểm danh
+            SizedBox(
+              width: double.infinity, // Để nút chiếm toàn chiều ngang
+              height: 45,
+              child: FloatingActionButton.extended(
+                onPressed: isSaveButtonVisible
+                    ? _saveAttendance
+                    : null, // Vô hiệu hóa sự kiện bấm nếu không thể điểm danh
+                label: Text(
+                  isSaveButtonVisible ? 'Lưu' : 'Không thể điểm danh',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: isSaveButtonVisible
+                        ? Colors.white
+                        : Colors.white, // Đổi màu chữ khi vô hiệu hóa
+                  ),
+                ),
+                backgroundColor: isSaveButtonVisible
+                    ? const Color(0xFFEF4D2D)
+                    : Colors.grey, // Đổi màu nền nút khi vô hiệu hóa
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

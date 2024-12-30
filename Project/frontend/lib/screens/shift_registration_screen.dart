@@ -2,7 +2,6 @@ import 'package:app/controllers/shift_registration_controller.dart';
 import 'package:app/services/api_service.dart';
 import 'package:flutter/material.dart';
 
-
 void main() {
   runApp(const ShiftRegistrationApp());
 }
@@ -34,7 +33,6 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
   DateTime? selectedEndDate;
   int? expandedIndex;
 
-
   // Lưu trữ trạng thái của từng ca làm cho mỗi nhân viên
   final Map<int, List<String>> selectedStatus = {};
 
@@ -55,7 +53,8 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
       setState(() {
         employeeList = data;
         for (int i = 0; i < employeeList.length; i++) {
-          shiftSelections[i] = List<bool>.filled(14, false); // 7 ca sáng, 7 ca tối
+          shiftSelections[i] =
+              List<bool>.filled(14, false); // 7 ca sáng, 7 ca tối
         }
       });
     } catch (e) {
@@ -64,10 +63,9 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
   }
 
   List<Map<String, dynamic>> prepareShiftsToSave(
-    DateTime startDate,
-    Map<int, List<bool>> shiftSelections,
-    List<Map<String, dynamic>> employeeList) {
-
+      DateTime startDate,
+      Map<int, List<bool>> shiftSelections,
+      List<Map<String, dynamic>> employeeList) {
     List<Map<String, dynamic>> shiftsToSave = [];
 
     for (int index = 0; index < employeeList.length; index++) {
@@ -75,10 +73,13 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
         // Thêm ca sáng
         if (shiftSelections[index]![day]) {
           shiftsToSave.add({
-            "work_date": startDate.add(Duration(days: day)).toIso8601String().split('T')[0],
+            "work_date": startDate
+                .add(Duration(days: day))
+                .toIso8601String()
+                .split('T')[0],
             "shift_type": "sáng",
             "shift_start": "09:00:00", // Giả định thời gian ca sáng
-            "shift_end": "14:00:00",  // Giả định thời gian ca sáng
+            "shift_end": "14:00:00", // Giả định thời gian ca sáng
             "employee": employeeList[index]['employees_id'],
             "status": selectedStatus[index]?[day] ?? "vắng", // Mặc định "vắng"
           });
@@ -86,10 +87,13 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
         // Thêm ca tối
         if (shiftSelections[index]![day + 7]) {
           shiftsToSave.add({
-            "work_date": startDate.add(Duration(days: day)).toIso8601String().split('T')[0],
+            "work_date": startDate
+                .add(Duration(days: day))
+                .toIso8601String()
+                .split('T')[0],
             "shift_type": "tối",
             "shift_start": "17:00:00", // Giả định thời gian ca tối
-            "shift_end": "22:00:00",  // Giả định thời gian ca tối
+            "shift_end": "22:00:00", // Giả định thời gian ca tối
             "employee": employeeList[index]['employees_id'],
             "status": selectedStatus[index]?[day] ?? "vắng", // Mặc định "vắng"
           });
@@ -103,8 +107,8 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
   void saveShifts() async {
     if (selectedStartDate != null) {
       // Chuẩn bị danh sách ca làm để gửi
-      List<Map<String, dynamic>> shiftsToSave =
-          prepareShiftsToSave(selectedStartDate!, shiftSelections, employeeList);
+      List<Map<String, dynamic>> shiftsToSave = prepareShiftsToSave(
+          selectedStartDate!, shiftSelections, employeeList);
 
       try {
         // Gửi danh sách ca làm lên API
@@ -126,14 +130,6 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
       );
     }
   }
-
-
-
-
-
-
-
-
 
   // Hàm mở DateRangePicker tùy chỉnh
   Future<void> _showCustomDatePicker(BuildContext context) async {
@@ -206,7 +202,9 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: const Text('Đăng ký ca làm'),
         centerTitle: true,
       ),
@@ -218,10 +216,12 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
             child: InkWell(
               onTap: () => _showCustomDatePicker(context),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(8),
+                  color: Color(0xFFF4F3F8),
+                  border: Border.all(color: Colors.white),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -229,11 +229,14 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
                     Text(
                       selectedStartDate != null
                           ? "${selectedStartDate!.day}/${selectedStartDate!.month}/${selectedStartDate!.year} - "
-                            "${selectedEndDate!.day}/${selectedEndDate!.month}/${selectedEndDate!.year}"
+                              "${selectedEndDate!.day}/${selectedEndDate!.month}/${selectedEndDate!.year}"
                           : "Chọn khoảng ngày",
                       style: const TextStyle(fontSize: 16),
                     ),
-                    const Icon(Icons.calendar_today),
+                    const Icon(
+                      Icons.calendar_today,
+                      color: Color(0xFFF45211),
+                    ),
                   ],
                 ),
               ),
@@ -250,7 +253,16 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
                         children: [
                           ListTile(
                             title: Text(employeeList[index]['full_name']),
-                            trailing: const Icon(Icons.arrow_forward_ios),
+                            trailing: AnimatedRotation(
+                              duration: const Duration(milliseconds: 300),
+                              turns: expandedIndex == index
+                                  ? 0.25
+                                  : 0.0, // 0.5 là quay xuống
+                              child: const Icon(
+                                Icons.arrow_forward_ios,
+                                size: 18,
+                              ),
+                            ),
                             onTap: () {
                               setState(() {
                                 expandedIndex =
@@ -260,42 +272,96 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
                           ),
                           if (expandedIndex == index)
                             Padding(
-                              padding: const EdgeInsets.only(left: 16, bottom: 8),
+                              padding:
+                                  const EdgeInsets.only(left: 16, bottom: 8),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('Ca sáng'),
+                                  const Text(
+                                    'Ca sáng',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceEvenly,
                                     children: List.generate(
                                       7,
-                                      (dayIndex) => Checkbox(
-                                        value: shiftSelections[index]![dayIndex],
-                                        onChanged: (val) {
-                                          setState(() {
-                                            shiftSelections[index]![dayIndex] =
-                                                val!;
-                                          });
-                                        },
+                                      (dayIndex) => Transform.scale(
+                                        scale: 1.5, // Tăng kích thước checkbox
+                                        child: Theme(
+                                          data: ThemeData(
+                                            checkboxTheme: CheckboxThemeData(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        20), // Bo tròn
+                                              ),
+                                              fillColor: MaterialStateProperty
+                                                  .resolveWith(
+                                                (states) => states.contains(
+                                                        MaterialState.selected)
+                                                    ? Color(
+                                                        0xFFF45211) // Màu cam khi được chọn
+                                                    : Colors
+                                                        .white, // Màu xám khi không chọn
+                                              ),
+                                            ),
+                                          ),
+                                          child: Checkbox(
+                                            value: shiftSelections[index]![
+                                                dayIndex],
+                                            onChanged: (val) {
+                                              setState(() {
+                                                shiftSelections[index]![
+                                                    dayIndex] = val!;
+                                              });
+                                            },
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                  const Text('Ca tối'),
+                                  const Text(
+                                    'Ca tối',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceEvenly,
                                     children: List.generate(
                                       7,
-                                      (dayIndex) => Checkbox(
-                                        value: shiftSelections[index]![
-                                            dayIndex + 7],
-                                        onChanged: (val) {
-                                          setState(() {
-                                            shiftSelections[index]![
-                                                dayIndex + 7] = val!;
-                                          });
-                                        },
+                                      (dayIndex) => Transform.scale(
+                                        scale: 1.5, // Tăng kích thước checkbox
+                                        child: Theme(
+                                          data: ThemeData(
+                                            checkboxTheme: CheckboxThemeData(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                        20), // Bo tròn
+                                              ),
+                                              fillColor: MaterialStateProperty
+                                                  .resolveWith(
+                                                (states) => states.contains(
+                                                        MaterialState.selected)
+                                                    ? Color(
+                                                        0xFFF45211) // Màu cam khi được chọn
+                                                    : Colors
+                                                        .white, // Màu xám khi không chọn
+                                              ),
+                                            ),
+                                          ),
+                                          child: Checkbox(
+                                            value: shiftSelections[index]![
+                                                dayIndex + 7],
+                                            onChanged: (val) {
+                                              setState(() {
+                                                shiftSelections[index]![
+                                                    dayIndex + 7] = val!;
+                                              });
+                                            },
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -315,11 +381,10 @@ class _ShiftRegistrationScreenState extends State<ShiftRegistrationScreen> {
           width: double.infinity,
           height: 48,
           child: ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFF45211)),
             onPressed: () {
               saveShifts();
             },
-
             child: const Text(
               'Lưu',
               style: TextStyle(color: Colors.white, fontSize: 18),

@@ -143,7 +143,6 @@ class Customer(models.Model):
     customer_id = models.AutoField(primary_key=True)
     customer_name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=20)
-    email = models.CharField(max_length=100)
     loyalty_status = models.BooleanField(default=False)
     counts = models.IntegerField()
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='customer')
@@ -231,6 +230,7 @@ class OrderDetails(models.Model):
     buffet_total = models.IntegerField(null=True, blank=True)
     describe = models.TextField(null=True, blank= True)
     type = models.TextField(null= True, blank= True)
+    restaurant_id =models.IntegerField(default=2,null=True,blank=True)
     class Meta:
         db_table = 'order_details'
     def __str__(self):

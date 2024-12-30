@@ -186,7 +186,8 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
                   ),
                   Text(
                     NumberFormat('#,##0', 'vi_VN').format(totalAmount) + 'đ',
-                    style: const TextStyle(fontSize: 16, color: Colors.red),
+                    style:
+                        const TextStyle(fontSize: 16, color: Color(0xFFEF4D2D)),
                   ),
                 ],
               ),
@@ -296,7 +297,7 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
         backgroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: Icon(Icons.clear_all, color: Colors.red),
+            icon: Icon(Icons.delete, color: Colors.red),
             onPressed: () async {
               bool confirm = await showDialog(
                 context: context,
@@ -653,8 +654,8 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
                           'assets/edit-text.png', // Đường dẫn đến hình ảnh thay thế cho icon
                           width: 24, // Kích thước của hình ảnh
                           height: 24, // Kích thước của hình ảnh
-                          color: Colors
-                              .orange, // Màu sắc nếu cần (có thể bỏ nếu không muốn thay đổi màu)
+                          color: Color(
+                              0xFFEF4D2D), // Màu sắc nếu cần (có thể bỏ nếu không muốn thay đổi màu)
                         ),
                       ),
                     ],
@@ -712,7 +713,7 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
                 height: 16,
               ),
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Colors.orange),
+                backgroundColor: MaterialStateProperty.all(Color(0xFFEF4D2D)),
                 foregroundColor: MaterialStateProperty.all(Colors.black),
                 elevation: MaterialStateProperty.all(0),
                 shape: MaterialStateProperty.all(RoundedRectangleBorder(
@@ -731,15 +732,15 @@ class _PayPrintScreenState extends State<PayPrintScreen> {
             width: 150,
             child: ElevatedButton.icon(
               onPressed: () {
-                print("Button 2 pressed");
+                Navigator.pop(context);
               },
               label: Text(
-                "In hóa đơn",
+                "Thêm món",
                 style: TextStyle(color: Colors.black),
                 textAlign: TextAlign.left,
               ),
               icon: Image.asset(
-                'assets/print.png',
+                'assets/plus.png',
                 width: 16,
                 height: 16,
               ),

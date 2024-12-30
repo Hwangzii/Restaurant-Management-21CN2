@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 
 class ApiService {
   final String baseUrl =
-      'https://457f-14-232-55-213.ngrok-free.app/api'; // Cập nhật URL API của bạn
+      'https://520c-42-114-170-0.ngrok-free.app/api'; // Cập nhật URL API của bạn
 
   // Gửi request đăng nhập
   Future<Map<String, dynamic>> login(String username, String password) async {
@@ -881,6 +881,108 @@ class ApiService {
       }
     } catch (e) {
       print('Lỗi: $e');
+      return false;
+    }
+  }
+
+  // Hàm lấy dữ liệu khách hàng từ API
+  Future<List<Map<String, dynamic>>> fetchCustomers() async {
+    final customersUrl =
+        '$baseUrl/customers/'; // Đường dẫn API lấy danh sách khách hàng
+
+    try {
+      final response = await http.get(Uri.parse(customersUrl), headers: {
+        'Accept': 'application/json; charset=UTF-8', // Đảm bảo yêu cầu JSON
+        "ngrok-skip-browser-warning": "69420",
+      });
+
+      if (response.statusCode == 200) {
+        final decodedResponse = utf8.decode(response.bodyBytes);
+        List<dynamic> data = json.decode(decodedResponse);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        print('Failed to load customers: ${response.body}');
+        throw Exception('Failed to load customers');
+      }
+    } catch (e) {
+      print('Error fetching customers: $e');
+      throw Exception('Error fetching customers: $e');
+    }
+  }
+
+  // Hàm API thêm khách hàng
+  Future<bool> addCustomer(String customersName, String phoneNumber, int counts,
+      int restaurantId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/customers/'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'customer_name': customersName,
+          'phone_number': phoneNumber,
+          'counts': counts, // Thêm counts
+          'restaurant': 2, // Thêm restaurantId
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        print('Failed to add customer: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error adding customer: $e');
+      return false;
+    }
+  }
+
+  // Hàm API sửa khách hàng
+  Future<bool> updateCustomer(int customerId, String customerName,
+      String phoneNumber, int counts, int restaurantId) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/customers/$customerId/'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'customer_name': customerName,
+          'phone_number': phoneNumber,
+          'counts': counts,
+          'restaurant': 2,
+        }),
+      );
+
+      // In ra phản hồi để kiểm tra lỗi
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        return true;
+      } else {
+        print('Failed to update customer: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error updating customer: $e');
+      return false;
+    }
+  }
+
+  // Hàm API xóa khách hàng
+  Future<bool> deleteCustomer(int customersId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/customers/$customersId/'),
+      );
+
+      if (response.statusCode == 204) {
+        return true;
+      } else {
+        print('Failed to delete customer: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Error deleting customer: $e');
       return false;
     }
   }

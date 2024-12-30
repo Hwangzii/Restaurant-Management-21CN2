@@ -1,4 +1,6 @@
+import 'package:app/controllers/invoice_controller.dart';
 import 'package:app/models/user.dart';
+import 'package:app/screens/invoice_screen.dart';
 import 'package:app/screens/menu_options.dart';
 import 'package:app/screens/order_food_screen.dart';
 import 'package:app/screens/tables_screen.dart';
@@ -14,6 +16,16 @@ class HomeScreen extends StatefulWidget {
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
+
+  String formatDate(String dateString) {
+    try {
+      final DateTime parsedDate = DateTime.parse(dateString);
+      final DateFormat formatter = DateFormat('dd/MM/yyyy HH:mm');
+      return formatter.format(parsedDate);
+    } catch (e) {
+      return dateString; // Trả về giá trị gốc nếu không thể định dạng
+    }
+  }
 }
 
 // Biến màu chung
@@ -62,11 +74,6 @@ final List<Map<String, dynamic>> iconsData = [
     'route': '/FoodScreen'
   },
   {
-    'imagePath': 'assets/clients.png',
-    'name': 'khách hàng',
-    'color': commonIconBackgroundColor
-  },
-  {
     'imagePath': 'assets/order.png',
     'name': 'Gọi món',
     'color': commonIconBackgroundColor,
@@ -77,6 +84,12 @@ final List<Map<String, dynamic>> iconsData = [
     'name': 'Điểm danh',
     'color': commonIconBackgroundColor,
     'route': '/StaffCheckScreen'
+  },
+  {
+    'imagePath': 'assets/clients.png',
+    'name': 'khách hàng',
+    'color': commonIconBackgroundColor,
+    'route': '/ClientsScreen'
   },
 ];
 
@@ -100,7 +113,8 @@ class _HomeScreenState extends State<HomeScreen> {
       NotificationController(); // Khởi tạo controller
 
   final ApiService _apiService = ApiService();
-
+  final InvoiceController invoiceController = InvoiceController();
+  List<Map<String, dynamic>> invoices = [];
   double totalRevenue = 0.0;
   double totalRevenue1 = 0.0;
   double totalRevenue2 = 0.0;
@@ -108,6 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int totalRevenue4 = 0;
   int totalRevenue5 = 0;
   bool isLoading = true;
+  late Future<List<Map<String, dynamic>>> _invoicesFuture;
 
   @override
   void initState() {
@@ -118,6 +133,44 @@ class _HomeScreenState extends State<HomeScreen> {
     fetchTotalRevenue3();
     fetchTotalRevenue4();
     fetchTotalRevenue5();
+    _invoicesFuture = _fetchInvoices();
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchInvoices() async {
+    try {
+      await invoiceController.fetchInvoices();
+      List<Map<String, dynamic>> invoices = invoiceController.invoices;
+
+      // Sắp xếp danh sách hóa đơn theo `created_at` giảm dần (mới nhất trước)
+      invoices.sort((a, b) {
+        final dateA = DateTime.parse(a['created_at']);
+        final dateB = DateTime.parse(b['created_at']);
+        return dateB.compareTo(dateA); // Sắp xếp giảm dần
+      });
+
+      // Chỉ lấy 4 bản ghi đầu tiên (4 hóa đơn mới nhất)
+      return invoices.take(4).toList();
+    } catch (e) {
+      print("Error fetching invoices: $e");
+      throw Exception("Failed to fetch invoices");
+    }
+  }
+
+  String formatCurrency(String amount) {
+    final number =
+        double.tryParse(amount.replaceAll(',', '').replaceAll('đ', '')) ?? 0;
+    final format = NumberFormat.simpleCurrency(locale: 'vi_VN');
+    return format.format(number);
+  }
+
+  String formatDate(String dateString) {
+    try {
+      final DateTime parsedDate = DateTime.parse(dateString);
+      final DateFormat formatter = DateFormat('dd/MM/yyyy HH:mm');
+      return formatter.format(parsedDate);
+    } catch (e) {
+      return dateString; // Trả về giá trị gốc nếu không thể định dạng
+    }
   }
 
   void fetchTotalRevenue() async {
@@ -241,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               child: CircleAvatar(
                 radius: 18, // Kích thước avatar
-                backgroundImage: AssetImage('assets/user_icon.png'),
+                backgroundImage: AssetImage('assets/avatar.png'),
               ),
             ),
 
@@ -333,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             SizedBox(width: 10),
                             Text(
-                              '${(totalRevenue3.abs() * 100)}%', // Giá trị luôn dương
+                              '${(totalRevenue3.abs() * 0.1).toStringAsFixed(1)}%', // Giá trị luôn dương
                             ),
                           ],
                         ),
@@ -457,52 +510,34 @@ class _HomeScreenState extends State<HomeScreen> {
             Container(
               color: Colors.white,
               padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Text đầu tiên: "Số bàn đang có khách: 15"
-                  Row(
-                    children: [
-                      Text(
-                        'Bàn ăn đang có khách: ',
-                        style: TextStyle(
-                          color: Color(0xFF929292),
-                          fontSize: 13,
-                        ),
-                      ),
-                      Text(
-                        '${totalRevenue5}',
-                        style: TextStyle(
-                          color: Color(0xFFFF8A00),
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // "Xem chi tiết" + icon mũi tên
-                  Row(
-                    children: [
-                      Text(
-                        'Xem chi tiết',
-                        style: TextStyle(
-                          color: Color(0xFFFF8A00),
-                          fontSize: 13,
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Icon(
-                        Icons.arrow_forward_ios,
-                        size: 13,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+              // child: Row(
+              //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //   children: [
+              //     // Text đầu tiên: "Số bàn đang có khách: 15"
+              //     Row(
+              //       children: [
+              //         Text(
+              //           'Bàn ăn đang có khách: ',
+              //           style: TextStyle(
+              //             color: Color(0xFF929292),
+              //             fontSize: 13,
+              //           ),
+              //         ),
+              //         Text(
+              //           '${totalRevenue5}',
+              //           style: TextStyle(
+              //             color: Color(0xFFEF4D2D),
+              //             fontSize: 13,
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //   ],
+              // ),
             ),
 
             SizedBox(
-              height: 20,
+              height: 10,
             ),
 
             Container(
@@ -588,61 +623,154 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
 
             SizedBox(
-              height: 5,
+              height: 15,
             ),
 
+            // Hàng thứ 3
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 20),
+              color: Colors.white,
+              padding: EdgeInsets.symmetric(horizontal: 20),
               child: Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween, // Căn giữa và cách đều
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Lịch sử hóa đơn',
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.bold,
+                  Container(
+                      child: Row(
+                    children: [
+                      Image.asset(
+                        'assets/bill_2.png',
+                        height: 22,
+                        width: 22,
+                        color: Color(0xFFEF4D2D),
+                      ),
+                      SizedBox(
+                        width: 15,
+                      ),
+                      Text(
+                        'Lịch sử Hóa đơn',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ],
+                  )),
+                  GestureDetector(
+                    onTap: () {
+                      // Chuyển đến màn hình mới
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              InvoiceScreen(), // Chuyển đến màn hình mới
+                        ),
+                      );
+                    },
+                    child: Container(
+                      child: Row(
+                        children: [
+                          Text(
+                            'Xem chi tiết',
+                            style: TextStyle(
+                              color: Color(0xFFEF4D2D),
+                              fontSize: 13,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 13,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  Image.asset(
-                    'assets/reload.png',
-                    height: 20,
-                    width: 20,
-                    color: Color(0xFFFF8A00),
-                  ),
                 ],
               ),
             ),
 
+            SizedBox(
+              height: 12,
+            ),
+
             Container(
-              margin: EdgeInsets.all(20), // Khoảng cách với các phần tử khác
-              padding: EdgeInsets.all(10), // Khoảng cách bên trong container
+              // margin: EdgeInsets.all(20), // Khoảng cách với các phần tử khác
+              // padding: EdgeInsets.all(10), // Khoảng cách bên trong container
               decoration: BoxDecoration(
-                color: Colors.blueAccent, // Màu nền của ô
-                borderRadius: BorderRadius.circular(10), // Bo góc
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12, // Màu của bóng
-                    blurRadius: 5, // Độ mờ của bóng
-                    offset: Offset(0, 2), // Độ dịch chuyển bóng
-                  ),
-                ],
+                color: Colors.white, // Màu nền của ô
+                borderRadius: BorderRadius.circular(0), // Bo góc
+                // boxShadow: [
+                //   BoxShadow(
+                //     color: Colors.black12, // Màu của bóng
+                //     blurRadius: 5, // Độ mờ của bóng
+                //     offset: Offset(0, 2), // Độ dịch chuyển bóng
+                //   ),
+                // ],
               ),
-              // width: 150, // Chiều rộng của ô vuông
-              height: 150, // Chiều cao của ô vuông
-              child: Center(
-                child: Text(
-                  'Hóa đơn',
-                  style: TextStyle(
-                    fontSize: 18, // Cỡ chữ
-                    color: Colors.white, // Màu chữ
-                    fontWeight: FontWeight.bold, // Độ đậm của chữ
-                  ),
-                ),
+              height: 300, // Chiều cao của ô vuông
+              child: FutureBuilder<List<Map<String, dynamic>>>(
+                future: _invoicesFuture, // Sử dụng biến Future đã khởi tạo
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                        child: CircularProgressIndicator()); // Loading
+                  } else if (snapshot.hasError) {
+                    return Center(
+                        child: Text("Lỗi: ${snapshot.error}")); // Hiển thị lỗi
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(
+                        child: Text("Không có dữ liệu.")); // Không có dữ liệu
+                  } else {
+                    // Hiển thị dữ liệu trả về
+                    final invoices = snapshot.data!;
+                    return ListView.builder(
+                      itemCount: invoices.length,
+                      itemBuilder: (context, index) {
+                        final item = invoices[index];
+                        return ListTile(
+                          leading: item['invoice_type'] == 1
+                              ? Image.asset(
+                                  'assets/up.png', // Đường dẫn đến hình ảnh trong assets
+                                  width: 24,
+                                  height: 24,
+                                  color: Colors.green,
+                                )
+                              : Image.asset(
+                                  'assets/down.png', // Đường dẫn đến hình ảnh trong assets
+                                  width: 24,
+                                  height: 24,
+                                  color: Colors.black,
+                                ),
+                          title: Text(
+                              '${item['invoice_name']}'), // invoice_food_id
+                          subtitle: Text(
+                            '${item['describe']}',
+                            style: TextStyle(
+                                // fontSize: 12,
+                                color: Color(0xFFABB2B9)),
+                          ), // sale_percent
+                          trailing: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '${item['invoice_type'] == 1 ? '+' : '-'}${formatCurrency(item['money'].toString())}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: item['invoice_type'] == 1
+                                      ? Colors.green
+                                      : Colors.black, // Màu tiền
+                                ),
+                              ),
+                              Text(
+                                formatDate(item['created_at']),
+                                style: TextStyle(
+                                    //  fontSize: 12,
+                                    color: Color(0xFFABB2B9)),
+                              ), // payment_method
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  }
+                },
               ),
             ),
           ],

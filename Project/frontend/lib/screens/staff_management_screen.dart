@@ -11,10 +11,11 @@ class StaffManagementScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false, // ẩn nút back
         backgroundColor: Colors.white,
         title: const Text(
           'Quản lý nhân sự',
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 20, color: Color(0xFFEF4D2D)),
         ),
         centerTitle: true,
       ),
@@ -39,7 +40,7 @@ class StaffManagementScreen extends StatelessWidget {
                       label: 'Danh sách nhân sự',
                       onPressed: () {
                         Navigator.push(
-                          context, 
+                          context,
                           MaterialPageRoute(
                             builder: (context) => const ListStaffScreen(),
                           ),
@@ -53,9 +54,10 @@ class StaffManagementScreen extends StatelessWidget {
                       label: 'Đăng ký ca làm',
                       onPressed: () {
                         Navigator.push(
-                          context, 
+                          context,
                           MaterialPageRoute(
-                            builder: (context) => const ShiftRegistrationScreen(),
+                            builder: (context) =>
+                                const ShiftRegistrationScreen(),
                           ),
                         );
                       },
@@ -67,7 +69,7 @@ class StaffManagementScreen extends StatelessWidget {
                       label: 'Điểm danh',
                       onPressed: () {
                         Navigator.push(
-                          context, 
+                          context,
                           MaterialPageRoute(
                             builder: (context) => const StaffCheckScreen(),
                           ),
@@ -81,7 +83,7 @@ class StaffManagementScreen extends StatelessWidget {
                       label: 'Thanh toán lương',
                       onPressed: () {
                         Navigator.push(
-                          context, 
+                          context,
                           MaterialPageRoute(
                             builder: (context) => PayrollScreen(),
                           ),
@@ -121,6 +123,7 @@ class StaffManagementScreen extends StatelessWidget {
             imagePath,
             width: 20,
             height: 20,
+            color: Color(0xFFEF4D2D),
           ),
           const SizedBox(width: 16),
           Text(

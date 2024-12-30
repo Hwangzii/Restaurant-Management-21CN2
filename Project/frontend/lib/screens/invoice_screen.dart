@@ -93,44 +93,57 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
         centerTitle: true, // Ensure Stack works correctly
         backgroundColor: Colors.white, // AppBar background color
       ),
-      body: ListView.builder(
+      body: ListView.separated(
         itemCount: filteredInvoicesData.length,
         itemBuilder: (context, index) {
           final item = filteredInvoicesData[index];
 
-          // Determine amount color based on positive or negative value
-          item['money'].toString().startsWith('+');
-
           return ListTile(
-            leading: Icon(
-              item['invoice_type'] == 1
-                  ? Icons.arrow_upward
-                  : Icons.arrow_downward, // Mũi tên
-              color: item['invoice_type'] == 1
-                  ? Colors.green
-                  : Colors.red, // Màu sắc
-            ),
+            leading: item['invoice_type'] == 1
+                ? Image.asset(
+                    'assets/up.png', // Đường dẫn đến hình ảnh trong assets
+                    width: 24,
+                    height: 24,
+                    color: Colors.green,
+                  )
+                : Image.asset(
+                    'assets/down.png', // Đường dẫn đến hình ảnh trong assets
+                    width: 24,
+                    height: 24,
+                    color: Colors.black,
+                  ),
             title: Text('${item['invoice_name']}'), // invoice_food_id
-            subtitle: Text('${item['describe']}',
-                style: TextStyle(fontSize: 12)), // sale_percent
+            subtitle: Text(
+              '${item['describe']}',
+              style: TextStyle(fontSize: 12, color: Color(0xFFABB2B9)),
+            ), // sale_percent
             trailing: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  formatCurrency(item['money'].toString()),
+                  '${item['invoice_type'] == 1 ? '+' : '-'}${formatCurrency(item['money'].toString())}',
                   style: TextStyle(
-                      color: item['invoice_type'] == 1
-                          ? Colors.green
-                          : Colors.red), // Màu tiền
+                    fontSize: 18,
+                    color: item['invoice_type'] == 1
+                        ? Colors.green
+                        : Colors.black, // Màu tiền
+                  ),
                 ),
-                Text(formatDate(item['created_at']),
-                    style: TextStyle(
-                        fontSize: 12, color: Colors.grey)), // payment_method
+                Text(
+                  formatDate(item['created_at']),
+                  style: TextStyle(fontSize: 12, color: Color(0xFFABB2B9)),
+                ), // payment_method
               ],
             ),
           );
         },
+        separatorBuilder: (context, index) => Divider(
+          color: Colors.grey.shade300, // Màu đường kẻ
+          thickness: 1, // Độ dày
+          indent: 16, // Khoảng cách từ lề trái
+          endIndent: 16, // Khoảng cách từ lề phải
+        ),
       ),
     );
   }

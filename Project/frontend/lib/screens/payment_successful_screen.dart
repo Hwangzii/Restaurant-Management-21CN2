@@ -87,7 +87,7 @@ class _PaymentSuccessfulScreenState extends State<PaymentSuccessfulScreen> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
                 width: MediaQuery.of(context).size.width * 0.85,
-                height: MediaQuery.of(context).size.height * 0.68,
+                height: MediaQuery.of(context).size.height * 0.6,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20.0),
@@ -132,7 +132,6 @@ class _PaymentSuccessfulScreenState extends State<PaymentSuccessfulScreen> {
                         buildInfoRow('Khuyến mãi', '$salePercent%'),
                         buildInfoRow('Giá gốc', '$preSalePrice VNĐ'),
                         buildInfoRow('Loại thanh toán', '$paymentMethod'),
-                        const SizedBox(height: 30.0),
                         ElevatedButton(
                           onPressed: () {
                             Navigator.push(

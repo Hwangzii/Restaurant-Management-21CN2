@@ -400,7 +400,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                               style: TextStyle(
                                 fontSize: 13,
                                 color: selectedOption == index
-                                    ? Color(0xFFFF8A00)
+                                    ? Color(0xFFEF4D2D)
                                     : Color(0xFF929292),
                               ),
                             ),
@@ -540,7 +540,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                 children: [
                   IconButton(
                     icon: Icon(Icons.shopping_cart),
-                    color: Colors.orange,
+                    color: Color(0xFFEF4D2D),
                     onPressed: () {
                       setState(() {
                         _showOverlay = !_showOverlay; // Hiển thị/Ẩn overlay
@@ -606,7 +606,7 @@ class _OrderFoodScreenState extends State<OrderFoodScreen> {
                   );
                 },
                 child: Container(
-                  color: Colors.orange, // Màu nền cột 3
+                  color: Color(0xFFEF4D2D), // Màu nền cột 3
                   alignment: Alignment.center,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,

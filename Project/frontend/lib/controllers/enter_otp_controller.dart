@@ -1,4 +1,3 @@
-import 'package:app/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:app/screens/manager_screen.dart';
 import 'package:app/screens/tables_screen.dart';
@@ -30,8 +29,7 @@ class EnterOtpController {
         final accountInfo = await ApiService().getAccountInfo(username);
         int? role = int.tryParse(result['role'].toString());
         print('Role received from API: $role');
-        int restaurantId = result['restaurant_id'];
-        await AuthService.saveRestaurantId(restaurantId);
+        // await AuthService.saveRestaurantId(restaurantId);
 
         if (role == 1) {
           if (accountInfo != null && accountInfo['success']) {

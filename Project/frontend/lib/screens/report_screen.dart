@@ -127,10 +127,13 @@ class _ReportScreenState extends State<ReportScreen> {
     return Scaffold(
       backgroundColor: Color(0xFFFDFDFD),
       appBar: AppBar(
-        title: Text('Báo cáo bán hàng',
-            style: TextStyle(fontWeight: FontWeight.bold)),
+        automaticallyImplyLeading: false, // ẩn nút back
+        backgroundColor: Colors.white,
+        title: const Text(
+          'Thống kê doanh thu',
+          style: TextStyle(fontSize: 20, color: Color(0xFFEF4D2D)),
+        ),
         centerTitle: true,
-        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -141,13 +144,6 @@ class _ReportScreenState extends State<ReportScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Doanh thu',
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87),
-                ),
                 ElevatedButton(
                   onPressed: _pickDate, // Hiển thị DatePicker
                   child: Text('Chọn ngày'),
@@ -158,10 +154,7 @@ class _ReportScreenState extends State<ReportScreen> {
             if (selectedDate != null)
               Text(
                 'Ngày chọn: ${DateFormat('dd/MM/yyyy').format(selectedDate!)}',
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blueAccent),
+                style: TextStyle(fontSize: 14, color: Colors.blueAccent),
               ),
             SizedBox(height: 10),
             Expanded(

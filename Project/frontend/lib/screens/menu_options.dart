@@ -26,10 +26,10 @@ class MenuOptions extends StatelessWidget {
         ),
         title: Row(
           children: [
-            Icon(
-              Icons.account_circle,
-              color: Colors.black54,
-              size: 30, // Icon user
+            CircleAvatar(
+              radius: 12,
+              backgroundImage: AssetImage('assets/avatar.png'),
+              backgroundColor: Colors.grey[200],
             ),
             SizedBox(width: 10), // Khoảng cách giữa icon và tên
             Text(
@@ -72,6 +72,7 @@ class MenuOptions extends StatelessWidget {
                     'assets/key.png', // Đường dẫn tới ảnh của bạn
                     width: 16, // Kích thước ảnh
                     height: 16,
+                    color: Color(0xFFEF4D2D),
                   ),
                   SizedBox(width: 15), // Khoảng cách giữa icon và text
                   Text(
@@ -96,8 +97,8 @@ class MenuOptions extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) =>
-                          AccountScreen()), // Đảm bảo bạn đã tạo AccountScreen
+                      builder: (context) => AccountScreen(
+                          user: user)), // Đảm bảo bạn đã tạo AccountScreen
                 );
               },
               child: Row(
@@ -120,8 +121,7 @@ class MenuOptions extends StatelessWidget {
               ),
             ),
 
-            SizedBox(
-                height: screenHeight * 0.04), // Khoảng cách xuống nút đăng xuất
+            const Spacer(),
 
             // Nút Đăng xuất
             Container(
@@ -154,6 +154,9 @@ class MenuOptions extends StatelessWidget {
                   ),
                 ),
               ),
+            ),
+            SizedBox(
+              height: 20,
             ),
           ],
         ),

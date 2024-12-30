@@ -1,7 +1,6 @@
 // import 'package:app/file_test/test_home.dart';
 import 'package:app/models/user.dart';
 import 'package:app/screens/bill_screen.dart';
-import 'package:app/screens/history_screen.dart';
 import 'package:app/screens/home_screen.dart';
 import 'package:app/screens/invenory_screen.dart';
 import 'package:app/screens/invoice_screen.dart';
@@ -38,9 +37,10 @@ class _ManagerScreenState extends State<ManagerScreen> {
         user: widget.user,
       ), // Truyền name vào HomeScreen
       StaffManagementScreen(),
-      InvoiceScreen(),
+
       InventoryScreen(),
       ReportScreen(),
+      InvoiceScreen(),
     ];
   }
 
@@ -57,7 +57,7 @@ class _ManagerScreenState extends State<ManagerScreen> {
       body: _widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomAppBar(
         color: Colors.white,
-        height: 63,
+        height: 70,
         // notchMargin: 5.0, // Khoảng cách giữa nút và BottomAppBar
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround, // Chia đều các icon
@@ -66,12 +66,12 @@ class _ManagerScreenState extends State<ManagerScreen> {
                 'assets/home_1.png', 'assets/home_2.png', 'Trang chủ', 0),
             _buildIconButton(
                 'assets/staff_1.png', 'assets/staff_2.png', 'Nhân sự', 1),
+            // _buildIconButton(
+            //     'assets/bill_1.png', 'assets/bill_2.png', 'Hóa đơn', 2),
             _buildIconButton(
-                'assets/bill_1.png', 'assets/bill_2.png', 'Hóa đơn', 2),
+                'assets/box_1.png', 'assets/box_2.png', 'Kho hàng', 2),
             _buildIconButton(
-                'assets/box_1.png', 'assets/box_2.png', 'Kho hàng', 3),
-            _buildIconButton(
-                'assets/chart_1.png', 'assets/chart_2.png', 'Báo cáo', 4),
+                'assets/chart_1.png', 'assets/chart_2.png', 'Báo cáo', 3),
           ],
         ),
       ),
@@ -96,16 +96,16 @@ class _ManagerScreenState extends State<ManagerScreen> {
           children: [
             Image.asset(
               _selectedIndex == index ? activeIcon : inactiveIcon,
-              width: 20,
-              height: 20,
+              width: 22,
+              height: 22,
             ),
-            const SizedBox(height: 3), // Khoảng cách giữa icon và text
+            const SizedBox(height: 5), // Khoảng cách giữa icon và text
             Text(
               label,
               style: TextStyle(
                 fontSize: 10,
                 color:
-                    _selectedIndex == index ? Color(0xFFFF8A00) : Colors.black,
+                    _selectedIndex == index ? Color(0xFFEF4D2D) : Colors.black,
               ),
             ),
           ],

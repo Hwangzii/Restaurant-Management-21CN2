@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:app/models/item.dart';
+import 'package:intl/intl.dart';
 import '../controllers/inventory_controller.dart';
 
 class InventoryScreen extends StatefulWidget {
@@ -46,7 +47,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       _itemTypeController.text = item.itemType.toString();
       _quantityController.text = item.quantity.toString();
       _priceController.text = item.price.toString();
-      _unitController.text = item.unit.toString();
+      _unitController.text = item.unit;
       _paymentmethodController.text = item.paymentmethod.toString();
       _expItemController.text =
           "${item.expItem.year}-${item.expItem.month.toString().padLeft(2, '0')}-${item.expItem.day.toString().padLeft(2, '0')}";
@@ -100,7 +101,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 SizedBox(height: 12), // Khoảng cách
                 _buildTextField(_priceController, 'Giá tiền', isNumber: true),
                 SizedBox(height: 12), // Khoảng cách
-                _buildTextField(_unitController, 'Đơn vị', isNumber: true),
+                _buildTextField(_unitController, 'Đơn vị'),
                 SizedBox(height: 12), // Khoảng cách
                 DropdownButtonFormField<String>(
                   value: _paymentmethodController.text.isNotEmpty
@@ -241,7 +242,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 
-  void _showSettingsMenu() {
+  void _showSettingsMenu(Item item) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -257,10 +258,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
             ),
             ListTile(
               leading: Icon(Icons.check_box),
-              title: Text('Chọn nhiều sản phẩm'),
+              title: Text('Xóa sản phẩm'),
               onTap: () {
                 Navigator.pop(context);
-                _showSelectMultipleItems();
+                _showForm(item);
               },
             ),
           ],
@@ -354,17 +355,15 @@ class _InventoryScreenState extends State<InventoryScreen> {
     final displayedItems = _controller.displayedItems;
 
     return Scaffold(
+      backgroundColor: Color(0xFFFFFFFF),
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Kho hàng',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, color: Color(0xFFEF4D2D)),
         ),
+        centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
-        centerTitle: true,
         actions: [
           Container(
             margin: EdgeInsets.only(right: 16.0),
@@ -374,8 +373,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
               border: Border.all(color: Colors.white, width: 1.0),
             ),
             child: IconButton(
-              icon: Icon(Icons.settings),
-              onPressed: _showSettingsMenu,
+              icon: Icon(Icons.add),
+              onPressed: () {
+                _showForm(null);
+              },
             ),
           )
         ],
@@ -388,15 +389,24 @@ class _InventoryScreenState extends State<InventoryScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Tìm kiếm theo tên...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                hintText: "Tìm kiếm",
+                hintStyle: TextStyle(color: Color(0xFF808B96)),
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: Colors.black, // Chỉnh màu icon search
                 ),
+                border: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(15), // Bo góc cho TextField
+                  borderSide: BorderSide.none, // Không có viền
+                ), // Bỏ viền
                 filled: true,
-                fillColor: Colors.grey[300],
+                fillColor: Color(0xFFF4F3F8),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 12, horizontal: 16),
               ),
               onChanged: _onSearchChanged,
+              style: TextStyle(color: Colors.black),
             ),
           ),
           // Kiểm tra trạng thái loading hoặc danh sách item
@@ -406,48 +416,137 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   ? Expanded(
                       child: Center(child: Text('Không có hàng hóa nào')))
                   : Expanded(
-                      child: ListView.builder(
-                        padding: EdgeInsets.all(16.0),
-                        itemCount: displayedItems.length,
-                        itemBuilder: (context, index) {
-                          final item = displayedItems[index];
-                          return GestureDetector(
-                            onLongPress: () {
-                              _showItemOptions(item);
-                            },
-                            child: Card(
-                              margin: EdgeInsets.only(bottom: 8.0),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                                side:
-                                    BorderSide(color: Colors.white, width: 1.0),
-                              ),
-                              elevation: 4.0,
-                              child: ListTile(
-                                contentPadding: EdgeInsets.symmetric(
-                                    vertical: 10.0, horizontal: 16.0),
-                                title: Text(
-                                  item.itemName,
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Số lượng: ${item.quantity}'),
-                                    Text('Giá tiền: ${item.price}'),
-                                    Text('Đơn vị: ${item.unit}'),
-                                    Text(
-                                        'Ngày nhập: ${item.expItem.year}-${item.expItem.month.toString().padLeft(2, '0')}-${item.expItem.day.toString().padLeft(2, '0')}'),
-                                    Text(
-                                        'Trạng thái: ${item.inventoryStatus ? 'Còn hàng' : 'Hết hàng'}'),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        },
+                      child: ListView.separated(
+                      padding: const EdgeInsets.all(8.0),
+                      itemCount: displayedItems.length,
+                      separatorBuilder: (context, index) => Divider(
+                        color: Colors.grey[300], // Màu của đường kẻ
+                        thickness: 1, // Độ dày của đường kẻ
+                        indent: 16, // Khoảng cách từ lề trái
+                        endIndent: 16, // Khoảng cách từ lề phải
                       ),
-                    ),
+                      itemBuilder: (context, index) {
+                        final item = displayedItems[index];
+
+                        return GestureDetector(
+                          onLongPress: () {
+                            _showItemOptions(
+                                item); // Hiển thị menu tùy chọn khi nhấn giữ
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 12.0, horizontal: 16.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Cột trái
+                                Expanded(
+                                  flex: 3,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item.itemName,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8.0),
+                                      Text(
+                                        'Số lượng:',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFFABB2B9),
+                                        ),
+                                      ),
+                                      Text(
+                                        'Giá tiền:',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFFABB2B9),
+                                        ),
+                                      ),
+                                      Text(
+                                        'Đơn vị:',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFFABB2B9),
+                                        ),
+                                      ),
+                                      Text(
+                                        'Ngày nhập:',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFFABB2B9),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Cột phải
+                                Expanded(
+                                  flex: 2,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Icon(
+                                        item.inventoryStatus
+                                            ? Icons
+                                                .check_circle // Icon when inventoryStatus is true
+                                            : Icons
+                                                .cancel, // Icon when inventoryStatus is false
+                                        color: item.inventoryStatus
+                                            ? Colors
+                                                .green // Green color for true
+                                            : Colors
+                                                .grey, // Red color for false
+                                      ),
+                                      const SizedBox(height: 8.0),
+                                      Text(
+                                        '${item.quantity}',
+                                        textAlign: TextAlign.right,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFFABB2B9),
+                                        ),
+                                      ),
+                                      Text(
+                                        '${NumberFormat.currency(locale: 'vi_VN').format(item.price)}',
+                                        textAlign: TextAlign.right,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFFABB2B9),
+                                        ),
+                                      ),
+                                      Text(
+                                        '${item.unit}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFFABB2B9),
+                                        ),
+                                      ),
+                                      Text(
+                                        '${item.expItem.year}-${item.expItem.month.toString().padLeft(2, '0')}-${item.expItem.day.toString().padLeft(2, '0')}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFFABB2B9),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    )),
         ],
       ),
     );
