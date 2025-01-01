@@ -32,7 +32,13 @@ dependencies:
     sdk: flutter
   http: ^1.0.0
   font_awesome_flutter: ^10.0.0
-
+  fluttertoast: ^8.1.1  # Thêm thư viện fluttertoast
+  pinput: ^2.2.31
+  qr_flutter: ^4.1.0
+  fl_chart: ^0.63.0
+  intl: ^0.18.0
+  provider: ^6.0.5
+  table_calendar: ^3.0.9
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -48,7 +54,13 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.9.2
 
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo.png" # Đường dẫn đến hình ảnh biểu tượng của bạn
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -62,11 +74,175 @@ flutter:
     - assets/history_2.png
     - assets/add_1.png
     - assets/add_2.png
-    - assets/box_1.png 
+    - assets/menu_1.png 
+    - assets/menu_2.png
+    - assets/hometest.png
+    - assets/chef_logo.png
+    - assets/user_icon.png
+    - assets/lock_icon.png
+    - assets/eye_show.png
+    - assets/eye_closed.png
+    - assets/angle-left.png
+    - assets/diet.png
+    - assets/square-minus.png
+    - assets/square-plus.png
+    - assets/shopping-cart.png
+    - assets/staff_1.png
+    - assets/staff_2.png
+    - assets/box_1.png
     - assets/box_2.png
     - assets/chart_1.png
     - assets/chart_2.png
-    - assets/hometest.png
+    - assets/bill_1.png
+    - assets/bill_2.png
+    - assets/bell.png
+    - assets/triangle.png
+    - assets/staff_check.png
+    - assets/clients.png
+    - assets/food.png
+    - assets/order.png
+    - assets/check.png
+    - assets/clock.png
+    - assets/angle-small-right.png
+    - assets/image.png
+    - assets/key.png
+    - assets/calender.png
+    - assets/member-list.png
+    - assets/money.png
+    - assets/print.png
+    - assets/dollar.png
+    - assets/steak.png
+    - assets/seafood.png
+    - assets/edit-text.png
+    - assets/reload.png
+    - assets/logo.png
+    - assets/correct.png
+    - assets/triangle1.png
+    - assets/up.png
+    - assets/down.png
+    - assets/delete.png
+    - assets/check_pass.png
+    - assets/error.png
+    - assets/avatar.png
+    - assets/plus.png
+
+
+
+    - assets/food_photo/1.png
+    - assets/food_photo/2.png
+    - assets/food_photo/3.png
+    - assets/food_photo/4.png
+    - assets/food_photo/5.png
+    - assets/food_photo/6.png
+    - assets/food_photo/7.png
+    - assets/food_photo/8.png
+    - assets/food_photo/9.png
+    - assets/food_photo/10.png
+    - assets/food_photo/11.png
+    - assets/food_photo/12.png
+    - assets/food_photo/13.png
+    - assets/food_photo/14.png
+    - assets/food_photo/15.png
+    - assets/food_photo/16.png
+    - assets/food_photo/17.png
+    - assets/food_photo/18.png
+    - assets/food_photo/19.png
+    - assets/food_photo/20.png
+    - assets/food_photo/21.png
+    - assets/food_photo/22.png
+    - assets/food_photo/23.png
+    - assets/food_photo/24.png
+    - assets/food_photo/25.png
+    - assets/food_photo/26.png
+    - assets/food_photo/27.png
+    - assets/food_photo/28.png
+    # - assets/food_photo/29.png
+    # - assets/food_photo/30.png
+    # - assets/food_photo/31.png
+    # - assets/food_photo/32.png
+    # - assets/food_photo/33.png
+    # - assets/food_photo/34.png
+    # - assets/food_photo/35.png
+    # - assets/food_photo/36.png
+    # - assets/food_photo/37.png
+    # - assets/food_photo/38.png
+    # - assets/food_photo/39.png
+    # - assets/food_photo/40.png
+    # - assets/food_photo/41.png
+    # - assets/food_photo/42.png
+    - assets/food_photo/43.png
+    - assets/food_photo/44.png
+    - assets/food_photo/45.png
+    - assets/food_photo/46.png
+    - assets/food_photo/47.png
+    - assets/food_photo/48.png
+    - assets/food_photo/49.png
+    - assets/food_photo/50.png
+    - assets/food_photo/51.png
+    - assets/food_photo/52.png
+    - assets/food_photo/53.png
+    - assets/food_photo/54.png
+    - assets/food_photo/55.png
+    - assets/food_photo/56.png
+    # - assets/food_photo/57.png
+    # - assets/food_photo/58.png
+    # - assets/food_photo/59.png
+    # - assets/food_photo/60.png
+    # - assets/food_photo/61.png
+    # - assets/food_photo/62.png
+    # - assets/food_photo/63.png
+    - assets/food_photo/64.png
+    - assets/food_photo/65.png
+    - assets/food_photo/66.png
+    - assets/food_photo/67.png
+    - assets/food_photo/68.png
+    - assets/food_photo/69.png
+    - assets/food_photo/70.png
+    - assets/food_photo/71.png
+    - assets/food_photo/72.png
+    - assets/food_photo/73.png
+    - assets/food_photo/74.png
+    - assets/food_photo/75.png
+    - assets/food_photo/76.png
+    - assets/food_photo/77.png
+    - assets/food_photo/78.png
+    - assets/food_photo/79.png
+    - assets/food_photo/80.png
+    # - assets/food_photo/81.png
+    - assets/food_photo/82.png
+    - assets/food_photo/83.png
+    - assets/food_photo/84.png
+    - assets/food_photo/85.png
+    - assets/food_photo/86.png
+    - assets/food_photo/87.png
+    - assets/food_photo/88.png
+    - assets/food_photo/89.png
+    - assets/food_photo/90.png
+    - assets/food_photo/91.png
+    - assets/food_photo/92.png
+    - assets/food_photo/93.png
+    - assets/food_photo/94.png
+    - assets/food_photo/95.png
+    - assets/food_photo/96.png
+    - assets/food_photo/97.png
+    - assets/food_photo/98.png
+    - assets/food_photo/99.png
+    - assets/food_photo/100.png
+    - assets/food_photo/101.png
+    - assets/food_photo/102.png
+    - assets/food_photo/103.png
+    - assets/food_photo/104.png
+    - assets/food_photo/105.png
+    - assets/food_photo/106.png
+    # - assets/food_photo/107.png
+    - assets/food_photo/108.png
+    - assets/food_photo/109.png
+    - assets/food_photo/110.png
+    # - assets/food_photo/111.png
+    # - assets/food_photo/112.png
+    # - assets/food_photo/113.png
+    - assets/food_photo/114.png
+    - assets/food_photo/115.png
   
   uses-material-design: true
 

@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-&3vq4iioxe%+#%397)cqj=z8lx*s92r5za)7smfej8uwe&q!k!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'a6d6-42-119-95-236.ngrok-free.app']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '7393-2405-4802-1d81-e640-3d58-aa6-f808-9db2.ngrok-free.app']
 
 
 
@@ -54,6 +54,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'my_backend.urls'
@@ -83,7 +84,7 @@ WSGI_APPLICATION = 'my_backend.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'mssql',
-        'NAME': 'RestaurantDB',  # Tên cơ sở dữ liệu
+        'NAME': 'RestaurantDB1',  # Tên cơ sở dữ liệu
         'USER': '',  # Để trống vì bạn dùng Windows Authentication
         'PASSWORD': '',  # Không cần mật khẩu vì dùng Windows Authentication
         'HOST': 'DESKTOP-K831HUA',  # Server name của SQL Server
@@ -137,6 +138,12 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',  # Chỉ trả về JSON
+    ],
+}
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),

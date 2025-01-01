@@ -1,26 +1,48 @@
-import 'package:app/screens/history_screen.dart';
+// import 'package:app/file_test/test_home.dart';
+import 'package:app/models/user.dart';
+import 'package:app/screens/bill_screen.dart';
 import 'package:app/screens/home_screen.dart';
+import 'package:app/screens/invenory_screen.dart';
+import 'package:app/screens/invoice_screen.dart';
+import 'package:app/screens/list_staff_screen.dart';
+import 'package:app/screens/menu_options.dart';
 import 'package:app/screens/order_screen.dart';
+import 'package:app/screens/report_screen.dart';
+import 'package:app/screens/staff_management_screen.dart';
+import 'package:app/screens/tables_screen.dart';
 import 'package:app/screens/warehouse_screen.dart';
 import 'package:flutter/material.dart';
 
 class ManagerScreen extends StatefulWidget {
-  const ManagerScreen({Key? key}) : super(key: key);
+  final User user;
+
+  const ManagerScreen({Key? key, required this.user}) : super(key: key);
 
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  _ManagerScreenState createState() => _ManagerScreenState();
 }
 
-class _HomeScreenState extends State<ManagerScreen> {
+class _ManagerScreenState extends State<ManagerScreen> {
   int _selectedIndex = 0;
 
   // Danh sách các widget màn hình tương ứng cho từng mục trong BottomNavigationBar
-  static final List<Widget> _widgetOptions = <Widget>[
-    HomeScreen(),
-    HistoryScreen(),
-    OrderScreen(),
-    WarehouseScreen(),
-  ];
+  late final List<Widget> _widgetOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    // Khởi tạo danh sách màn hình và truyền name vào HomeScreen
+    _widgetOptions = <Widget>[
+      HomeScreen(
+        user: widget.user,
+      ), // Truyền name vào HomeScreen
+      StaffManagementScreen(),
+
+      InventoryScreen(),
+      ReportScreen(),
+      InvoiceScreen(),
+    ];
+  }
 
   // Hàm cập nhật chỉ số khi người dùng nhấn vào mục trong BottomNavigationBar
   void _onItemTapped(int index) {
@@ -33,43 +55,61 @@ class _HomeScreenState extends State<ManagerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _widgetOptions.elementAt(_selectedIndex),
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(
-            icon: Image.asset(
-              _selectedIndex == 0 ? 'assets/home_1.png' : 'assets/home_2.png',
-              width: 25, height: 25,
-            ), // Đặt đường dẫn hình ảnh tại đây
-            label: 'Trang chủ',
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset(
-              _selectedIndex == 1 ? 'assets/history_1.png' : 'assets/history_2.png',
-              width: 25, height: 25,
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.white,
+        height: 70,
+        // notchMargin: 5.0, // Khoảng cách giữa nút và BottomAppBar
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround, // Chia đều các icon
+          children: [
+            _buildIconButton(
+                'assets/home_1.png', 'assets/home_2.png', 'Trang chủ', 0),
+            _buildIconButton(
+                'assets/staff_1.png', 'assets/staff_2.png', 'Nhân sự', 1),
+            // _buildIconButton(
+            //     'assets/bill_1.png', 'assets/bill_2.png', 'Hóa đơn', 2),
+            _buildIconButton(
+                'assets/box_1.png', 'assets/box_2.png', 'Kho hàng', 2),
+            _buildIconButton(
+                'assets/chart_1.png', 'assets/chart_2.png', 'Báo cáo', 3),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconButton(
+      String activeIcon, String inactiveIcon, String label, int index) {
+    return GestureDetector(
+      onTap: () => _onItemTapped(index),
+      child: Container(
+        decoration: BoxDecoration(
+            // color: _selectedIndex == index ? Colors.white.withOpacity(0.1) : Colors.,
+            // borderRadius: BorderRadius.circular(8),
+            // border: Border.all(
+            //   color: _selectedIndex == index ? Colors.transparent : Colors.transparent,
+            //   width: 1,
+            // ),
             ),
-          
-            label: 'Lịch sử',
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset(
-              _selectedIndex == 2 ? 'assets/add_1.png' : 'assets/add_2.png',
-              width: 25, height: 25,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              _selectedIndex == index ? activeIcon : inactiveIcon,
+              width: 22,
+              height: 22,
             ),
-            label: 'Gọi món',
-          ),
-          BottomNavigationBarItem(
-            icon: Image.asset(
-              _selectedIndex == 3 ? 'assets/box_1.png' : 'assets/box_2.png',
-              width: 25, height: 25,
+            const SizedBox(height: 5), // Khoảng cách giữa icon và text
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                color:
+                    _selectedIndex == index ? Color(0xFFEF4D2D) : Colors.black,
+              ),
             ),
-            label: 'Kho hàng',
-          ),
-        ],
-        currentIndex: _selectedIndex, // Chỉ mục hiện tại
-        selectedItemColor: Colors.orange, // Màu cho mục được chọn
-        unselectedItemColor: Colors.grey, // Màu cho mục không được chọn
-        onTap: _onItemTapped, // Xử lý sự kiện khi nhấn vào mục
-        type: BottomNavigationBarType.fixed, // Hiển thị cố định cho 4 mục
+          ],
+        ),
       ),
     );
   }
